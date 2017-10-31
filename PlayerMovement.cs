@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using TeamUtility.IO;
 using UnityEngine;
 
 
@@ -24,7 +25,7 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
 
-    public int PlayerNumber = 1;
+    public PlayerID PlayerNumber;
 
 
 
@@ -49,10 +50,10 @@ public class PlayerMovement : MonoBehaviour
     {
         rigidbody = GetComponent<Rigidbody>();     //Caching rigidbody
 
-        throttleAxisName = "Vertical" + PlayerNumber;
-        strafingAxisName = "Strafing" + PlayerNumber;
-        turningAxisName = "Horizontal" + PlayerNumber;
-        jumpButtonName = "Jump" + PlayerNumber;
+        throttleAxisName = "Throttle";
+        strafingAxisName = "Strafing";
+        turningAxisName = "Turning";
+        jumpButtonName = "Jump";
     }
    
     float normalizedX(Vector3 vector) //Auxiliary function to get normalized X component of a vector when taking into account only X and Z components. Because Jumping speed is independent of speed in X and Z directions of a tank
@@ -77,7 +78,7 @@ public class PlayerMovement : MonoBehaviour
     
     void FixedUpdate ()
 	{
-	    float rotationY = Input.GetAxisRaw(turningAxisName) * rotationSpeed; //To rotate depending on input axis (rotation around Y axis)
+	    float rotationY = InputManager.GetAxisRaw(turningAxisName, PlayerNumber) * rotationSpeed; //To rotate depending on input axis (rotation around Y axis)
 	    float tankRotation = transform.localEulerAngles.y + rotationY;      //Add the rotation to current rotation of the tank
 	    transform.localEulerAngles = new Vector3(0, tankRotation, 0);   //Apply this rotation (X=0, Z=0 constraint the tank to not tilt when hitting objects)
 
@@ -97,8 +98,8 @@ public class PlayerMovement : MonoBehaviour
 
         //////////////////////
 
-        float throttle = Input.GetAxisRaw(throttleAxisName) * acceleration;   //Get throttle input (W-S)
-        float strafing = Input.GetAxisRaw(strafingAxisName) * acceleration;   //Get strafing input (Q-E) for now
+        float throttle = InputManager.GetAxisRaw(throttleAxisName, PlayerNumber) * acceleration;   //Get throttle input (W-S)
+        float strafing = InputManager.GetAxisRaw(strafingAxisName, PlayerNumber) * acceleration;   //Get strafing input (Q-E) for now
 
         Vector3 velocity = new Vector3(strafing, 0, throttle);  //Make a velocity vector from input
 
@@ -129,11 +130,44 @@ public class PlayerMovement : MonoBehaviour
             rigidbody.velocity = new Vector3(vel.x - normalizedX(vel) * Time.fixedDeltaTime * dragCoeff, vel.y, vel.z - normalizedZ(vel) * Time.fixedDeltaTime * dragCoeff);
         else
             rigidbody.velocity = Vector3.zero; //If the velocity.magnitude is lower than 0.001, set it to 0
-	    
-        if (grounded && Input.GetButton(jumpButtonName))    //We can jump only if we are on the ground
-        {
-            rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpVelocity, rigidbody.velocity.z);     //Just apply the Y velocity to jump      
+
+        //if (grounded && InputManager.GetButton(jumpButtonName, PlayerNumber))    //We can jump only if we are on the ground
+        //{
+        //    rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpVelocity, rigidbody.velocity.z);     //Just apply the Y velocity to jump      
+        //}
+
+	    if (grounded)    //We can jump only if we are on the ground
+	    {
+	        if (PlayerNumber == PlayerID.One)
+	        {
+	            if (InputManager.GetButton(jumpButtonName, PlayerNumber))
+	                rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpVelocity, rigidbody.velocity.z);     //Just apply the Y velocity to jump  
+            }                
+            else if (PlayerNumber == PlayerID.Two)
+            { 
+                if (Input.GetKey(KeyCode.Joystick1Button4) && Input.GetKey(KeyCode.Joystick1Button5))                                  
+                    rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpVelocity, rigidbody.velocity.z);     //Just apply the Y velocity to jump  
+                
+            }
+                
+                    
+
+
+
         }
+
+
+	   
+
+
+        //if (PlayerNumber == PlayerID.Two)
+        //    if (Input.GetKey(KeyCode.Joystick1Button4) && Input.GetKey(KeyCode.Joystick1Button5))
+        //    {
+        //        print(grounded);
+
+        //    }
+
+
         grounded = false; //Set that we are not grounded every frame after jumping code so it will be overrided by collisions
 
 
