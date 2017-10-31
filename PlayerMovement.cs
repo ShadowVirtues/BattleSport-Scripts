@@ -24,20 +24,35 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
 
-    private float rotationSpeed = 2; //Rotation speed when turning the tank with A-D or equivalent on gamepad
+    public int PlayerNumber = 1;
+
+
+
     public float acceleration;  //TODO tank-specific acceleration
     public float maxSpeed;      //TODO tank-specific top speed
-    private float jumpVelocity = 10; //Jump velocity applied to Y axis when pressing Jump button
     public float rocketHitForce;//TODO maybe different for tanks parameter "firepower"
     public float dragCoeff;     //Coefficient of linear drag that all tanks stop from (like air friction) TODO make private
+
+    private float rotationSpeed = 2.5f; //Rotation speed when turning the tank with A-D or equivalent on gamepad
+    private float jumpVelocity = 10; //Jump velocity applied to Y axis when pressing Jump button
 
     private new Rigidbody rigidbody;    //Caching rigidbody
 
     private bool grounded = false;      //Variable to check for if grounded to be able to jump
-      
+
+    private string throttleAxisName;
+    private string strafingAxisName;
+    private string turningAxisName;
+    private string jumpButtonName;
+
     void Awake ()
     {
         rigidbody = GetComponent<Rigidbody>();     //Caching rigidbody
+
+        throttleAxisName = "Vertical" + PlayerNumber;
+        strafingAxisName = "Strafing" + PlayerNumber;
+        turningAxisName = "Horizontal" + PlayerNumber;
+        jumpButtonName = "Jump" + PlayerNumber;
     }
    
     float normalizedX(Vector3 vector) //Auxiliary function to get normalized X component of a vector when taking into account only X and Z components. Because Jumping speed is independent of speed in X and Z directions of a tank
@@ -62,7 +77,7 @@ public class PlayerMovement : MonoBehaviour
     
     void FixedUpdate ()
 	{
-	    float rotationY = Input.GetAxisRaw("Horizontal") * rotationSpeed; //To rotate depending on input axis (rotation around Y axis)
+	    float rotationY = Input.GetAxisRaw(turningAxisName) * rotationSpeed; //To rotate depending on input axis (rotation around Y axis)
 	    float tankRotation = transform.localEulerAngles.y + rotationY;      //Add the rotation to current rotation of the tank
 	    transform.localEulerAngles = new Vector3(0, tankRotation, 0);   //Apply this rotation (X=0, Z=0 constraint the tank to not tilt when hitting objects)
 
@@ -82,8 +97,8 @@ public class PlayerMovement : MonoBehaviour
 
         //////////////////////
 
-        float throttle = Input.GetAxisRaw("Vertical") * acceleration;   //Get throttle input (W-S)
-        float strafing = Input.GetAxisRaw("Strafing") * acceleration;   //Get strafing input (Q-E) for now
+        float throttle = Input.GetAxisRaw(throttleAxisName) * acceleration;   //Get throttle input (W-S)
+        float strafing = Input.GetAxisRaw(strafingAxisName) * acceleration;   //Get strafing input (Q-E) for now
 
         Vector3 velocity = new Vector3(strafing, 0, throttle);  //Make a velocity vector from input
 
@@ -115,7 +130,7 @@ public class PlayerMovement : MonoBehaviour
         else
             rigidbody.velocity = Vector3.zero; //If the velocity.magnitude is lower than 0.001, set it to 0
 	    
-        if (grounded && Input.GetButton("Jump"))    //We can jump only if we are on the ground
+        if (grounded && Input.GetButton(jumpButtonName))    //We can jump only if we are on the ground
         {
             rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpVelocity, rigidbody.velocity.z);     //Just apply the Y velocity to jump      
         }
