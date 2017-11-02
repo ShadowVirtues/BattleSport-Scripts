@@ -9,6 +9,6 @@ public class Tank : MonoBehaviour
     public float firePower;
     public float armor;
     public float ballHandling;
-
-
+    public int rocketCount;
+    public Transform[] rocketSpawnPoints;
 }

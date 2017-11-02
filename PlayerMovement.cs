@@ -13,7 +13,8 @@ using UnityEngine;
     
     Consider that we have default Physic Material and there needs to be ball bouncing out of everything     
     
-         
+    Rockets from players will move in global space, so they won't be childed to players. That way probably make two emptys "PlayerOneRockets"/"PlayerTwoRockets" at origin and child pooled rockets to them.
+    Instantiate initially rocketCount childed to empty, set it's firePower. You should have references to those rockets in a script. Then when shooting, set rocket's angle and defaultSpeed+playerSpeedZ
          
          
 */
