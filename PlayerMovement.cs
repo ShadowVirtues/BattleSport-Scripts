@@ -1,7 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Security.Cryptography.X509Certificates;
 using TeamUtility.IO;
 using UnityEngine;
 
@@ -13,10 +11,11 @@ using UnityEngine;
     
     Consider that we have default Physic Material and there needs to be ball bouncing out of everything     
     
-    Rockets from players will move in global space, so they won't be childed to players. That way probably make two emptys "PlayerOneRockets"/"PlayerTwoRockets" at origin and child pooled rockets to them.
-    Instantiate initially rocketCount childed to empty, set it's firePower. You should have references to those rockets in a script. Then when shooting, set rocket's angle and defaultSpeed+playerSpeedZ
+
          
          
+    When putting a chosen tank in a scene's container "PlayerOne/Two", set the layer of the tank object to respective one.
+
 */
 
 
@@ -26,13 +25,10 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
 
-    public PlayerID PlayerNumber;
-
-
-
+    public PlayerID PlayerNumber; //From TeamUtility InputManager "Add-on". Sets which player is getting controlled by this script and which controls to take from this InputManager
+    
     public float acceleration;  //TODO tank-specific acceleration
-    public float maxSpeed;      //TODO tank-specific top speed
-    public float rocketHitForce;//TODO maybe different for tanks parameter "firepower"
+    public float maxSpeed;      //TODO tank-specific top speed   
     public float dragCoeff;     //Coefficient of linear drag that all tanks stop from (like air friction) TODO make private
 
     private float rotationSpeed = 2.5f; //Rotation speed when turning the tank with A-D or equivalent on gamepad
@@ -43,7 +39,7 @@ public class PlayerMovement : MonoBehaviour
     private bool grounded = false;      //Variable to check for if grounded to be able to jump
 
     private string throttleAxisName;
-    private string strafingAxisName;
+    private string strafingAxisName; //Caching axis names for input
     private string turningAxisName;
     private string jumpButtonName;
 
@@ -52,7 +48,7 @@ public class PlayerMovement : MonoBehaviour
         rigidbody = GetComponent<Rigidbody>();     //Caching rigidbody
 
         throttleAxisName = "Throttle";
-        strafingAxisName = "Strafing";
+        strafingAxisName = "Strafing";  //Caching axis names for input
         turningAxisName = "Turning";
         jumpButtonName = "Jump";
     }
@@ -81,23 +77,7 @@ public class PlayerMovement : MonoBehaviour
 	{
 	    float rotationY = InputManager.GetAxisRaw(turningAxisName, PlayerNumber) * rotationSpeed; //To rotate depending on input axis (rotation around Y axis)
 	    float tankRotation = transform.localEulerAngles.y + rotationY;      //Add the rotation to current rotation of the tank
-	    transform.localEulerAngles = new Vector3(0, tankRotation, 0);   //Apply this rotation (X=0, Z=0 constraint the tank to not tilt when hitting objects)
-
-        //transform.Rotate(0, Input.GetAxisRaw("Horizontal") * rotationSpeed, 0);
-
-        //rigidbody.rotation = rotationBeforePhysics;
-
-        //rotationBeforePhysics = rigidbody.rotation;
-
-        //KOSTIL' LOOK AT child transform of the tank
-
-        //transform.rotation = Quaternion.LookRotation(transform.TransformDirection(Vector3.forward), Vector3.up);
-
-        //Vector3 eulerAngles = transform.rotation.eulerAngles;
-        //eulerAngles = new Vector3(0, eulerAngles.y, 0);
-        //transform.rotation = Quaternion.Euler(eulerAngles);
-
-        //////////////////////
+	    transform.localEulerAngles = new Vector3(0, tankRotation, 0);   //Apply this rotation (X=0, Z=0 constraint the tank to not tilt when hitting objects)     
 
         float throttle = InputManager.GetAxisRaw(throttleAxisName, PlayerNumber) * acceleration;   //Get throttle input (W-S)
         float strafing = InputManager.GetAxisRaw(strafingAxisName, PlayerNumber) * acceleration;   //Get strafing input (Q-E) for now
@@ -139,7 +119,7 @@ public class PlayerMovement : MonoBehaviour
 
 	    if (grounded)    //We can jump only if we are on the ground
 	    {
-	        if (PlayerNumber == PlayerID.One)
+	        if (PlayerNumber == PlayerID.One)   //TODO probably only for now player one jumps with set button, and player two hard-coded from here by pressing LB+RB on a gamepad
 	        {
 	            if (InputManager.GetButton(jumpButtonName, PlayerNumber))
 	                rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpVelocity, rigidbody.velocity.z);     //Just apply the Y velocity to jump  
@@ -172,10 +152,7 @@ public class PlayerMovement : MonoBehaviour
         grounded = false; //Set that we are not grounded every frame after jumping code so it will be overrided by collisions
 
 
-        if (Input.GetKeyDown(KeyCode.C))    //Simulation of rocket hit
-        {
-            rigidbody.AddRelativeForce(rocketHitForce * Vector3.forward, ForceMode.VelocityChange);
-        }
+       
 
     }
 
