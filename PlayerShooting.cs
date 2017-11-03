@@ -11,7 +11,7 @@ using UnityEngine;
     Test rocket-rocket collisions
 
 
-    Make Z-velocity dependent rocket speed
+    
 */
 
 
@@ -54,7 +54,9 @@ public class PlayerShooting : MonoBehaviour
         Rockets = new GameObject[playerRocketCount];
         rocketRigidbody = new Rigidbody[playerRocketCount]; //Initializing arrays
         rocket = new Rocket[playerRocketCount];
-        
+
+        int layerToSet = playerNumber == PlayerID.One ? 11 : 12;
+
         for (int i = 0; i < playerRocketCount; i++) //For all rockets available
         {
             Rockets[i] = Instantiate(rocketPrefab, rocketPoolContainer.transform);  //Instantiate a rocket childed to their container
@@ -64,7 +66,12 @@ public class PlayerShooting : MonoBehaviour
 
             rocket[i].FirePower = tank.firePower;   //Assign a firepower to the rocket 
 
-            Rockets[i].layer = playerNumber == PlayerID.One ? 11 : 12;     //Assign a layer to rockets. 11 - "RocketPlayerOne", 12 - "RocketPlayerTwo"     
+            Rockets[i].layer = layerToSet;     //Assign a layer to rockets. 11 - "RocketPlayerOne", 12 - "RocketPlayerTwo"
+            foreach (Transform t in Rockets[i].transform)
+            {
+                t.gameObject.layer = layerToSet;
+
+            }
             rocket[i].otherPlayerLayer = playerNumber == PlayerID.One ? 9 : 8;  //Assign this so rockets know what player to do damage to. 9 - "PlayerTwo", 8 - "PlayerOne"
 
         }
@@ -72,20 +79,7 @@ public class PlayerShooting : MonoBehaviour
 
 
 
-    Vector3 GetPlayerVelocityZ()
-    {
-        Vector3 velZ = Vector3.Project(playerRigidbody.velocity, transform.TransformDirection(Vector3.forward));
-
-        print(velZ);
-
-        //Debug.DrawRay(transform.position, );
-
-
-        return velZ;
-    }
-
-
-
+    
 
     void Update()
     {
@@ -104,12 +98,9 @@ public class PlayerShooting : MonoBehaviour
                     rocketRigidbody[i].position = tank.rocketSpawnPoints[turretNumber].position;   //Set the position to shoot rocket from assigned turret Transform Position
                     rocketRigidbody[i].rotation = transform.rotation;                               //Set rocket rotation from tank rotation.
 
+                    Vector3 playerVelocityZGlobal = Vector3.Project(playerRigidbody.velocity, transform.TransformDirection(Vector3.forward)); //Get the velocity of the player in Z axis (player looking forward). This vector returns the vector in global space, so it just adds to the rocket velocity
+                    rocketRigidbody[i].velocity = defaultRocketSpeed * transform.TransformDirection(rocketDirection) + playerVelocityZGlobal;   //Set rocket velocity. Transform almost-Vector3.forward to local space relative to the tank + inherit tanks Z velocity                   
                     
-
-                    rocketRigidbody[i].velocity = defaultRocketSpeed * transform.TransformDirection(rocketDirection) + GetPlayerVelocityZ();   //Set rocket velocity. Transform quasi-Vector3.forward to local space relative to the tank. TODO Inherit it from tanks Z velocity
-
-                    print(rocketRigidbody[i].velocity.magnitude);
-
                     rocketRigidbody[i].angularVelocity = transform.TransformDirection(Vector3.forward) * 20;    //Set angular velocity so the rocket rotates along its local Z axis for cool looking rocket.
                     
                     break;  //If we found disabled rocket, don't look further.

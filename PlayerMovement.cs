@@ -12,7 +12,7 @@ using UnityEngine;
     Consider that we have default Physic Material and there needs to be ball bouncing out of everything     
     
 
-         
+    Adjust thrusters lifetime so you don't see it while moving backwards
          
     When putting a chosen tank in a scene's container "PlayerOne/Two", set the layer of the tank object to respective one.
 
@@ -38,19 +38,14 @@ public class PlayerMovement : MonoBehaviour
 
     private bool grounded = false;      //Variable to check for if grounded to be able to jump
 
-    private string throttleAxisName;
-    private string strafingAxisName; //Caching axis names for input
-    private string turningAxisName;
-    private string jumpButtonName;
+    private const string throttleAxisName = "Throttle";
+    private const string strafingAxisName = "Strafing";    //Caching axis names for input
+    private const string turningAxisName = "Turning";
+    private const string jumpButtonName = "Jump";
 
     void Awake ()
     {
-        rigidbody = GetComponent<Rigidbody>();     //Caching rigidbody
-
-        throttleAxisName = "Throttle";
-        strafingAxisName = "Strafing";  //Caching axis names for input
-        turningAxisName = "Turning";
-        jumpButtonName = "Jump";
+        rigidbody = GetComponent<Rigidbody>();     //Caching rigidbody        
     }
    
     float normalizedX(Vector3 vector) //Auxiliary function to get normalized X component of a vector when taking into account only X and Z components. Because Jumping speed is independent of speed in X and Z directions of a tank
