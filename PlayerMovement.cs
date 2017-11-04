@@ -7,26 +7,15 @@ using UnityEngine;
 
 
 
-/*
-    
-    Consider that we have default Physic Material and there needs to be ball bouncing out of everything     
-    
-
-    Adjust thrusters lifetime so you don't see it while moving backwards
-         
-    When putting a chosen tank in a scene's container "PlayerOne/Two", set the layer of the tank object to respective one.
-
-*/
-
 
 
 
 
 public class PlayerMovement : MonoBehaviour
 {
+    private Player player; //Reference to Player component
+    private PlayerID playerNumber; //From TeamUtility InputManager "Add-on". Sets which player is getting controlled by this script and which controls to take from this InputManager
 
-    public PlayerID PlayerNumber; //From TeamUtility InputManager "Add-on". Sets which player is getting controlled by this script and which controls to take from this InputManager
-    
     public float acceleration;  //TODO tank-specific acceleration
     public float maxSpeed;      //TODO tank-specific top speed   
     public float dragCoeff;     //Coefficient of linear drag that all tanks stop from (like air friction) TODO make private
@@ -45,6 +34,8 @@ public class PlayerMovement : MonoBehaviour
 
     void Awake ()
     {
+        player = GetComponent<Player>();
+        playerNumber = player.PlayerNumber;
         rigidbody = GetComponent<Rigidbody>();     //Caching rigidbody        
     }
    
@@ -70,12 +61,12 @@ public class PlayerMovement : MonoBehaviour
     
     void FixedUpdate ()
 	{
-	    float rotationY = InputManager.GetAxisRaw(turningAxisName, PlayerNumber) * rotationSpeed; //To rotate depending on input axis (rotation around Y axis)
+	    float rotationY = InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed; //To rotate depending on input axis (rotation around Y axis)
 	    float tankRotation = transform.localEulerAngles.y + rotationY;      //Add the rotation to current rotation of the tank
 	    transform.localEulerAngles = new Vector3(0, tankRotation, 0);   //Apply this rotation (X=0, Z=0 constraint the tank to not tilt when hitting objects)     
 
-        float throttle = InputManager.GetAxisRaw(throttleAxisName, PlayerNumber) * acceleration;   //Get throttle input (W-S)
-        float strafing = InputManager.GetAxisRaw(strafingAxisName, PlayerNumber) * acceleration;   //Get strafing input (Q-E) for now
+        float throttle = InputManager.GetAxisRaw(throttleAxisName, playerNumber) * acceleration;   //Get throttle input (W-S)
+        float strafing = InputManager.GetAxisRaw(strafingAxisName, playerNumber) * acceleration;   //Get strafing input (Q-E) for now
 
         Vector3 velocity = new Vector3(strafing, 0, throttle);  //Make a velocity vector from input
 
@@ -114,12 +105,12 @@ public class PlayerMovement : MonoBehaviour
 
 	    if (grounded)    //We can jump only if we are on the ground
 	    {
-	        if (PlayerNumber == PlayerID.One)   //TODO probably only for now player one jumps with set button, and player two hard-coded from here by pressing LB+RB on a gamepad
+	        if (playerNumber == PlayerID.One)   //TODO probably only for now player one jumps with set button, and player two hard-coded from here by pressing LB+RB on a gamepad
 	        {
-	            if (InputManager.GetButton(jumpButtonName, PlayerNumber))
+	            if (InputManager.GetButton(jumpButtonName, playerNumber))
 	                rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpVelocity, rigidbody.velocity.z);     //Just apply the Y velocity to jump  
             }                
-            else if (PlayerNumber == PlayerID.Two)
+            else if (playerNumber == PlayerID.Two)
             { 
                 if (Input.GetKey(KeyCode.Joystick1Button4) && Input.GetKey(KeyCode.Joystick1Button5))                                  
                     rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpVelocity, rigidbody.velocity.z);     //Just apply the Y velocity to jump  

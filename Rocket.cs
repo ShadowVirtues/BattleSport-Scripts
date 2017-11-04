@@ -3,9 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-//Armor will mean player mass which also gets calculated in knock force
-//To deal damage to the player when the rocket collides: in PlayerShooting, create a reference to the field "Player" of this script, then when dealing damage do "Player.Hit(damage)" <- run a public function
 
+/*
+ 
+    Test rocket-rocket collisions
+
+    Armor will mean player mass which also gets calculated in knock force
+    To deal damage to the player when the rocket collides: in PlayerShooting, create a reference to the field "Player" of this script, then when dealing damage do "Player.Hit(damage)" <- run a public function
+    
+*/
 public class Rocket : MonoBehaviour
 {
     [SerializeField] private GameObject rocketModel;    //Reference to rocket model and explosion to disable-enable them when rocket explodes
@@ -40,9 +46,18 @@ public class Rocket : MonoBehaviour
 
             other.rigidbody.AddForce(forceVector * FirePower * forceCoeff, ForceMode.VelocityChange);   //Add force to the other player combined with a vector
 
+
+            float enemyArmor = other.gameObject.GetComponentInChildren<Tank>().armor;
+            float damage = (160 - enemyArmor) / 250 * FirePower;
+            other.gameObject.GetComponent<Player>().Hit(damage);    //TODO For now it's like this. In future, we will maybe have a static PlayerOne/Two reference so we can easily get their fields
+
+
         }
 
         //TODO Deal damage
+
+        
+
 
         StartCoroutine(RocketExplosion());  //After colliding, disable rocket model and make explosion, then disable the whole rocket object for reusage
     }

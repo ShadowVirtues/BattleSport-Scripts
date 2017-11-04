@@ -6,20 +6,14 @@ using UnityEngine;
 
 
 
-/*
- 
-    Test rocket-rocket collisions
 
-
-    
-*/
 
 
 public class PlayerShooting : MonoBehaviour
 {
     [SerializeField] private GameObject rocketPrefab;   //Rocket prefab to shoot with
     
-    private PlayerMovement player;  //Reference to PlayerMovement component on the player. TODO probably should make some separate script "Player" where include this and other stuff non-related to movement and shooting
+    private Player player;  //Reference to Player component on the player
     private PlayerID playerNumber;  //Player number for handle mutual rocket collisions
     private Tank tank;              //Reference to Tank component to get rocketPower, firePower and rocketSpawnPoints from
     private Rigidbody playerRigidbody; //Reference to player Rigidbody for getting its Z velocity
@@ -40,7 +34,7 @@ public class PlayerShooting : MonoBehaviour
 
     void Awake()
     {
-        player = GetComponent<PlayerMovement>();
+        player = GetComponent<Player>();
         playerNumber = player.PlayerNumber;
         playerRigidbody = GetComponent<Rigidbody>();
         tank = GetComponentInChildren<Tank>(); //Tank component gets inserted to PlayerX gameObject with the tank model when the tank is picked.
@@ -102,7 +96,10 @@ public class PlayerShooting : MonoBehaviour
                     rocketRigidbody[i].velocity = defaultRocketSpeed * transform.TransformDirection(rocketDirection) + playerVelocityZGlobal;   //Set rocket velocity. Transform almost-Vector3.forward to local space relative to the tank + inherit tanks Z velocity                   
                     
                     rocketRigidbody[i].angularVelocity = transform.TransformDirection(Vector3.forward) * 20;    //Set angular velocity so the rocket rotates along its local Z axis for cool looking rocket.
-                    
+
+                    //if (doubleDamage)
+                    //    rocket[i].FirePower = tank.firePower * 2; //TEST. TODO When implementing, remember to set the damage back to normal
+
                     break;  //If we found disabled rocket, don't look further.
                 }
             }
