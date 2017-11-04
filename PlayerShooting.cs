@@ -28,7 +28,7 @@ public class PlayerShooting : MonoBehaviour
 
     public const float defaultRocketSpeed = 35; //Rocket speed is getting set here, it is getting amplified by player velocity in Z direction
 
-    public int shotRocketCount = 0; //Counter for the amount of shot rockets for after-game stats. Also is getting used in Mathf.Repeat to decide which turret to shoot from
+    //public int shotRocketCount = 0; //TODO Counter for the amount of shot rockets for after-game stats. Also is getting used in Mathf.Repeat to decide which turret to shoot from
 
     private readonly Vector3 rocketDirection = new Vector3(0,-0.005f,1);    //Vector to shoot rocket to. It is 'forward' with slight drag down (kinda like gravity). In the game has a big effect when one player is flying, the other one can't hit him from longer range
 
@@ -85,9 +85,9 @@ public class PlayerShooting : MonoBehaviour
                 {              
                     Rockets[i].SetActive(true); //Activating it before setting parameters, cuz setting rigidbody parameters for disabled objects doesn't work
 
-                    int turretNumber = shotRocketCount % tank.rocketSpawnPoints.Length; //Index number of the turret to shoot the rocket from. "%" means remainder of division
+                    int turretNumber = player.playerStats.MissilesFired % tank.rocketSpawnPoints.Length; //Index number of the turret to shoot the rocket from. "%" means remainder of division
 
-                    shotRocketCount++;  //Increasing this after calculating turretNumber, so the first rocket (with count 0) shoots from the first turren, not from the second
+                    player.playerStats.MissilesFired++;  //Increasing this after calculating turretNumber, so the first rocket (with count 0) shoots from the first turren, not from the second
 
                     rocketRigidbody[i].position = tank.rocketSpawnPoints[turretNumber].position;   //Set the position to shoot rocket from assigned turret Transform Position
                     rocketRigidbody[i].rotation = transform.rotation;                               //Set rocket rotation from tank rotation.
