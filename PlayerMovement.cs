@@ -20,7 +20,7 @@ public class PlayerMovement : MonoBehaviour
     public float maxSpeed;      //TODO tank-specific top speed   
     public float dragCoeff;     //Coefficient of linear drag that all tanks stop from (like air friction) TODO make private
 
-    private float rotationSpeed = 2.5f; //Rotation speed when turning the tank with A-D or equivalent on gamepad
+    private float rotationSpeed = 125; //Rotation speed when turning the tank with A-D or equivalent on gamepad
     private float jumpVelocity = 10; //Jump velocity applied to Y axis when pressing Jump button
 
     private new Rigidbody rigidbody;    //Caching rigidbody
@@ -37,8 +37,13 @@ public class PlayerMovement : MonoBehaviour
         player = GetComponent<Player>();
         playerNumber = player.PlayerNumber;
         rigidbody = GetComponent<Rigidbody>();     //Caching rigidbody        
+
+#if UNITY_EDITOR
+        //QualitySettings.vSyncCount = 0;  // VSync must be disabled
+        //Application.targetFrameRate = 45;
+#endif
     }
-   
+
     float normalizedX(Vector3 vector) //Auxiliary function to get normalized X component of a vector when taking into account only X and Z components. Because Jumping speed is independent of speed in X and Z directions of a tank
     {
         float magnigude2D = Mathf.Sqrt(vector.x * vector.x + vector.z * vector.z);  //Get magnitude of quasi-Vector2 from X and Z components of Vector3
@@ -58,12 +63,34 @@ public class PlayerMovement : MonoBehaviour
         else
             return 0;
     }
-    
-    void FixedUpdate ()
+
+    void Update()
+    {
+        float rotationY = InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed * Time.deltaTime * (0.005f / Time.deltaTime + 0.75f); //To rotate depending on input axis (rotation around Y axis)
+        float tankRotation = transform.localEulerAngles.y + rotationY;      //Add the rotation to current rotation of the tank
+        //transform.localEulerAngles = new Vector3(0, tankRotation, 0);   //Apply this rotation (X=0, Z=0 constraint the tank to not tilt when hitting objects)     
+        
+        rigidbody.MoveRotation(Quaternion.Euler(0, tankRotation, 0));
+        //rigidbody.transform.rotation = Quaternion.Euler(0, tankRotation, 0);
+
+        //transform.Rotate(0, InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed * Time.deltaTime, 0);
+
+
+    }
+
+    void FixedUpdate () 
 	{
-	    float rotationY = InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed; //To rotate depending on input axis (rotation around Y axis)
-	    float tankRotation = transform.localEulerAngles.y + rotationY;      //Add the rotation to current rotation of the tank
-	    transform.localEulerAngles = new Vector3(0, tankRotation, 0);   //Apply this rotation (X=0, Z=0 constraint the tank to not tilt when hitting objects)     
+        //float rotationY = InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed / 50; //To rotate depending on input axis (rotation around Y axis)
+        //float tankRotation = transform.localEulerAngles.y + rotationY;      //Add the rotation to current rotation of the tank
+        //transform.localEulerAngles = new Vector3(0, tankRotation, 0);   //Apply this rotation (X=0, Z=0 constraint the tank to not tilt when hitting objects)     
+
+        //rigidbody.MoveRotation(Quaternion.Euler(0, tankRotation, 0));
+
+        //rigidbody.transform.rotation = Quaternion.Euler(0, tankRotation, 0);
+
+        //rigidbody.angularVelocity = Vector3.up * InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed / 50;
+
+	    //transform.Rotate(0, InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed/ 50, 0);
 
         float throttle = InputManager.GetAxisRaw(throttleAxisName, playerNumber) * acceleration;   //Get throttle input (W-S)
         float strafing = InputManager.GetAxisRaw(strafingAxisName, playerNumber) * acceleration;   //Get strafing input (Q-E) for now
@@ -93,17 +120,20 @@ public class PlayerMovement : MonoBehaviour
 
 
 	    //Applying 'linear drag' to the player by subtracting the constant coeficient from his speed, with 'normalized' coeficient to take into account the direction (example 0.7 speed to X direction, 0.3 to Z direction)
-        if (vel.sqrMagnitude > 0.001) //Since we are subtracting the speed, it may go over 0, so don't do that if the velocity.magnitude is higher than 0.001
+        if (vel.sqrMagnitude > 0.03) //Since we are subtracting the speed, it may go over 0, so don't do that if the velocity.magnitude is higher than 0.001
             rigidbody.velocity = new Vector3(vel.x - normalizedX(vel) * Time.fixedDeltaTime * dragCoeff, vel.y, vel.z - normalizedZ(vel) * Time.fixedDeltaTime * dragCoeff);
         else
-            rigidbody.velocity = Vector3.zero; //If the velocity.magnitude is lower than 0.001, set it to 0
+            rigidbody.velocity = Vector3.zero; //If the velocity.magnitude^2 is lower than 0.03, set it to 0
+
+        //print($"{rigidbody.velocity.x} {rigidbody.velocity.y} {rigidbody.velocity.z} {rigidbody.velocity.magnitude} {rigidbody.velocity.sqrMagnitude}");
+
 
         //if (grounded && InputManager.GetButton(jumpButtonName, PlayerNumber))    //We can jump only if we are on the ground
         //{
         //    rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpVelocity, rigidbody.velocity.z);     //Just apply the Y velocity to jump      
         //}
 
-	    if (grounded)    //We can jump only if we are on the ground
+        if (grounded)    //We can jump only if we are on the ground
 	    {
 	        if (playerNumber == PlayerID.One)   //TODO probably only for now player one jumps with set button, and player two hard-coded from here by pressing LB+RB on a gamepad
 	        {
