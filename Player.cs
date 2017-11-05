@@ -29,7 +29,7 @@ using UnityEngine.UI;
 
     Adjust thrusters lifetime so you don't see it while moving backwards. MAYBE MAKE CULLING SHIT TO CAMERA, SO WITH INSANE FOVS PLAYERS COULDNT SEE THEIR OWN TANK
          
-    When putting a chosen tank in a scene's container "PlayerOne/Two", set the layer of the tank object to respective one.
+    When putting a chosen tank in a scene's container "PlayerOne/Two", set the layer of the tank object to respective one. Care about "PlayerExplosion" layer
 
 
 
@@ -84,6 +84,8 @@ public class Player : MonoBehaviour
     [SerializeField] private GameObject tankModel;
     [SerializeField] private GameObject deathScreen;
     [SerializeField] private Text deathTimer;
+    [SerializeField] private Animator cameraAnim;
+
 
     private int explodedTime = 2;
     private readonly WaitForSeconds secondOfDeath = new WaitForSeconds(1);
@@ -91,20 +93,28 @@ public class Player : MonoBehaviour
     //====================OTHER=====================
 
     private Rigidbody playerRigidbody;
+    private PlayerMovement movement;
+
 
     void Awake()
     {
         playerRigidbody = GetComponent<Rigidbody>();
+        movement = GetComponent<PlayerMovement>();
     }
 
     private IEnumerator Explode()
     {
-        //TODO Make so 0.5 sec counts in death timer
-        //TODO Make so the ship actually keeps moving a bit after exploding
-        //TODO Make a cool camera animation to 3person view the explosion for 0.5 sec, then deathScreen
-        playerRigidbody.isKinematic = true;
+        
+        
+        
+        
+        movement.enabled = false;
+        playerRigidbody.drag = 3;
         tankModel.SetActive(false);
         explosion.SetActive(true);
+
+        cameraAnim.enabled = true;
+        cameraAnim.Play("ExplodeCamera",-1,0);
         yield return new WaitForSeconds(0.5f);
         deathScreen.SetActive(true); 
         
@@ -116,10 +126,18 @@ public class Player : MonoBehaviour
             yield return secondOfDeath;
 
         }
+        
+        cameraAnim.enabled = false;
 
         explosion.SetActive(false);
         //TODO SPAWN PLAYER SOMEWHERE ON THE MAP
-        playerRigidbody.isKinematic = false;       
+
+        movement.enabled = true;
+        playerRigidbody.drag = 0;
+
+        //Health = 100;
+        //healthSlider.value = Health;
+
         tankModel.SetActive(true);
 
         deathScreen.SetActive(false);
@@ -151,6 +169,9 @@ public class Player : MonoBehaviour
 
         if (Health < 0)
         {
+            Health = 0;
+            healthSlider.value = Health;
+
             playerStats.Kills++;
             if (playerStats.Kills == 5 || playerStats.Kills == 10) IncreaseDestroyedTime();
             StartCoroutine(Explode());
@@ -165,5 +186,16 @@ public class Player : MonoBehaviour
         
 
     }
+
+    private void FindRandomPosition()
+    {
+        
+
+
+
+
+    }
+
+
 
 }
