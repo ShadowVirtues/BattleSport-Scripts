@@ -49,7 +49,7 @@ public class PlayerShooting : MonoBehaviour
         rocketRigidbody = new Rigidbody[playerRocketCount]; //Initializing arrays
         rocket = new Rocket[playerRocketCount];
 
-        int layerToSet = playerNumber == PlayerID.One ? 11 : 12;
+        int layerToSet = playerNumber == PlayerID.One ? 10 : 11;
 
         for (int i = 0; i < playerRocketCount; i++) //For all rockets available
         {
@@ -60,7 +60,7 @@ public class PlayerShooting : MonoBehaviour
 
             rocket[i].FirePower = tank.firePower;   //Assign a firepower to the rocket 
 
-            Rockets[i].layer = layerToSet;     //Assign a layer to rockets. 11 - "RocketPlayerOne", 12 - "RocketPlayerTwo"
+            Rockets[i].layer = layerToSet;     //Assign a layer to rockets. 10 - "RocketPlayerOne", 11 - "RocketPlayerTwo"
             foreach (Transform t in Rockets[i].transform)
             {
                 t.gameObject.layer = layerToSet;

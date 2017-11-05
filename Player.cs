@@ -1,10 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using TeamUtility.IO;
 using UnityEngine;
 using UnityEngine.UI;
-
+using Random = UnityEngine.Random;
 
 
 /*
@@ -94,7 +95,7 @@ public class Player : MonoBehaviour
 
     private Rigidbody playerRigidbody;
     private PlayerMovement movement;
-
+    private Collider[] spawnCheckColliders = new Collider[2];
 
     void Awake()
     {
@@ -130,7 +131,9 @@ public class Player : MonoBehaviour
         cameraAnim.enabled = false;
 
         explosion.SetActive(false);
-        //TODO SPAWN PLAYER SOMEWHERE ON THE MAP
+        transform.position = FindRandomPosition();
+        transform.rotation = Quaternion.Euler(0, Random.Range(0,4) * 90, 0);
+
 
         movement.enabled = true;
         playerRigidbody.drag = 0;
@@ -187,11 +190,35 @@ public class Player : MonoBehaviour
 
     }
 
-    private void FindRandomPosition()
+    private Vector3 FindRandomPosition()
     {
+        int offset = 4;
+        float levelDimension = 30;
+
+        int iter = 0;
+
+        while (true)
+        {
+            Array.Clear(spawnCheckColliders, 0, spawnCheckColliders.Length);
+
+            Vector2 coord = new Vector2(Random.Range(-levelDimension + offset, levelDimension - offset), Random.Range(-levelDimension + offset, levelDimension - offset));
+            Physics.OverlapCapsuleNonAlloc(new Vector3(coord.x, 0, coord.y), new Vector3(coord.x, 10, coord.y), 2, spawnCheckColliders);
+            for (int i = 0; i < 2; i++)
+            {
+                if (spawnCheckColliders[0].gameObject.layer == 14 && spawnCheckColliders[1] == null)
+                {
+                    return new Vector3(coord.x, 5, coord.y);
+                }
+                
+
+            }
+            iter++;
+            if (iter > 100) Debug.LogError("Couldn't find the spawn site");
+
+        }
+
         
-
-
+        
 
 
     }
