@@ -52,12 +52,7 @@ public class Rocket : MonoBehaviour
 
 
         }
-
-        //TODO Deal damage
-
         
-
-
         StartCoroutine(RocketExplosion());  //After colliding, disable rocket model and make explosion, then disable the whole rocket object for reusage
     }
 

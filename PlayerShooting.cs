@@ -29,19 +29,18 @@ public class PlayerShooting : MonoBehaviour
     private Laser[] laser;                //Array of Laser components of pooled lasers
 
 
-    private float laserFireRate = 0.25f;
+    private float laserFireRate = 0.25f;    //TODO TurboLazers
     private int laserCount;
     private int playerRocketCount;          //Variable to hold rocket count of the player
     private string rocketButtonName;        //Input for rocket shooting is handled here so caching this
     private string laserButtonName;         //Input for laser shooting
 
-    private AudioSource tankSoundSource;
+    private AudioSource tankSoundSource;    //TODO
     
-
     public const float defaultRocketSpeed = 35; //Rocket speed is getting set here, it is getting amplified by player velocity in Z direction (it is used in Rocket.cs to calculate the rocket flight vector)
-    public const float defaultLaserSpeed = 60; //COMM
+    private const float defaultLaserSpeed = 60; //Same for lasers, except lasers don't push other players, so private
 
-    private readonly Vector3 rocketDirection = new Vector3(0,-0.005f,1);    //Vector to shoot rocket to. It is 'forward' with slight drag down (kinda like gravity). In the game has a big effect when one player is flying, the other one can't hit him from longer range
+    private readonly Vector3 rocketDirection = new Vector3(0,-0.005f,1);    //TEST with flight. Vector to shoot rocket to. It is 'forward' with slight drag down (kinda like gravity). In the game has a big effect when one player is flying, the other one can't hit him from longer range
 
     void Awake()
     {
@@ -52,7 +51,7 @@ public class PlayerShooting : MonoBehaviour
         rocketButtonName = "Rocket";
         laserButtonName = "Laser";
 
-        tankSoundSource = GetComponent<AudioSource>();
+        tankSoundSource = GetComponent<AudioSource>();  //TODO
     }
 
     void Start()
@@ -87,37 +86,33 @@ public class PlayerShooting : MonoBehaviour
 
         //=============================LASERS===========================
 
-        laserCount = 9;
+        laserCount = 9;                         //9 laser instances are enough so you are able to shoot without running out of lasers with TurboLazers powerup
         Lasers = new GameObject[laserCount];
-        laserRigidbody = new Rigidbody[laserCount];
+        laserRigidbody = new Rigidbody[laserCount]; //Initializing arrays
         laser = new Laser[laserCount];
 
-        for (int i = 0; i < laserCount; i++)
+        for (int i = 0; i < laserCount; i++)    //For all lasers available
         {
-            Lasers[i] = Instantiate(laserPrefab, weaponPoolContainer.transform);
+            Lasers[i] = Instantiate(laserPrefab, weaponPoolContainer.transform);    //Instantiate a laser childed to their container
 
-            laserRigidbody[i] = Lasers[i].GetComponent<Rigidbody>();
+            laserRigidbody[i] = Lasers[i].GetComponent<Rigidbody>();    //Get references to components
             laser[i] = Lasers[i].GetComponent<Laser>();
 
-            laser[i].FirePower = tank.firePower;
-
-            Lasers[i].layer = layerToSet;
+            laser[i].FirePower = tank.firePower;    //Assign a firepower to the rocket //TODO for now like this, maybe later there will be static reference for each player
+                
+            Lasers[i].layer = layerToSet;           //Assign a layer to rockets. 
             foreach (Transform t in Lasers[i].transform)
             {
                 t.gameObject.layer = layerToSet;
             }
-            laser[i].otherPlayerLayer = playerNumber == PlayerID.One ? 9 : 8;
+            laser[i].otherPlayerLayer = playerNumber == PlayerID.One ? 9 : 8;       //(Hardcoded for now) Assign this so rockets know what player to do damage to. 9 - "PlayerTwo", 8 - "PlayerOne"
         }
-
-
-
-
+        
     }
-
-
-
-    private float laserNextFire = 0;
-    private bool leftLaser = true;
+    
+    private float laserNextFire;    //Variable that increases with Time.time to identify the moment of time we can shoot next laser
+    private bool leftLaser = true;  //Variable that goes true-false all the time to change turret from which laser shoots 
+    //(2 laser turrets for every tank, except Repulse, 2 turrets in the same spot are made there to be all the same)
 
     void Update()
     {
@@ -150,10 +145,10 @@ public class PlayerShooting : MonoBehaviour
             }
 
         }
-        //==================LASERS================== COMM EVERYTHING
+        //==================LASERS================== 
         if (InputManager.GetButton(laserButtonName, playerNumber) && Time.time > laserNextFire) //If laser-shoot button is pressed for respective player
         {
-            laserNextFire = Time.time + laserFireRate;
+            laserNextFire = Time.time + laserFireRate;  //Every time we shoot this increases by fire rate time
 
             for (int i = 0; i < laserCount; i++) //For each pooled laser
             {
@@ -161,16 +156,16 @@ public class PlayerShooting : MonoBehaviour
                 {
                     Lasers[i].SetActive(true); //Activating it before setting parameters, cuz setting rigidbody parameters for disabled objects doesn't work
 
-                    int turretNumber = leftLaser ? 0 : 1; //Index number of the turret to shoot the laser from. COMM
-                    leftLaser = !leftLaser;
+                    int turretNumber = leftLaser ? 0 : 1; //Index number of the turret to shoot the laser from, depending on the boolean
+                    leftLaser = !leftLaser;     //After we shot, set the bool so the other turren shoots next
 
                     laserRigidbody[i].transform.position = tank.laserSpawnPoints[turretNumber].position;   //Set the position to shoot laser from assigned laser turret Transform Position
                     laserRigidbody[i].transform.rotation = transform.rotation;                               //Set laser rotation from tank rotation.
 
-                    Vector3 playerVelocityZGlobal = Vector3.Project(playerRigidbody.velocity, transform.TransformDirection(Vector3.forward)); //Get the velocity of the player in Z axis (player looking forward). This vector returns the vector in global space, so it just adds to the rocket velocity
-                    laserRigidbody[i].velocity = defaultLaserSpeed * transform.TransformDirection(Vector3.forward) + playerVelocityZGlobal;   //TODO SHOOT INWARDS
-                    
-                    tankSoundSource.Play();
+                    Vector3 playerVelocityZGlobal = Vector3.Project(playerRigidbody.velocity, transform.TransformDirection(Vector3.forward)); //Get the velocity of the player in Z axis (player looking forward). This vector returns the vector in global space, so it just adds to the laser velocity
+                    laserRigidbody[i].velocity = defaultLaserSpeed * transform.TransformDirection(Vector3.forward) + playerVelocityZGlobal;   //Set laser velocity. Transform Vector3.forward to local space relative to the tank + inherit tanks Z velocity
+
+                    //tankSoundSource.Play(); //TODO
 
                     //if (doubleDamage)
                     //    laser[i].FirePower = tank.firePower * 2; //TEST. TODO When implementing, remember to set the damage back to normal

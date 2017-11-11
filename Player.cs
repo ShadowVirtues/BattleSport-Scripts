@@ -98,10 +98,15 @@ public class Player : MonoBehaviour
     private Rigidbody playerRigidbody;      //And in PlayerMovement custom drag when alive is implemented, so we apply the internal rigidbody drag when dead
     private PlayerMovement movement;        //Reference to disable it when dead
 
+    private readonly WaitForSeconds tankFlashTime = new WaitForSeconds(0.05f); //Tank flashes for this time when taking damage
+
     private Collider[] spawnCheckColliders = new Collider[2];   //Premade array of colliders to not have any garbage allocated when checking where to spawn a tank after death with "CheckCapsule"
+
+    private Material material;
 
     void Awake()
     {
+        material = GetComponentInChildren<Tank>().GetComponent<Renderer>().material;
         playerRigidbody = GetComponent<Rigidbody>();    //Getting those references
         movement = GetComponent<PlayerMovement>();
     }
@@ -141,9 +146,7 @@ public class Player : MonoBehaviour
         tankModel.SetActive(true);      //Enable tank model
         deathScreen.SetActive(false);   //Disable death screen
     }
-
-
-
+    
     private void IncreaseDestroyedTime()    //Gets launched on 5 and 10 death in a game
     {
         explodedTime += 1;  //Incread death timer by 1 second
@@ -173,8 +176,16 @@ public class Player : MonoBehaviour
         }
         else
         {
+            StartCoroutine(flashTank());    //Flash tank from taking damage
             healthSlider.value = Health;    //If we didn't explode the player, just change slider value to his health
         }     
+    }
+    
+    private IEnumerator flashTank() 
+    {
+        material.EnableKeyword("_EMISSION");    //Enable Emission property of the material (it has the flash color set)
+        yield return tankFlashTime;             //Wait
+        material.DisableKeyword("_EMISSION");   //Disable Emission property //TEST lets hope it actually saves into prefab D:
     }
 
     private Vector3 FindRandomPosition()    //Algorithm for finding random position on the map for player to spawn after death
