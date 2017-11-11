@@ -92,6 +92,13 @@ public class Player : MonoBehaviour
     private readonly WaitForSeconds secondOfDeath = new WaitForSeconds(1);  //One second of death (we wait for it in the coroutine, then decrease the timer time, then wait again, and so on)
     private  readonly  WaitForSeconds deathScreenDelay = new WaitForSeconds(0.5f);  //Time during which play camera animation before entering death screen
 
+    //=================BALL==============
+    private Ball ball;
+    private Rigidbody ballRigidbody;
+
+
+
+
     //====================OTHER=====================
 
     //Reference for being able to smoothly stop the exploding tank with setting its drag (we disable PlayerMovement script when dead, so the player can't move dead ship...
@@ -104,8 +111,15 @@ public class Player : MonoBehaviour
 
     private Material material;
 
+    private string ballButtonName = "ShootBall";
+
+    //=============================================
+
     void Awake()
     {
+        ball = GameController.Controller.ball;
+        ballRigidbody = ball.GetComponent<Rigidbody>();
+
         material = GetComponentInChildren<Tank>().GetComponent<Renderer>().material;
         playerRigidbody = GetComponent<Rigidbody>();    //Getting those references
         movement = GetComponent<PlayerMovement>();
@@ -160,26 +174,6 @@ public class Player : MonoBehaviour
         moduleSmoke.startLifetimeMultiplier = explodedTime;     //This multiplies the particle lifetime curve by the death timer
         moduleExplosion.startLifetimeMultiplier = explodedTime;
     }
-
-    public void Hit(float damage)       //Gets invoked from Rocket's OnCollisionEnter //TODO and somewhere on the laser it will be
-    {
-        Health -= damage;   //Decrease health
-        
-        if (Health < 0)    //If goes below 0, set it to 0, set the slider to it
-        {
-            Health = 0;
-            healthSlider.value = Health;
-
-            playerStats.Deaths++;    //Increment player's death to change the death timer and for end-game stats
-            if (playerStats.Deaths == 5 || playerStats.Deaths == 10) IncreaseDestroyedTime();   //On 5 deaths the death timer is 3 sec, on 10 deaths it is 4 sec
-            StartCoroutine(Explode());  //Start explosion sequence           
-        }
-        else
-        {
-            StartCoroutine(flashTank());    //Flash tank from taking damage
-            healthSlider.value = Health;    //If we didn't explode the player, just change slider value to his health
-        }     
-    }
     
     private IEnumerator flashTank() 
     {
@@ -216,15 +210,60 @@ public class Player : MonoBehaviour
             }
             iter++;
             if (iter > 100) Debug.LogError("Couldn't find the spawn site"); //If we performed 100 checks and haven't found a spawn site, there must be something wrong
-
         }
+      
+    }
 
-        
-        
+    public void Hit(float damage)       //Gets invoked from Rocket's OnCollisionEnter //TODO and somewhere on the laser it will be
+    {
+        Health -= damage;   //Decrease health
+
+        if (Health < 0)    //If goes below 0, set it to 0, set the slider to it
+        {
+            Health = 0;
+            healthSlider.value = Health;
+
+            playerStats.Deaths++;    //Increment player's death to change the death timer and for end-game stats
+            if (playerStats.Deaths == 5 || playerStats.Deaths == 10) IncreaseDestroyedTime();   //On 5 deaths the death timer is 3 sec, on 10 deaths it is 4 sec
+            StartCoroutine(Explode());  //Start explosion sequence           
+        }
+        else
+        {
+            StartCoroutine(flashTank());    //Flash tank from taking damage
+            healthSlider.value = Health;    //If we didn't explode the player, just change slider value to his health
+        }
+    }
+
+    private bool possession = false;
+
+    public void Possession()
+    {
+        possession = true;
+
 
 
     }
 
+    private float ballForce = 5000;
+
+    void Update()
+    {
+        if (possession && InputManager.GetButtonDown(ballButtonName, PlayerNumber))
+        {
+            GameController.announcer.ShotLong();
+
+            ball.transform.position = transform.TransformPoint(new Vector3(0,0.5f,2.1f));
+            ball.gameObject.SetActive(true);
+            ballRigidbody.rotation = Quaternion.LookRotation(transform.TransformDirection(Vector3.forward));
+            ballRigidbody.angularVelocity = transform.TransformDirection(new Vector3(20, 0, 0));
+            ballRigidbody.AddForce(transform.TransformDirection(Vector3.forward * ballForce));
+            possession = false;
+
+            //TODO Inherit players speed
+        }
+
+        
 
 
+    }
 }

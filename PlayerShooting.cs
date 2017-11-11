@@ -32,8 +32,8 @@ public class PlayerShooting : MonoBehaviour
     private float laserFireRate = 0.25f;    //TODO TurboLazers
     private int laserCount;
     private int playerRocketCount;          //Variable to hold rocket count of the player
-    private string rocketButtonName;        //Input for rocket shooting is handled here so caching this
-    private string laserButtonName;         //Input for laser shooting
+    private string rocketButtonName = "Rocket";        //Input for rocket shooting is handled here so caching this
+    private string laserButtonName = "Laser";         //Input for laser shooting
 
     private AudioSource tankSoundSource;    //TODO
     
@@ -48,8 +48,8 @@ public class PlayerShooting : MonoBehaviour
         playerNumber = player.PlayerNumber;
         playerRigidbody = GetComponent<Rigidbody>();
         tank = GetComponentInChildren<Tank>(); //Tank component gets inserted to PlayerX gameObject with the tank model when the tank is picked.
-        rocketButtonName = "Rocket";
-        laserButtonName = "Laser";
+        //rocketButtonName = "Rocket";
+        //laserButtonName = "Laser";
 
         tankSoundSource = GetComponent<AudioSource>();  //TODO
     }

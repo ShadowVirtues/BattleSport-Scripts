@@ -35,27 +35,7 @@ public class PlayerMovement : MonoBehaviour
         //Application.targetFrameRate = 45;
 #endif
     }
-
-    float normalizedX(Vector3 vector) //Auxiliary function to get normalized X component of a vector when taking into account only X and Z components. Because Jumping speed is independent of speed in X and Z directions of a tank
-    {
-        float magnigude2D = Mathf.Sqrt(vector.x * vector.x + vector.z * vector.z);  //Get magnitude of quasi-Vector2 from X and Z components of Vector3
-
-        if (magnigude2D != 0)   //If X and Z components are 0, normalization would return 0/0=NaN, in this case the normalized component is 0.
-            return vector.x / magnigude2D;
-        else
-            return 0;
-    }
-
-    float normalizedZ(Vector3 vector)   //Auxiliary function to get normalized Z component of a vector when taking into account only X and Z components
-    {
-        float magnigude2D = Mathf.Sqrt(vector.x * vector.x + vector.z * vector.z);
-
-        if (magnigude2D != 0)
-            return vector.z / magnigude2D;
-        else
-            return 0;
-    }
-
+   
     void Update()
     {
         float rotationY = InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed * Time.deltaTime * (0.005f / Time.deltaTime + 0.75f); //To rotate depending on input axis (rotation around Y axis)
@@ -86,7 +66,7 @@ public class PlayerMovement : MonoBehaviour
         //Which outputs 1 if you try to accelerate to the same direction your velocity is pointing to, 0 - if perpendicular, 1 - if opposite (values in between also exist).
         float dot = Vector2.Dot(new Vector2(vel.x, vel.z).normalized, new Vector2(velocityGlobal.x, velocityGlobal.z).normalized); //'normalized' cuz dot product is not normalized by default
 
-	    if (vel.magnitude > maxSpeed)    //Then if your velocity magnitude is higher than top speed
+	    if (magnitude2D(vel) > maxSpeed)    //Then if your velocity magnitude is higher than top speed
 	    {
 	        velocity = 0.5f * (-dot + 1) * velocity;    //Convert 'dot'-output, so it modifies the velocity to be 0 if you are trying to accelerate to the same direction of your speed, 0.5*acceleration if perpendicular to it, 1 if opposite
 	    }
@@ -94,10 +74,10 @@ public class PlayerMovement : MonoBehaviour
         rigidbody.AddRelativeForce(velocity, ForceMode.Acceleration); //Add force to your tank from the acceleration vector. 'Relative' because 'velocity' is also relative
 
 	    //Applying 'linear drag' to the player by subtracting the constant coeficient from his speed, with 'normalized' coeficient to take into account the direction (example 0.7 speed to X direction, 0.3 to Z direction)
-        if (vel.sqrMagnitude > 0.03) //Since we are subtracting the speed, it may go over 0, so don't do that if the velocity.magnitude is higher than 0.001
+        if (sqrMagnitude2D(vel) > 0.03) //Since we are subtracting the speed, it may go over 0, so don't do that if the velocity.magnitude is higher than 0.001
             rigidbody.velocity = new Vector3(vel.x - normalizedX(vel) * Time.fixedDeltaTime * dragCoeff, vel.y, vel.z - normalizedZ(vel) * Time.fixedDeltaTime * dragCoeff);
         else
-            rigidbody.velocity = Vector3.zero; //If the velocity.magnitude^2 is lower than 0.03, set it to 0
+            rigidbody.velocity = new Vector3(0, rigidbody.velocity.y, 0); //If the velocity.magnitude^2 is lower than 0.03, set it to 0
 
         //print($"{rigidbody.velocity.x} {rigidbody.velocity.y} {rigidbody.velocity.z} {rigidbody.velocity.magnitude} {rigidbody.velocity.sqrMagnitude}");
 
@@ -160,8 +140,29 @@ public class PlayerMovement : MonoBehaviour
 
 
 
+    float normalizedX(Vector3 vector) //Auxiliary function to get normalized X component of a vector when taking into account only X and Z components. Because Jumping speed is independent of speed in X and Z directions of a tank
+    {
+        float magnigude2D = Mathf.Sqrt(vector.x * vector.x + vector.z * vector.z);  //Get magnitude of quasi-Vector2 from X and Z components of Vector3
 
+        if (magnigude2D != 0)   //If X and Z components are 0, normalization would return 0/0=NaN, in this case the normalized component is 0.
+            return vector.x / magnigude2D;
+        else
+            return 0;
+    }
 
+    float normalizedZ(Vector3 vector)   //Auxiliary function to get normalized Z component of a vector when taking into account only X and Z components
+    {
+        float magnigude2D = Mathf.Sqrt(vector.x * vector.x + vector.z * vector.z);
+
+        if (magnigude2D != 0)
+            return vector.z / magnigude2D;
+        else
+            return 0;
+    }
+
+    float magnitude2D(Vector3 vector) => Mathf.Sqrt(vector.x * vector.x + vector.z * vector.z);
+
+    float sqrMagnitude2D(Vector3 vector) => vector.x * vector.x + vector.z * vector.z;
 
 
 
