@@ -9,7 +9,7 @@ using UnityEngine;
     Test rocket-rocket collisions
 
     Armor will mean player mass which also gets calculated in knock force
-    To deal damage to the player when the rocket collides: in PlayerShooting, create a reference to the field "Player" of this script, then when dealing damage do "Player.Hit(damage)" <- run a public function
+    
     
 */
 public class Rocket : MonoBehaviour
@@ -19,7 +19,6 @@ public class Rocket : MonoBehaviour
     private readonly WaitForSeconds explosionTime = new WaitForSeconds(0.5f);   //Explosion duration
 
     public float FirePower; //Rocket parameter for damage and knockback to apply. Gets set in PlayerShooting when pressing a rocket button
-
     public int otherPlayerLayer;    //To decide in OnCollisionEnter if we should apply force to hit object (Other player)
 
     private const float forceCoeff = 0.2f;    //Coefficient to convert FirePower to Force

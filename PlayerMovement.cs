@@ -3,14 +3,6 @@ using System.Collections.Generic;
 using TeamUtility.IO;
 using UnityEngine;
 
-
-
-
-
-
-
-
-
 public class PlayerMovement : MonoBehaviour
 {
     private Player player; //Reference to Player component
@@ -39,7 +31,7 @@ public class PlayerMovement : MonoBehaviour
         rigidbody = GetComponent<Rigidbody>();     //Caching rigidbody        
 
 #if UNITY_EDITOR
-        //QualitySettings.vSyncCount = 0;  // VSync must be disabled
+        //QualitySettings.vSyncCount = 0;  // Tests for different fps
         //Application.targetFrameRate = 45;
 #endif
     }
@@ -68,30 +60,17 @@ public class PlayerMovement : MonoBehaviour
     {
         float rotationY = InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed * Time.deltaTime * (0.005f / Time.deltaTime + 0.75f); //To rotate depending on input axis (rotation around Y axis)
         float tankRotation = transform.localEulerAngles.y + rotationY;      //Add the rotation to current rotation of the tank
-        //transform.localEulerAngles = new Vector3(0, tankRotation, 0);   //Apply this rotation (X=0, Z=0 constraint the tank to not tilt when hitting objects)     
+                
+        rigidbody.MoveRotation(Quaternion.Euler(0, tankRotation, 0));   //Apply this rotation (X=0, Z=0 constraint the tank to not tilt when hitting objects)     
+        //Rotating with rigidbody.MoveRotation in Update, because this was the only was I could make rotating and moving the tank not have jitter (because of 50fps FixedUpdate and 144- fps Update)
         
-        rigidbody.MoveRotation(Quaternion.Euler(0, tankRotation, 0));
-        //rigidbody.transform.rotation = Quaternion.Euler(0, tankRotation, 0);
-
-        //transform.Rotate(0, InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed * Time.deltaTime, 0);
-
+        //Next commented line was making smooth rotation and smooth interpolated movement, but it would make rigidbody stop when rotating the tank
+        //transform.Rotate(0, InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed * Time.deltaTime, 0); //CHECK THIS AFTER UNITY UPDATE IF IT STILL STOPS MOVING OF INTERPOLATED RIGIDBODY
 
     }
 
     void FixedUpdate () 
-	{
-        //float rotationY = InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed / 50; //To rotate depending on input axis (rotation around Y axis)
-        //float tankRotation = transform.localEulerAngles.y + rotationY;      //Add the rotation to current rotation of the tank
-        //transform.localEulerAngles = new Vector3(0, tankRotation, 0);   //Apply this rotation (X=0, Z=0 constraint the tank to not tilt when hitting objects)     
-
-        //rigidbody.MoveRotation(Quaternion.Euler(0, tankRotation, 0));
-
-        //rigidbody.transform.rotation = Quaternion.Euler(0, tankRotation, 0);
-
-        //rigidbody.angularVelocity = Vector3.up * InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed / 50;
-
-	    //transform.Rotate(0, InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed/ 50, 0);
-
+	{       
         float throttle = InputManager.GetAxisRaw(throttleAxisName, playerNumber) * acceleration;   //Get throttle input (W-S)
         float strafing = InputManager.GetAxisRaw(strafingAxisName, playerNumber) * acceleration;   //Get strafing input (Q-E) for now
 
@@ -113,11 +92,6 @@ public class PlayerMovement : MonoBehaviour
 	    }
         
         rigidbody.AddRelativeForce(velocity, ForceMode.Acceleration); //Add force to your tank from the acceleration vector. 'Relative' because 'velocity' is also relative
-
-        //rigidbody.velocity = ClampMagnitude2D(rigidbody.velocity, moveSpeed);
-
-	    //print(rigidbody.velocity + "   " + rigidbody.velocity.magnitude + "    " + velocity);
-
 
 	    //Applying 'linear drag' to the player by subtracting the constant coeficient from his speed, with 'normalized' coeficient to take into account the direction (example 0.7 speed to X direction, 0.3 to Z direction)
         if (vel.sqrMagnitude > 0.03) //Since we are subtracting the speed, it may go over 0, so don't do that if the velocity.magnitude is higher than 0.001
@@ -153,23 +127,9 @@ public class PlayerMovement : MonoBehaviour
 
         }
 
-
-	   
-
-
-        //if (PlayerNumber == PlayerID.Two)
-        //    if (Input.GetKey(KeyCode.Joystick1Button4) && Input.GetKey(KeyCode.Joystick1Button5))
-        //    {
-        //        print(grounded);
-
-        //    }
-
-
+        
         grounded = false; //Set that we are not grounded every frame after jumping code so it will be overrided by collisions
-
-
-       
-
+        
     }
 
 
@@ -186,13 +146,10 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-
     void OnCollisionEnter(Collision other) //Check ground both at the frame when entered collider and stayed on the collider
     {
         GroundCheck(other);
     }
-
-
 
     void OnCollisionStay(Collision other)  //Check ground both at the frame when entered collider and stayed on the collider
     {

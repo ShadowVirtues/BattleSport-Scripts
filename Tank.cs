@@ -8,7 +8,8 @@ public class Tank : MonoBehaviour
     public float topSpeed;
     public float firePower;
     public float armor;
-    public float ballHandling;
+    public float ballHandling; //???
     public int rocketCount;
     public Transform[] rocketSpawnPoints;
+    public Transform[] laserSpawnPoints;
 }

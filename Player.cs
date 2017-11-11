@@ -15,11 +15,12 @@ using Random = UnityEngine.Random;
     Ideally i should make ONE SINGLE "PlayerX" prefab with everything setup, and then when instantiating, just set its parameters for different players.
     ==========================================================
 
-    Next thing to do: come up with damage system with firepower, armor which affects mass.
-
-
-
-    Try to fix this bullshit when the tank moves by itself
+    Next thing to do: come up with damage system with firepower, armor which affects mass. Work on rocket push forces in general
+    Maybe turn the rocket spawns inside a bit so the rockets shoot not fully forward
+    Same with lasers
+    
+    Bake lighting for every arena
+    
 
 
 
@@ -50,7 +51,7 @@ using Random = UnityEngine.Random;
 
 
 [System.Serializable]
-public class PlayerStats
+public class PlayerStats    //Class-container for all end-game stats
 {
     public int Score;
     public int ShotsOnGoal;
@@ -61,9 +62,9 @@ public class PlayerStats
     public int Fumbles;
     public int Interceptions;
 
-    public int Kills;
+    public int Deaths;      //In end-game screen this will be swapped for players into "Kills" field
 
-    public float Possession;
+    public float PossessionTime;
     //public float GameTime; //TODO probably will be in GameController or something
 }
 
@@ -71,149 +72,139 @@ public class Player : MonoBehaviour
 {
     public PlayerID PlayerNumber; //From TeamUtility InputManager "Add-on". Sets which player it is
 
-    public PlayerStats playerStats;
+    public PlayerStats playerStats; //Instance of PlayerStats so we could fill them with all the stats
 
-    [Header("Health")]
-    public float Health = 100;
-    [SerializeField] private Slider healthSlider;
+    [Header("Health")]          //All the stuff about health
+    private float Health = 100;  //Tank Health variable, changes when taking damage
+    [SerializeField] private Slider healthSlider;   //Reference to slider to change its value depending on the player health
 
-    [Header("Explosion")]
-    public ParticleSystem particleSmoke;
-    public ParticleSystem particleExplosion;
+    [Header("Explosion")]                   //All the stuff about explosion
+    [SerializeField] private ParticleSystem particleSmoke;    //Reference to two particle systems which lengths depend on the death timer, we change their length from those references
+    [SerializeField] private ParticleSystem particleExplosion;
 
-    [SerializeField] private GameObject explosion;
-    [SerializeField] private GameObject tankModel;
-    [SerializeField] private GameObject deathScreen;
-    [SerializeField] private Text deathTimer;
-    [SerializeField] private Animator cameraAnim;
+    [SerializeField] private GameObject explosion;  //Explosion particle system object parented to player object to enable/disable it when exploding
+    [SerializeField] private GameObject tankModel;  //Tank model object to enable/disable it when exploding
+    [SerializeField] private GameObject deathScreen;    //Reference to UI image covering the screen when dead to enable/disable it when exploding
+    [SerializeField] private Text deathTimer;           //Reference to death timer text to count it down when dead
+    [SerializeField] private Animator cameraAnim;       //Reference to camera animator to play the animation when exploded
 
-
-    private int explodedTime = 2;
-    private readonly WaitForSeconds secondOfDeath = new WaitForSeconds(1);
+    private int explodedTime = 2;                       //Default time being dead (increases by 1 sec up to 4 sec every 5 deaths)
+    private readonly WaitForSeconds secondOfDeath = new WaitForSeconds(1);  //One second of death (we wait for it in the coroutine, then decrease the timer time, then wait again, and so on)
+    private  readonly  WaitForSeconds deathScreenDelay = new WaitForSeconds(0.5f);  //Time during which play camera animation before entering death screen
 
     //====================OTHER=====================
 
-    private Rigidbody playerRigidbody;
-    private PlayerMovement movement;
-    private Collider[] spawnCheckColliders = new Collider[2];
+    //Reference for being able to smoothly stop the exploding tank with setting its drag (we disable PlayerMovement script when dead, so the player can't move dead ship...
+    private Rigidbody playerRigidbody;      //And in PlayerMovement custom drag when alive is implemented, so we apply the internal rigidbody drag when dead
+    private PlayerMovement movement;        //Reference to disable it when dead
+
+    private Collider[] spawnCheckColliders = new Collider[2];   //Premade array of colliders to not have any garbage allocated when checking where to spawn a tank after death with "CheckCapsule"
 
     void Awake()
     {
-        playerRigidbody = GetComponent<Rigidbody>();
+        playerRigidbody = GetComponent<Rigidbody>();    //Getting those references
         movement = GetComponent<PlayerMovement>();
     }
 
-    private IEnumerator Explode()
-    {
-        
-        
-        
-        
-        movement.enabled = false;
-        playerRigidbody.drag = 3;
-        tankModel.SetActive(false);
-        explosion.SetActive(true);
+    private IEnumerator Explode()   //Process of exploding the player
+    {       
+        movement.enabled = false;   //Disable players ability to move with buttons
+        playerRigidbody.drag = 3;   //Apply drag so the player object stops over some time when exploding, instead of instantly stopping 
+        tankModel.SetActive(false); //Disable player tank model to enable its explosion
+        explosion.SetActive(true);  //Yeah
 
-        cameraAnim.enabled = true;
-        cameraAnim.Play("ExplodeCamera",-1,0);
-        yield return new WaitForSeconds(0.5f);
-        deathScreen.SetActive(true); 
+        cameraAnim.enabled = true;  //Enable camera animator to play camera animation when exploded
+        cameraAnim.Play("ExplodeCamera",-1,0);  //Play the camera animation, we have no animation layers, from the start (time = 0)
+        yield return deathScreenDelay;  //Wait for this time in animation before enabling death screen
+        deathScreen.SetActive(true);    //Enable death screen
         
         //TODO make it explode into pieces
 
-        for (int i = explodedTime; i > 0; i--)
+        for (int i = explodedTime; i > 0; i--)  //Count down the death timer
         {
-            deathTimer.text = i.ToString();
-            yield return secondOfDeath;
-
+            deathTimer.text = i.ToString(); //i is the current timer value
+            yield return secondOfDeath;     //Wait a second between changing timer values
         }
-        
-        cameraAnim.enabled = false;
 
-        explosion.SetActive(false);
-        transform.position = FindRandomPosition();
-        transform.rotation = Quaternion.Euler(0, Random.Range(0,4) * 90, 0);
+        cameraAnim.enabled = false;     //Camera animation returns to its initial position after some animation time, so to make sure it had the time to return, disable animator only after the death timer
 
+        explosion.SetActive(false);     //Explosion quasi-animation (particle system) goes on for the whole time of death (tank is smoking), that's why disable it at the very end
+        transform.position = FindRandomPosition();  //Find random position on the map by checking the cylinder where tank can fall from "the sky" to the ground without anything interrupting
+        transform.rotation = Quaternion.Euler(0, Random.Range(0,4) * 90, 0);    //Set tank rotation to random between 0,90,180,270 degrees (perpendicular to walls)
 
-        movement.enabled = true;
-        playerRigidbody.drag = 0;
+        movement.enabled = true;        //Enable player ability to move
+        playerRigidbody.drag = 0;       //Disable rigidbody's drag we used for stopping the player after exploding
 
-        //Health = 100;
-        //healthSlider.value = Health;
+        Health = 100;
+        healthSlider.value = Health;  //Set full health and update the slider
 
-        tankModel.SetActive(true);
-
-        deathScreen.SetActive(false);
+        tankModel.SetActive(true);      //Enable tank model
+        deathScreen.SetActive(false);   //Disable death screen
     }
 
 
 
-    private void IncreaseDestroyedTime()
+    private void IncreaseDestroyedTime()    //Gets launched on 5 and 10 death in a game
     {
-        explodedTime += 1;
+        explodedTime += 1;  //Incread death timer by 1 second
 
-        ParticleSystem.MainModule moduleSmoke = particleSmoke.main;
+        ParticleSystem.MainModule moduleSmoke = particleSmoke.main;         //Get particle main module to set duration and lifetime
         ParticleSystem.MainModule moduleExplosion = particleExplosion.main;
         
-        moduleSmoke.duration = explodedTime - 0.5f;
+        moduleSmoke.duration = explodedTime - 0.5f; //Smoke ends 0.5 sec before quasi-animation ends
         moduleExplosion.duration = explodedTime;
 
-        moduleSmoke.startLifetimeMultiplier = explodedTime;
+        moduleSmoke.startLifetimeMultiplier = explodedTime;     //This multiplies the particle lifetime curve by the death timer
         moduleExplosion.startLifetimeMultiplier = explodedTime;
     }
 
-    public void Hit(float damage)
+    public void Hit(float damage)       //Gets invoked from Rocket's OnCollisionEnter //TODO and somewhere on the laser it will be
     {
-        Health -= damage;
-
+        Health -= damage;   //Decrease health
         
-
-        
-
-        if (Health < 0)
+        if (Health < 0)    //If goes below 0, set it to 0, set the slider to it
         {
             Health = 0;
             healthSlider.value = Health;
 
-            playerStats.Kills++;
-            if (playerStats.Kills == 5 || playerStats.Kills == 10) IncreaseDestroyedTime();
-            StartCoroutine(Explode());
-
-            //TODO Destroy tank
-
+            playerStats.Deaths++;    //Increment player's death to change the death timer and for end-game stats
+            if (playerStats.Deaths == 5 || playerStats.Deaths == 10) IncreaseDestroyedTime();   //On 5 deaths the death timer is 3 sec, on 10 deaths it is 4 sec
+            StartCoroutine(Explode());  //Start explosion sequence           
         }
         else
         {
-            healthSlider.value = Health;
-        }
-        
-
+            healthSlider.value = Health;    //If we didn't explode the player, just change slider value to his health
+        }     
     }
 
-    private Vector3 FindRandomPosition()
+    private Vector3 FindRandomPosition()    //Algorithm for finding random position on the map for player to spawn after death
     {
-        int offset = 4;
-        float levelDimension = 30;
+        //The algorithm is checking the cylinder from the ground to the highest point of the arena where there is some object in the random X-Z point 
+        //of the arena if this cylinder has something but the floor in it, if it has, then find another point where there is only a floor in the cylinder
+        //We use OverlapCapsuleNonAlloc for this, which requires the Collider[] array to store found colliders in this cylinder being checked
+        
+        int offset = 4;             //Offset from the arena border so player doesn't spawn right next to a wall
+        float levelDimension = 30;  //TODO this will depend on the arene size
 
-        int iter = 0;
+        int iter = 0;   //A way to stop the infinite loop of finding the random spawn point if we can't find it
 
-        while (true)
+        while (true)    //There is the infinite loop
         {
-            Array.Clear(spawnCheckColliders, 0, spawnCheckColliders.Length);
+            Array.Clear(spawnCheckColliders, 0, spawnCheckColliders.Length);    //Clear the array of colliders just in case before performing the next check 
 
-            Vector2 coord = new Vector2(Random.Range(-levelDimension + offset, levelDimension - offset), Random.Range(-levelDimension + offset, levelDimension - offset));
-            Physics.OverlapCapsuleNonAlloc(new Vector3(coord.x, 0, coord.y), new Vector3(coord.x, 10, coord.y), 2, spawnCheckColliders);
-            for (int i = 0; i < 2; i++)
-            {
+            Vector2 coord = new Vector2(Random.Range(-levelDimension + offset, levelDimension - offset), Random.Range(-levelDimension + offset, levelDimension - offset)); //Get random point of the map with RNG
+            Physics.OverlapCapsuleNonAlloc(new Vector3(coord.x, 0, coord.y), new Vector3(coord.x, 10, coord.y), 2, spawnCheckColliders);    //Capsule starts from Y=0 (floor) to 10 (highest point where arena objects are) TODO increase this when made the highest arena
+            for (int i = 0; i < 2; i++) //The spawnCheckColliders array has only the length of 2, because the condition when there is only the floor found is when its the first collider found and the second collider is null
+            {                           //If the first collider isn't the floor, or second collider isn't the floor as well, then its the wrong condition
                 if (spawnCheckColliders[0].gameObject.layer == 14 && spawnCheckColliders[1] == null)
                 {
-                    return new Vector3(coord.x, 5, coord.y);
+                    return new Vector3(coord.x, 5, coord.y);    //Return position to spawn tank at. Y=5 is the height from where the tank drops
                 }
                 
 
             }
             iter++;
-            if (iter > 100) Debug.LogError("Couldn't find the spawn site");
+            if (iter > 100) Debug.LogError("Couldn't find the spawn site"); //If we performed 100 checks and haven't found a spawn site, there must be something wrong
 
         }
 
