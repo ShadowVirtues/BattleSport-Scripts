@@ -96,11 +96,6 @@ public class Ball : MonoBehaviour
 
         }
 
-
-
-
-
-
     }
 
     private void losePossession()
@@ -128,11 +123,7 @@ public class Ball : MonoBehaviour
 
                 losePossession();
             }
-            //else if (other.gameObject.layer == 19)
-            //{
-            //    //TODO GOAL
-
-            //}
+            
 
 
 

@@ -248,6 +248,7 @@ public class Player : MonoBehaviour
 
     void Update()
     {
+        
         if (possession && InputManager.GetButtonDown(ballButtonName, PlayerNumber))
         {
             GameController.announcer.ShotLong();
