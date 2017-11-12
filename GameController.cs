@@ -32,10 +32,13 @@ public class GameController : MonoBehaviour
     public Player playerTwo;
     public Ball ball;
 
+    public int ShotClock;
+
     void Awake()
     {
         Controller = this;
         announcer = GetComponent<Announcer>();
+        ShotClock = 10;
     }
 
 

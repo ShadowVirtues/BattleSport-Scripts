@@ -6,7 +6,7 @@ using UnityEngine;
 
 
 
-
+public enum Weapon { Rocket, Laser }
 
 
 public class PlayerShooting : MonoBehaviour
@@ -61,7 +61,7 @@ public class PlayerShooting : MonoBehaviour
 
         //=======================ROCKETS=========================
 
-        playerRocketCount = tank.rocketCount;
+        playerRocketCount = tank.RocketCount;
         Rockets = new GameObject[playerRocketCount];
         rocketRigidbody = new Rigidbody[playerRocketCount]; //Initializing arrays
         rocket = new Rocket[playerRocketCount];
@@ -73,7 +73,7 @@ public class PlayerShooting : MonoBehaviour
             rocketRigidbody[i] = Rockets[i].GetComponent<Rigidbody>();  //Get references to components
             rocket[i] = Rockets[i].GetComponent<Rocket>();
 
-            rocket[i].FirePower = tank.firePower;   //Assign a firepower to the rocket //TODO for now like this, maybe later there will be static reference for each player
+            rocket[i].FirePower = tank.FirePower;   //Assign a firepower to the rocket //TODO for now like this, maybe later there will be static reference for each player
 
             Rockets[i].layer = layerToSet;     //Assign a layer to rockets. 
             foreach (Transform t in Rockets[i].transform)
@@ -98,7 +98,7 @@ public class PlayerShooting : MonoBehaviour
             laserRigidbody[i] = Lasers[i].GetComponent<Rigidbody>();    //Get references to components
             laser[i] = Lasers[i].GetComponent<Laser>();
 
-            laser[i].FirePower = tank.firePower;    //Assign a firepower to the rocket //TODO for now like this, maybe later there will be static reference for each player
+            laser[i].FirePower = tank.FirePower;    //Assign a firepower to the rocket //TODO for now like this, maybe later there will be static reference for each player
                 
             Lasers[i].layer = layerToSet;           //Assign a layer to rockets. 
             foreach (Transform t in Lasers[i].transform)
@@ -125,11 +125,11 @@ public class PlayerShooting : MonoBehaviour
                 {              
                     Rockets[i].SetActive(true); //Activating it before setting parameters, cuz setting rigidbody parameters for disabled objects doesn't work
 
-                    int turretNumber = player.playerStats.MissilesFired % tank.rocketSpawnPoints.Length; //Index number of the turret to shoot the rocket from. "%" means remainder of division
+                    int turretNumber = player.playerStats.MissilesFired % tank.RocketSpawnPoints.Length; //Index number of the turret to shoot the rocket from. "%" means remainder of division
 
                     player.playerStats.MissilesFired++;  //Increasing this after calculating turretNumber, so the first rocket (with count 0) shoots from the first turren, not from the second
 
-                    rocketRigidbody[i].transform.position = tank.rocketSpawnPoints[turretNumber].position;   //Set the position to shoot rocket from assigned turret Transform Position
+                    rocketRigidbody[i].transform.position = tank.RocketSpawnPoints[turretNumber].position;   //Set the position to shoot rocket from assigned turret Transform Position
                     rocketRigidbody[i].transform.rotation = transform.rotation;                               //Set rocket rotation from tank rotation.
 
                     Vector3 playerVelocityZGlobal = Vector3.Project(playerRigidbody.velocity, transform.TransformDirection(Vector3.forward)); //Get the velocity of the player in Z axis (player looking forward). This vector returns the vector in global space, so it just adds to the rocket velocity
@@ -159,7 +159,7 @@ public class PlayerShooting : MonoBehaviour
                     int turretNumber = leftLaser ? 0 : 1; //Index number of the turret to shoot the laser from, depending on the boolean
                     leftLaser = !leftLaser;     //After we shot, set the bool so the other turren shoots next
 
-                    laserRigidbody[i].transform.position = tank.laserSpawnPoints[turretNumber].position;   //Set the position to shoot laser from assigned laser turret Transform Position
+                    laserRigidbody[i].transform.position = tank.LaserSpawnPoints[turretNumber].position;   //Set the position to shoot laser from assigned laser turret Transform Position
                     laserRigidbody[i].transform.rotation = transform.rotation;                               //Set laser rotation from tank rotation.
 
                     Vector3 playerVelocityZGlobal = Vector3.Project(playerRigidbody.velocity, transform.TransformDirection(Vector3.forward)); //Get the velocity of the player in Z axis (player looking forward). This vector returns the vector in global space, so it just adds to the laser velocity

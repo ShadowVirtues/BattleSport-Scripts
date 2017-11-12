@@ -45,10 +45,19 @@ public class Rocket : MonoBehaviour
 
             other.rigidbody.AddForce(forceVector * FirePower * forceCoeff, ForceMode.VelocityChange);   //Add force to the other player combined with a vector
 
+            if (otherPlayerLayer == 8)
+            {
+                GameController.Controller.playerOne.Hit(FirePower, Weapon.Rocket);
+            }
+            else if (otherPlayerLayer == 9)
+            {
+                GameController.Controller.playerTwo.Hit(FirePower, Weapon.Rocket);
+            }
 
-            float enemyArmor = other.gameObject.GetComponentInChildren<Tank>().armor;
-            float damage = (160 - enemyArmor) / 250 * FirePower;
-            other.gameObject.GetComponent<Player>().Hit(damage);    //TODO For now it's like this. In future, we will maybe have a static PlayerOne/Two reference so we can easily get their fields
+
+            //float enemyArmor = other.gameObject.GetComponentInChildren<Tank>().armor;
+            //float damage = (160 - enemyArmor) / 250 * FirePower;
+            //other.gameObject.GetComponent<Player>().Hit(damage, Weapon.Rocket);    //TODO For now it's like this. In future, we will maybe have a static PlayerOne/Two reference so we can easily get their fields
 
 
         }

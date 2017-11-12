@@ -90,21 +90,28 @@ public class Player : MonoBehaviour
     [SerializeField] private Animator cameraAnim;       //Reference to camera animator to play the animation when exploded
 
     private int explodedTime = 2;                       //Default time being dead (increases by 1 sec up to 4 sec every 5 deaths)
-    private readonly WaitForSeconds secondOfDeath = new WaitForSeconds(1);  //One second of death (we wait for it in the coroutine, then decrease the timer time, then wait again, and so on)
+    private readonly WaitForSeconds secondOfDeath = new WaitForSeconds(1);  //One second of death (we wait for it in the coroutine, then decrease the timer time, then wait again, and so on), used in the BallClock timer
     private  readonly  WaitForSeconds deathScreenDelay = new WaitForSeconds(0.5f);  //Time during which play camera animation before entering death screen
 
-    //=================BALL==============
-    private Ball ball;
-    private Rigidbody ballRigidbody;
+    [Header("Ball")]            //All the stuff about the ball
+    private Ball ball;          //Caching the reference to the ball from GameController
+    private Rigidbody ballRigidbody;    //Caching the ball rigidbody
 
-    [SerializeField] private RectTransform ballUI;
+    private float ballShootForce = 5000;    //TODO Maybe dependant on some tank parameter like BallHandling
 
+    [SerializeField] private RectTransform ballUI;      //
+    [SerializeField] private GameObject ballCamera;
+
+    [SerializeField] private GameObject ballClock;
+    [SerializeField] private Text ballClockText;
+    
 
     //====================OTHER=====================
 
     //Reference for being able to smoothly stop the exploding tank with setting its drag (we disable PlayerMovement script when dead, so the player can't move dead ship...
     private Rigidbody playerRigidbody;      //And in PlayerMovement custom drag when alive is implemented, so we apply the internal rigidbody drag when dead
     private PlayerMovement movement;        //Reference to disable it when dead
+    private Tank tank;                  //COMM
 
     private readonly WaitForSeconds tankFlashTime = new WaitForSeconds(0.05f); //Tank flashes for this time when taking damage
 
@@ -121,9 +128,11 @@ public class Player : MonoBehaviour
         ball = GameController.Controller.ball;
         ballRigidbody = ball.GetComponent<Rigidbody>();
 
-        material = GetComponentInChildren<Tank>().GetComponent<Renderer>().material;
+        tank = GetComponentInChildren<Tank>();
+        material = tank.GetComponent<Renderer>().material;
         playerRigidbody = GetComponent<Rigidbody>();    //Getting those references
         movement = GetComponent<PlayerMovement>();
+        
     }
 
     private IEnumerator Explode()   //Process of exploding the player
@@ -215,8 +224,12 @@ public class Player : MonoBehaviour
       
     }
 
-    public void Hit(float damage)       //Gets invoked from Rocket's OnCollisionEnter //TODO and somewhere on the laser it will be
+    private enum FumbleCause { Death, Fumble, Violation }
+
+    public void Hit(float firePower, Weapon weapon)       //Gets invoked from Rocket's OnCollisionEnter //TODO and somewhere on the laser it will be
     {
+        float damage = (160 - tank.Armor) / 250 * firePower;
+
         Health -= damage;   //Decrease health
 
         if (Health < 0)    //If goes below 0, set it to 0, set the slider to it
@@ -227,11 +240,16 @@ public class Player : MonoBehaviour
             playerStats.Deaths++;    //Increment player's death to change the death timer and for end-game stats
             if (playerStats.Deaths == 5 || playerStats.Deaths == 10) IncreaseDestroyedTime();   //On 5 deaths the death timer is 3 sec, on 10 deaths it is 4 sec
             StartCoroutine(Explode());  //Start explosion sequence           
+
+            //TODO LOSE BALL
         }
         else
         {
             StartCoroutine(flashTank());    //Flash tank from taking damage
             healthSlider.value = Health;    //If we didn't explode the player, just change slider value to his health
+
+            //TODO Count the amount of fumbles for the stats
+            //TODO FUMBLE CHANCE. Consider that this function takes both laser and rocket hits
         }
     }
 
@@ -243,33 +261,63 @@ public class Player : MonoBehaviour
 
         DOTween.Kill(PlayerNumber);
         ballUI.DOAnchorPosY(175, (175 - ballUI.anchoredPosition.y) / 630).SetId(PlayerNumber);
+        ballCamera.SetActive(true);
+
+        if (GameController.Controller.ShotClock != 0)
+        {
+            ballClock.SetActive(true);
+            StartCoroutine(nameof(ballClockTimer));
+        }
+
 
     }
 
-    private float ballForce = 5000;
+    private IEnumerator ballClockTimer()
+    {
+        for (int i = GameController.Controller.ShotClock; i >= 0; i--)  //Count down the death timer
+        {
+            ballClockText.text = i.ToString("D2"); //i is the current timer value
+            yield return secondOfDeath;     //Wait a second between changing timer values
+        }
+        //TODO Shot Clock Violation = Fumble
+
+    }
+
+    
 
     void Update()
     {
         
         if (possession && InputManager.GetButtonDown(ballButtonName, PlayerNumber))
         {
-            GameController.announcer.ShotLong();
-
+            //TODO Cound ShotsOnGoal for the stats
+            
+            ballCamera.SetActive(false);
             DOTween.Kill(PlayerNumber);
             ballUI.DOAnchorPosY(-140, (ballUI.anchoredPosition.y + 140) / 630).SetId(PlayerNumber);
 
-            ball.transform.position = transform.TransformPoint(new Vector3(0,0.5f,2.1f));
-            //ball.gameObject.SetActive(true);
+            ball.transform.position = transform.TransformPoint(new Vector3(0,0.5f,0));           
             ballRigidbody.useGravity = true;
-            ballRigidbody.rotation = Quaternion.LookRotation(transform.TransformDirection(Vector3.forward));
-            ballRigidbody.angularVelocity = transform.TransformDirection(new Vector3(20, 0, 0));
-            ballRigidbody.AddForce(transform.TransformDirection(Vector3.forward * ballForce));
+
             possession = false;
+            if (GameController.Controller.ShotClock != 0)
+            {
+                ballClock.SetActive(false);
+                StopCoroutine(nameof(ballClockTimer));
+            }
+
+            //Further stuff changes in Fumble
+            
+            ball.transform.rotation = Quaternion.LookRotation(transform.TransformDirection(Vector3.forward));
+            ballRigidbody.angularVelocity = transform.TransformDirection(new Vector3(20, 0, 0));
+            ballRigidbody.AddForce(transform.TransformDirection(Vector3.forward * ballShootForce));
+            
+            GameController.announcer.ShotLong();        //TODO
 
             //TODO Inherit players speed
         }
 
-        
+
 
 
     }

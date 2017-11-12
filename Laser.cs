@@ -28,10 +28,20 @@ public class Laser : MonoBehaviour
         StopCoroutine(nameof(LifeTime));    //If we hit something, stop the countdown to fade the laser after some time
 
         if (other.gameObject.layer == otherPlayerLayer) //If the collided object is other player
-        {     
-            float enemyArmor = other.gameObject.GetComponentInChildren<Tank>().armor; //TODO Maybe switch damage calculations in actual Player script (just send Hit(FirePower))
-            float damage = (160 - enemyArmor) / 250 * FirePower;
-            other.gameObject.GetComponent<Player>().Hit(damage / 6);    //TODO For now it's like this. In future, we will maybe have a static PlayerOne/Two reference so we can easily get their fields
+        {
+            if (otherPlayerLayer == 8)
+            {
+                GameController.Controller.playerOne.Hit(FirePower / 6, Weapon.Laser);
+            }
+            else if (otherPlayerLayer == 9)
+            {
+                GameController.Controller.playerTwo.Hit(FirePower / 6, Weapon.Laser);
+            }
+
+
+            //float enemyArmor = other.gameObject.GetComponentInChildren<Tank>().armor; //TODO Maybe switch damage calculations in actual Player script (just send Hit(FirePower))
+            //float damage = (160 - enemyArmor) / 250 * FirePower;
+            //other.gameObject.GetComponent<Player>().Hit(damage / 6, Weapon.Laser);    //TODO For now it's like this. In future, we will maybe have a static PlayerOne/Two reference so we can easily get their fields
         }
 
         //Since the laser bolt is the rigidbody with non-trigger collider, when OnCollisionEnter hits the bolt will have bounced off the surface it hit (actually this applies only if hit the player for some reason)

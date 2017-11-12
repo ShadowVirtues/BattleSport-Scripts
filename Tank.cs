@@ -4,13 +4,13 @@ using UnityEngine;
 
 public class Tank : MonoBehaviour
 {
-    public float acceleration;
-    public float topSpeed;
-    public float firePower;
-    public float armor;
-    public float ballHandling; //???
-    public int rocketCount;
+    public float Acceleration;
+    public float TopSpeed;
+    public float FirePower;
+    public float Armor;
+    public float BallHandling; //???
+    public int RocketCount;
 
-    public Transform[] rocketSpawnPoints;
-    public Transform[] laserSpawnPoints;
+    public Transform[] RocketSpawnPoints;
+    public Transform[] LaserSpawnPoints;
 }
