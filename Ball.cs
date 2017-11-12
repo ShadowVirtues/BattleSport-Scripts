@@ -47,9 +47,14 @@ public class Ball : MonoBehaviour
         possession = true;
 
         rigidbody.velocity = Vector3.zero;
-        rigidbody.angularVelocity = Vector3.zero;
 
-        gameObject.SetActive(false);
+        rigidbody.useGravity = false;
+        transform.position = new Vector3(0, -20, 2);
+        transform.rotation = Quaternion.identity;
+        rigidbody.angularVelocity = Vector3.up * -12;
+
+
+        //gameObject.SetActive(false);
     }
 
     void OnTriggerEnter(Collider other)

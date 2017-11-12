@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
+using DG.Tweening;
 using TeamUtility.IO;
 using UnityEngine;
 using UnityEngine.UI;
@@ -96,7 +97,7 @@ public class Player : MonoBehaviour
     private Ball ball;
     private Rigidbody ballRigidbody;
 
-
+    [SerializeField] private RectTransform ballUI;
 
 
     //====================OTHER=====================
@@ -240,7 +241,8 @@ public class Player : MonoBehaviour
     {
         possession = true;
 
-
+        DOTween.Kill(PlayerNumber);
+        ballUI.DOAnchorPosY(175, (175 - ballUI.anchoredPosition.y) / 630).SetId(PlayerNumber);
 
     }
 
@@ -253,8 +255,12 @@ public class Player : MonoBehaviour
         {
             GameController.announcer.ShotLong();
 
+            DOTween.Kill(PlayerNumber);
+            ballUI.DOAnchorPosY(-140, (ballUI.anchoredPosition.y + 140) / 630).SetId(PlayerNumber);
+
             ball.transform.position = transform.TransformPoint(new Vector3(0,0.5f,2.1f));
-            ball.gameObject.SetActive(true);
+            //ball.gameObject.SetActive(true);
+            ballRigidbody.useGravity = true;
             ballRigidbody.rotation = Quaternion.LookRotation(transform.TransformDirection(Vector3.forward));
             ballRigidbody.angularVelocity = transform.TransformDirection(new Vector3(20, 0, 0));
             ballRigidbody.AddForce(transform.TransformDirection(Vector3.forward * ballForce));
