@@ -46,12 +46,12 @@ public class Ball : MonoBehaviour
     
     public bool firstPlayerShot;        //This represents if and which player shot the ball (only applies until the ball hits some geometry)
     public bool secondPlayerShot;
-    
+
     //We shoot the ball from the middle of the tank (inside of it) (we can't shoot it from in front of the player, cuz it will then go inside of terrain if the player is right next to it)
     //So for the player to not get the ball right back after shooting it (because OnTriggerStay raises from the ball being inside of the tank), we don't process the triggering of the ball
     //with the player that just shot the ball (until the ball hits some obstacle, as usual). So the next bools identify which player just shot the ball so the trigger doesn't raise until the ball hits some geometry
-    private bool firstPlayerPossessed;  //If and which player possessed the ball when something fumbled it (only applies until the ball hits some geometry)
-    private bool secondPlayerPossessed;
+    public bool firstPlayerPossessed;  //If and which player possessed the ball when something fumbled it (only applies until the ball hits some geometry)
+    public bool secondPlayerPossessed;
 
     private void ballPossess(Collider other)    //This runs when player picks up the ball
     {
@@ -80,10 +80,14 @@ public class Ball : MonoBehaviour
     //And obviously we register physical collisions in OnCollisionEnter
 
     //TODO Adjust the bounciness of the ball from how it bounces off the floor when the arena starts
-    //TODO Make player flash when picked up the ball
+
+    //TEST Some weird bug when player getting the ball doesn't get his property xxxPlayerPossessed = true set 
 
     private int a = 0;
 
+    //18 GoalBallSolid
+    //19 GoalBallScore
+    //20 GoalSolid
 
     void OnTriggerEnter(Collider other)
     {
@@ -129,7 +133,9 @@ public class Ball : MonoBehaviour
         if (other.gameObject.layer == 8) //PlayerOne layer. If the ball triggered with the first player
         {
             if (firstPlayerPossessed == false)  //Check this so the ball doesn't get right back to the player when he shoots it (because the ball shoots from inside of the player)
-            {                                                                                  
+            {
+                firstPlayerPossessed = true;    //Set this so when the the ball gets out of player one, the ball triggering with the same player doesn't get processed 
+                firstPlayerShot = false;        //When the player got the ball, he can't possibly be the one who just shot it, so set this just in case of some
                 if (secondPlayerShot)  //If second player shot the ball previsouly (before the ball hit some obstacle, as usual), the first player "INTERCEPTED" the ball
                 {
                     GameController.Controller.PlayerOne.playerStats.Interceptions++;    //Increment the amount of interceptions for player one for end-stats
@@ -140,8 +146,7 @@ public class Ball : MonoBehaviour
                 else                        //Otherwise player just picked up the ball
                 {
                     GameController.announcer.Possession();      //TODO
-                }               
-                firstPlayerPossessed = true;    //Set this so when the the ball gets out of player one, the ball triggering with the player doesn't get processed 
+                }                              
                 ballPossess(other);             //Run the stuff related to possession on the ball and on the player
 
             }
@@ -151,6 +156,8 @@ public class Ball : MonoBehaviour
         {
             if (secondPlayerPossessed == false)
             {
+                secondPlayerPossessed = true;
+                secondPlayerShot = false;
                 if (firstPlayerShot)
                 {
                     GameController.Controller.PlayerTwo.playerStats.Interceptions++;   
@@ -162,7 +169,7 @@ public class Ball : MonoBehaviour
                 {
                     GameController.announcer.Possession();
                 }
-                secondPlayerPossessed = true;                             
+                                          
                 ballPossess(other);
             }
         }
@@ -179,6 +186,9 @@ public class Ball : MonoBehaviour
 
     void OnCollisionEnter(Collision other)  //When the ball collides with the floor or level geometry
     {
+
+        if (other.gameObject.layer != 14 && other.gameObject.layer != 13) print(other.gameObject.layer);
+
         if (firstPlayerShot || secondPlayerShot)  //If either of the players shot the ball before the hit
         {
             if (other.gameObject.layer == 13)   //LevelGeometry layer. If hit level geometry after shooting

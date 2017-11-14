@@ -20,8 +20,9 @@ public class Rocket : MonoBehaviour
 
     public float FirePower; //Rocket parameter for damage and knockback to apply. Gets set in PlayerShooting when pressing a rocket button
     public int otherPlayerLayer;    //To decide in OnCollisionEnter if we should apply force to hit object (Other player)
+    public Vector3 shotDirection;   //Initial rocket facing direction, this is used in OnCollisionEnter, because rigidbody.velocity changes its vector when hitting the collider (reflects from hit surface)
 
-    private const float forceCoeff = 0.2f;    //Coefficient to convert FirePower to Force
+    private const float forceCoeff = 0.3f;    //Coefficient to convert FirePower to Force
 
     //The knockback vector is getting combined from
     private const float normalForceRatio = 0.3f;   //The normal to the tank collider hit 
@@ -39,8 +40,16 @@ public class Rocket : MonoBehaviour
     {       
         if (other.gameObject.layer == otherPlayerLayer) //If the collided object is other player
         {//Apply knockback force to the player
+
+            float codirCoeff = 0;   //Co-directional coefficient. This is used so when the player is moving in the direction of the rocket that hits him, the player gets pushed much more than when idle
+            float dot = Vector3.Dot(shotDirection, other.rigidbody.velocity);   //Calculate the dot product to know how much rocket direction and player direction match to decide how much force to apply
+            if (dot > 0)    //Only if the rocket and the player face the same direction
+            {
+                codirCoeff = dot * 0.2f + 1;    //Multiply by coefficient to get reasonable force and +1 so when dot=0, codirCoeff=1 and the initial force vector doesn't change //TEST 0.2 coefficient of knockback
+            }
+
             Vector3 forceVector = normalForceRatio * -other.contacts[0].normal +    //Normal to the collider part
-                                   (1 - normalForceRatio - upForceRatio) * rigidbody.velocity / PlayerShooting.defaultRocketSpeed   //Rocket velocity vector part
+                                   (1 - normalForceRatio - upForceRatio) * shotDirection * codirCoeff   //Rocket velocity vector part * codirCoeff is the player is moving the same direction as the rocket that hits him
                                    + Vector3.up * upForceRatio;     //And finally knockup part
 
             other.rigidbody.AddForce(forceVector * FirePower * forceCoeff, ForceMode.VelocityChange);   //Add force to the other player combined with a vector

@@ -82,6 +82,7 @@ public class Player : MonoBehaviour
     [Header("Health")]          //All the stuff about health
     private float Health = 100;  //Tank Health variable, changes when taking damage
     [SerializeField] private Slider healthSlider;   //Reference to slider to change its value depending on the player health
+    [SerializeField] private new Camera camera;     //Reference to player's camera to shake it on rocket hit
 
     [Header("Explosion")]                   //All the stuff about explosion
     [SerializeField] private ParticleSystem particleSmoke;    //Reference to two particle systems which lengths depend on the death timer, we change their length from those references
@@ -91,7 +92,7 @@ public class Player : MonoBehaviour
     [SerializeField] private GameObject tankModel;  //Tank model object to enable/disable it when exploding
     [SerializeField] private GameObject deathScreen;    //Reference to UI image covering the screen when dead to enable/disable it when exploding
     [SerializeField] private Text deathTimer;           //Reference to death timer text to count it down when dead
-    [SerializeField] private Animator cameraAnim;       //Reference to camera animator to play the animation when exploded
+    [SerializeField] private Animator cameraAnim;       //Reference to camera animator to play the animation when exploded  //TODO get is from Camera camera
 
     private int explodedTime = 2;                       //Default time being dead (increases by 1 sec up to 4 sec every 5 deaths)
     private readonly WaitForSeconds secondOfDeath = new WaitForSeconds(1);  //One second of death (we wait for it in the coroutine, then decrease the timer time, then wait again, and so on), used in the BallClock timer
@@ -101,7 +102,7 @@ public class Player : MonoBehaviour
     private Ball ball;          //Caching the reference to the ball from GameController   
 
     private bool possession = false;        //Bool representing if the player has a ball (used when fumbling and when shooting the ball)
-    private float ballShootForce = 100;    //TODO Maybe dependant on some tank parameter like BallHandling
+    public float ballShootForce = 100;    //TODO Maybe dependant on some tank parameter like BallHandling
 
     [SerializeField] private RectTransform ballUI;      //Reference to the "ball-container" UI element that raises from below when player picks up a ball
     [SerializeField] private GameObject ballCamera;     //Reference to the RawImage object containing RenderTexture of the camera looking at the ball to disable it when the player loses the ball
@@ -190,9 +191,20 @@ public class Player : MonoBehaviour
     
     private IEnumerator flashTank() 
     {
-        material.EnableKeyword("_EMISSION");    //Enable Emission property of the material (it has the flash color set)
-        yield return tankFlashTime;             //Wait
-        material.DisableKeyword("_EMISSION");   //Disable Emission property //TEST lets hope it actually saves into prefab D:
+        //material.EnableKeyword("_EMISSION");    //Enable Emission property of the material (it has the flash color set)
+        if (DOTween.IsTweening(material) == false)
+        {
+            float fin = 0.35f;
+            Color final = new Color(fin, fin, fin);
+            material.SetColor("_EmissionColor", final);
+            yield return tankFlashTime;             //Wait
+            material.SetColor("_EmissionColor", Color.black);
+
+
+        }
+        
+
+        //material.DisableKeyword("_EMISSION");   //Disable Emission property //TEST lets hope it actually saves into prefab D:
     }
 
     private Vector3 FindRandomPosition()    //Algorithm for finding random position on the map for player to spawn after death
@@ -234,6 +246,26 @@ public class Player : MonoBehaviour
         DOTween.Kill(PlayerNumber); //The next line after it slides up the "ball-container" so in case of player getting the ball instantly after losing it, kill the existing slide-down animation to start a new one
         ballUI.DOAnchorPosY(175, (175 - ballUI.anchoredPosition.y) / 630).SetId(PlayerNumber);  //Slide up the "ball-container" to Y=175 position of the UI over time dependion on its current position (full uninterrupted slide animation takes 0.5 sec)
         ballCamera.SetActive(true);     //Enable rotating ball on the UI
+
+        //============
+
+        //material.EnableKeyword("_EMISSION");    
+
+        float init = 0.1f;
+        Color initial = new Color(init, init, init);
+        material.SetColor("_EmissionColor", initial);
+
+        float fin = 0.35f;
+        Color final = new Color(fin, fin, fin);
+
+        material.DOColor(final, "_EmissionColor", 0.05f).SetLoops(6, LoopType.Yoyo).OnComplete(() => { material.SetColor("_EmissionColor", Color.black); });
+
+        //material.DisableKeyword("_EMISSION");
+        //material.SetColor("_EmissionColor", 1);
+
+
+
+        //============
 
         if (GameController.Controller.ShotClock != 0)   //If in the game settings shot clock is not set to 0, then show the shot clock on screen
         {
@@ -286,7 +318,8 @@ public class Player : MonoBehaviour
             StartCoroutine(flashTank());    //Flash tank from taking damage
             healthSlider.value = Health;    //If we didn't explode the player, just change slider value to his health
 
-            //TODO Shake the screen
+            if (weapon == Weapon.Rocket) camera.DOShakePosition(0.5f, 0.15f, 20, 90, false).OnComplete(() => {camera.transform.localPosition = new Vector3(0, 0.8f, 0); }); //Shake the camera and return it back in the end
+            
             //TODO Maybe make some part deattach from a tank
 
             if (possession && weapon == Weapon.Rocket)  //If player had a ball and got hit by a rocket
