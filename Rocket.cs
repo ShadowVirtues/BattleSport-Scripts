@@ -8,7 +8,7 @@ using UnityEngine;
  
     Test rocket-rocket collisions
 
-    Armor will mean player mass which also gets calculated in knock force
+    TODO Armor will mean player mass which also gets calculated in knock force
     
     
 */
@@ -26,7 +26,7 @@ public class Rocket : MonoBehaviour
     //The knockback vector is getting combined from
     private const float normalForceRatio = 0.3f;   //The normal to the tank collider hit 
     private const float upForceRatio = 0.3f;      //The knockup force
-    //And the actual velocity vector of the rocket which equals to (1 - normalForceRatio - upForceRatio). So they add up to 1 in the end.
+    //And the actual velocity vector of the rocket which equals to (1 - normalForceRatio - upForceRatio). So they add up to total value of 1 in the end.
 
     private new Rigidbody rigidbody; //Cache rockets rigidbody to get its velocity vector
 
@@ -44,24 +44,18 @@ public class Rocket : MonoBehaviour
                                    + Vector3.up * upForceRatio;     //And finally knockup part
 
             other.rigidbody.AddForce(forceVector * FirePower * forceCoeff, ForceMode.VelocityChange);   //Add force to the other player combined with a vector
-
-            if (otherPlayerLayer == 8)
-            {
-                GameController.Controller.playerOne.Hit(FirePower, Weapon.Rocket);
+            
+            if (otherPlayerLayer == 8)           //PlayerOne layer, then hit player one (getting the reference from GameController)
+            { 
+                GameController.Controller.PlayerOne.Hit(FirePower, Weapon.Rocket);    
             }
-            else if (otherPlayerLayer == 9)
-            {
-                GameController.Controller.playerTwo.Hit(FirePower, Weapon.Rocket);
+            else if (otherPlayerLayer == 9)     //PlayerTwo layer 
+            { 
+                GameController.Controller.PlayerTwo.Hit(FirePower, Weapon.Rocket);
             }
-
-
-            //float enemyArmor = other.gameObject.GetComponentInChildren<Tank>().armor;
-            //float damage = (160 - enemyArmor) / 250 * FirePower;
-            //other.gameObject.GetComponent<Player>().Hit(damage, Weapon.Rocket);    //TODO For now it's like this. In future, we will maybe have a static PlayerOne/Two reference so we can easily get their fields
-
-
+            //I could do it with "other.gameObject.GetComponent<Player>().Hit(FirePower, Weapon.Rocket);", but to not get reference every time, just get them from GameController
         }
-        
+
         StartCoroutine(RocketExplosion());  //After colliding, disable rocket model and make explosion, then disable the whole rocket object for reusage
     }
 

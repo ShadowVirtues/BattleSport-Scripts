@@ -24,14 +24,14 @@ public class Announcer : MonoBehaviour
     }
 
 
-    public void Score() => audioSource.PlayOneShot(score);
-    public void Possession() => audioSource.PlayOneShot(possession);
-    public void Interception() => audioSource.PlayOneShot(interception[Random.Range(0, 2)]);
-    public void MissClose() => audioSource.PlayOneShot(missClose[Random.Range(0, 2)]);
-    public void Rejected() => audioSource.PlayOneShot(rejected);
-    public void ShotLong() => audioSource.PlayOneShot(shotLong);
-    public void Fumble() => audioSource.PlayOneShot(fumble);
-    public void Kill() => audioSource.PlayOneShot(kill[Random.Range(0, 3)]);
-    public void Violation() => audioSource.PlayOneShot(violation);
+    public void Score() => audioSource.PlayOneShot(score);                                      //When the player scores
+    public void Possession() => audioSource.PlayOneShot(possession);                            //When the player gets the ball from the ground
+    public void Interception() => audioSource.PlayOneShot(interception[Random.Range(0, 2)]);    //When the player shoots the ball and the other player is in the way and intercepts it
+    public void MissClose() => audioSource.PlayOneShot(missClose[Random.Range(0, 2)]);          //COMM
+    public void Rejected() => audioSource.PlayOneShot(rejected);                                //When the player hits the solid part of the goal
+    public void ShotLong() => audioSource.PlayOneShot(shotLong);                                //COMM
+    public void Fumble() => audioSource.PlayOneShot(fumble);                                    //When the other player fumbles the ball from the holder
+    public void Kill() => audioSource.PlayOneShot(kill[Random.Range(0, 3)]);                    //When some player dies
+    public void Violation() => audioSource.PlayOneShot(violation);                              //When the shot clock timer goes all the way down and player loses the ball
 
 }

@@ -28,8 +28,8 @@ public class GameController : MonoBehaviour
 
     //public Goal goal;
     //public ScoreBoard scoreBoard;
-    public Player playerOne;
-    public Player playerTwo;
+    public Player PlayerOne;
+    public Player PlayerTwo;
     public Ball ball;
 
     public int ShotClock;

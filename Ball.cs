@@ -3,18 +3,21 @@
 public class Ball : MonoBehaviour
 {
 
-    private new Rigidbody rigidbody;    //Caching ball rigidbody to modify it when someone picks it up
-
+    [HideInInspector] public new Rigidbody rigidbody;    //Caching ball rigidbody to modify it when someone picks it up
+    //[HideInInspector] public float BallDrag;              //TEST if we need it after implemented some ball with the drag
+    [HideInInspector] public float BallAngularDrag;         //Get initial ball drag and angular drag so we can set them back when disabling those on ball pickup
 
     void Awake()
     {
         rigidbody = GetComponent<Rigidbody>();
-
+        rigidbody.maxAngularVelocity = 50;      //We don't want the ball to have limited angular velocity of 7, we want it to roll FAST, as fast as it can get rolling  
+        //BallDrag = rigidbody.drag;
+        BallAngularDrag = rigidbody.angularDrag;
     }
 
     void Start()
     {
-        rigidbody.maxAngularVelocity = 50;      //We don't want the ball to have limited angular velocity of 7, we want it to roll FAST, as fast as it can get rolling  
+        
     }
 
 
@@ -64,7 +67,8 @@ public class Ball : MonoBehaviour
         transform.position = new Vector3(0, -20, 2);    //This is where the camera is looking at the ball
         transform.rotation = Quaternion.identity;       //Make the 0,0,0 rotation of the ball
         rigidbody.angularVelocity = Vector3.up * -12;   //Make the ball rotate, which will be shown on the UI
-        //TODO SET ANGULAR AND REGULAR DRAG BACK
+        //rigidbody.drag = 0;                           //DELETE this if not needed
+        rigidbody.angularDrag = 0;                      //Disable the angular drag so the ball doesn't stop rotating in the UI       
     }
 
     //The ball has two colliders on it: 

@@ -29,29 +29,25 @@ public class Laser : MonoBehaviour
 
         if (other.gameObject.layer == otherPlayerLayer) //If the collided object is other player
         {
-            if (otherPlayerLayer == 8)
+            if (otherPlayerLayer == 8)  //PlayerOne layer, then hit player one (getting the reference from GameController)
             {
-                GameController.Controller.playerOne.Hit(FirePower / 6, Weapon.Laser);
+                GameController.Controller.PlayerOne.Hit(FirePower / 6, Weapon.Laser);
             }
-            else if (otherPlayerLayer == 9)
+            else if (otherPlayerLayer == 9) //PlayerTwo layer
             {
-                GameController.Controller.playerTwo.Hit(FirePower / 6, Weapon.Laser);
+                GameController.Controller.PlayerTwo.Hit(FirePower / 6, Weapon.Laser);
             }
-
-
-            //float enemyArmor = other.gameObject.GetComponentInChildren<Tank>().armor; //TODO Maybe switch damage calculations in actual Player script (just send Hit(FirePower))
-            //float damage = (160 - enemyArmor) / 250 * FirePower;
-            //other.gameObject.GetComponent<Player>().Hit(damage / 6, Weapon.Laser);    //TODO For now it's like this. In future, we will maybe have a static PlayerOne/Two reference so we can easily get their fields
+            
         }
 
-        //Since the laser bolt is the rigidbody with non-trigger collider, when OnCollisionEnter hits the bolt will have bounced off the surface it hit (actually this applies only if hit the player for some reason)
+        //Since the laser bolt is the rigidbody with non-trigger collider, when OnCollisionEnter hits the bolt will have bounced off the surface it hit (actually this applies only if hit the player for some reason, probably because it's rigidbody)
         //That's why to enable the explosion in the proper place, we return the laser bolt to the position where it collided with the obstacle:
         transform.position = other.contacts[0].point;
         
         StartCoroutine(LaserExplosion());  //After colliding, disable laser model and make explosion, then disable the whole laser object for reusage
     }
     
-    private WaitForSeconds lifeTime = new WaitForSeconds(0.5f); //Laser life time
+    private readonly WaitForSeconds lifeTime = new WaitForSeconds(0.5f); //Laser life time
 
     IEnumerator LifeTime()
     {
