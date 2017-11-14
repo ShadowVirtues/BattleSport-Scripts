@@ -23,6 +23,7 @@ public class Ball : MonoBehaviour
 
     void Update()
     {
+        //print(rigidbody.velocity.magnitude);
         //if (Input.GetKeyDown(KeyCode.Joystick1Button2))
         //{
 
@@ -38,7 +39,7 @@ public class Ball : MonoBehaviour
         //if (secondPlayerPossessed) print("SECOND PLAYER POSSESSED");
         //if (firstPlayerPossessed == false && secondPlayerPossessed == false) print("NO ONE POSSESSED");
 
-        
+
 
     }
 
@@ -80,28 +81,58 @@ public class Ball : MonoBehaviour
 
     //TODO Adjust the bounciness of the ball from how it bounces off the floor when the arena starts
     //TODO Make player flash when picked up the ball
-    //TODO Count the amount of interceptions for the stats
 
-    void OnTriggerStay(Collider other)  //When the ball "collides" with players or score-registering parts of the goal
-    {       
+    private int a = 0;
+
+
+    void OnTriggerEnter(Collider other)
+    {
+        
         if (other.gameObject.layer == 19)   //GoalScore Layer. If we hit the score-registering parts of the goal
         {
+            
             if (firstPlayerShot)
             {
                 //TODO Score player One
             }
             else if (secondPlayerShot)
             {
+                a++;
+                print(a);
+
                 //TODO Score player Two
             }
 
         }
-        else if (other.gameObject.layer == 8) //PlayerOne layer. If the ball triggered with the first player
+
+
+    }
+
+
+    void OnTriggerStay(Collider other)  //When the ball "collides" with players or score-registering parts of the goal
+    {       
+        //if (other.gameObject.layer == 19)   //GoalScore Layer. If we hit the score-registering parts of the goal
+        //{
+        //    if (firstPlayerShot)
+        //    {
+        //        //TODO Score player One
+        //    }
+        //    else if (secondPlayerShot)
+        //    {
+        //        a++;
+        //        print(a);
+        //        //TODO Score player Two
+        //    }
+
+        //}
+        //else 
+        if (other.gameObject.layer == 8) //PlayerOne layer. If the ball triggered with the first player
         {
             if (firstPlayerPossessed == false)  //Check this so the ball doesn't get right back to the player when he shoots it (because the ball shoots from inside of the player)
             {                                                                                  
                 if (secondPlayerShot)  //If second player shot the ball previsouly (before the ball hit some obstacle, as usual), the first player "INTERCEPTED" the ball
                 {
+                    GameController.Controller.PlayerOne.playerStats.Interceptions++;    //Increment the amount of interceptions for player one for end-stats
                     GameController.announcer.Interception();    //TODO
                     secondPlayerShot = false;      //If the ball got intercepted, we have to reset it here that it's not the second player that now possesses the ball
                     secondPlayerPossessed = false;
@@ -122,6 +153,7 @@ public class Ball : MonoBehaviour
             {
                 if (firstPlayerShot)
                 {
+                    GameController.Controller.PlayerTwo.playerStats.Interceptions++;   
                     GameController.announcer.Interception();
                     firstPlayerShot = false;
                     firstPlayerPossessed = false;
