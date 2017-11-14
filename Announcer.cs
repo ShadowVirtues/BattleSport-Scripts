@@ -11,6 +11,9 @@ public class Announcer : MonoBehaviour
     [SerializeField] private AudioClip[] missClose;
     [SerializeField] private AudioClip rejected;
     [SerializeField] private AudioClip shotLong;
+    [SerializeField] private AudioClip fumble;
+    [SerializeField] private AudioClip[] kill;
+    [SerializeField] private AudioClip violation;
 
 
     private AudioSource audioSource;
@@ -27,8 +30,8 @@ public class Announcer : MonoBehaviour
     public void MissClose() => audioSource.PlayOneShot(missClose[Random.Range(0, 2)]);
     public void Rejected() => audioSource.PlayOneShot(rejected);
     public void ShotLong() => audioSource.PlayOneShot(shotLong);
-
-
-
+    public void Fumble() => audioSource.PlayOneShot(fumble);
+    public void Kill() => audioSource.PlayOneShot(kill[Random.Range(0, 3)]);
+    public void Violation() => audioSource.PlayOneShot(violation);
 
 }
