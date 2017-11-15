@@ -26,7 +26,7 @@ public class GameController : MonoBehaviour
 
     public static Announcer announcer;
 
-    //public Goal goal;
+    public Goal goal;
     //public ScoreBoard scoreBoard;
     public Player PlayerOne;
     public Player PlayerTwo;

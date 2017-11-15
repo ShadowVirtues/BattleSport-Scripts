@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 public class Ball : MonoBehaviour
 {
@@ -7,12 +8,16 @@ public class Ball : MonoBehaviour
     //[HideInInspector] public float BallDrag;              //TEST if we need it after implemented some ball with the drag
     [HideInInspector] public float BallAngularDrag;         //Get initial ball drag and angular drag so we can set them back when disabling those on ball pickup
 
+    private Goal goal;
+
     void Awake()
     {
         rigidbody = GetComponent<Rigidbody>();
         rigidbody.maxAngularVelocity = 50;      //We don't want the ball to have limited angular velocity of 7, we want it to roll FAST, as fast as it can get rolling  
         //BallDrag = rigidbody.drag;
         BallAngularDrag = rigidbody.angularDrag;
+
+        goal = GameController.Controller.goal;
     }
 
     void Start()
@@ -52,7 +57,7 @@ public class Ball : MonoBehaviour
     //with the player that just shot the ball (until the ball hits some obstacle, as usual). So the next bools identify which player just shot the ball so the trigger doesn't raise until the ball hits some geometry
     public bool firstPlayerPossessed;  //If and which player possessed the ball when something fumbled it (only applies until the ball hits some geometry)
     public bool secondPlayerPossessed;
-
+    
     private void ballPossess(Collider other)    //This runs when player picks up the ball
     {
         other.gameObject.GetComponentInParent<Player>().Possession();   //Run a public function on the player that picked up the ball (it has everything to possession that is related to the player)
@@ -69,7 +74,8 @@ public class Ball : MonoBehaviour
         transform.rotation = Quaternion.identity;       //Make the 0,0,0 rotation of the ball
         rigidbody.angularVelocity = Vector3.up * -12;   //Make the ball rotate, which will be shown on the UI
         //rigidbody.drag = 0;                           //DELETE this if not needed
-        rigidbody.angularDrag = 0;                      //Disable the angular drag so the ball doesn't stop rotating in the UI       
+        rigidbody.angularDrag = 0;                      //Disable the angular drag so the ball doesn't stop rotating in the UI    
+        
     }
 
     //The ball has two colliders on it: 
@@ -83,37 +89,39 @@ public class Ball : MonoBehaviour
 
     //TEST Some weird bug when player getting the ball doesn't get his property xxxPlayerPossessed = true set 
 
-    private int a = 0;
+
+
+    //private int a = 0;
 
     //18 GoalBallSolid
     //19 GoalBallScore
     //20 GoalSolid
 
-    void OnTriggerEnter(Collider other)
-    {
+    //void OnTriggerEnter(Collider other)
+    //{
         
-        if (other.gameObject.layer == 19)   //GoalScore Layer. If we hit the score-registering parts of the goal
-        {
+    //    if (other.gameObject.layer == 19)   //GoalScore Layer. If we hit the score-registering parts of the goal
+    //    {
             
-            if (firstPlayerShot)
-            {
-                //TODO Score player One
-            }
-            else if (secondPlayerShot)
-            {
-                a++;
-                print(a);
+    //        if (firstPlayerShot)
+    //        {
+    //            //TODO Score player One
+    //        }
+    //        else if (secondPlayerShot)
+    //        {
+    //            a++;
+    //            print(a);
 
-                //TODO Score player Two
-            }
+    //            //TODO Score player Two
+    //        }
 
-        }
-
-
-    }
+    //    }
 
 
-    void OnTriggerStay(Collider other)  //When the ball "collides" with players or score-registering parts of the goal
+    //}
+
+
+    IEnumerator OnTriggerStay(Collider other)  //When the ball "collides" with players or score-registering parts of the goal
     {       
         //if (other.gameObject.layer == 19)   //GoalScore Layer. If we hit the score-registering parts of the goal
         //{
@@ -130,18 +138,21 @@ public class Ball : MonoBehaviour
 
         //}
         //else 
+        yield return new WaitForEndOfFrame();
+
         if (other.gameObject.layer == 8) //PlayerOne layer. If the ball triggered with the first player
         {
             if (firstPlayerPossessed == false)  //Check this so the ball doesn't get right back to the player when he shoots it (because the ball shoots from inside of the player)
             {
                 firstPlayerPossessed = true;    //Set this so when the the ball gets out of player one, the ball triggering with the same player doesn't get processed 
                 firstPlayerShot = false;        //When the player got the ball, he can't possibly be the one who just shot it, so set this just in case of some
+                secondPlayerPossessed = false;  //In case after fumbling when the ball gets to the other player without touching any collider
                 if (secondPlayerShot)  //If second player shot the ball previsouly (before the ball hit some obstacle, as usual), the first player "INTERCEPTED" the ball
                 {
                     GameController.Controller.PlayerOne.playerStats.Interceptions++;    //Increment the amount of interceptions for player one for end-stats
                     GameController.announcer.Interception();    //TODO
-                    secondPlayerShot = false;      //If the ball got intercepted, we have to reset it here that it's not the second player that now possesses the ball
-                    secondPlayerPossessed = false;
+                    secondPlayerShot = false;      //If the ball got intercepted, we have to reset it here 
+                    
                 }
                 else                        //Otherwise player just picked up the ball
                 {
@@ -158,12 +169,13 @@ public class Ball : MonoBehaviour
             {
                 secondPlayerPossessed = true;
                 secondPlayerShot = false;
+                firstPlayerPossessed = false;
                 if (firstPlayerShot)
                 {
                     GameController.Controller.PlayerTwo.playerStats.Interceptions++;   
                     GameController.announcer.Interception();
                     firstPlayerShot = false;
-                    firstPlayerPossessed = false;
+                    
                 }
                 else
                 {
@@ -187,7 +199,7 @@ public class Ball : MonoBehaviour
     void OnCollisionEnter(Collision other)  //When the ball collides with the floor or level geometry
     {
 
-        if (other.gameObject.layer != 14 && other.gameObject.layer != 13) print(other.gameObject.layer);
+        //if (other.gameObject.layer != 14 && other.gameObject.layer != 13) print(other.gameObject.layer);
 
         if (firstPlayerShot || secondPlayerShot)  //If either of the players shot the ball before the hit
         {
@@ -198,16 +210,29 @@ public class Ball : MonoBehaviour
 
                 losePossession();   //COMM
             }
-            else if (other.gameObject.layer == 18) //GoalSolid layer. If we hit the solid part of the goal (non-score-registering)
+            else if (other.gameObject.layer == 19) //GoalballSolid layer
             {
-                GameController.announcer.Rejected();
-                //TODO REJECTED
+                Vector3 normal = other.contacts[0].normal;
+                Vector3 goalFacing = goal.transform.TransformDirection(Vector3.forward);
+
+
+                if (normal == goalFacing || normal == -goalFacing)
+                {
+                    print("SCORE");
+                    GameController.announcer.Score();
+
+                }
+                else
+                {
+                    GameController.announcer.Rejected();
+                    //TODO REJECTED
+                }
 
                 losePossession();   //COMM
             }    
         }
-        else if (firstPlayerPossessed || secondPlayerPossessed) //If the player had the ball, but didn't shoot it (got fumbled), reset the bools to no one possessing the ball
-        {
+        else if (firstPlayerPossessed || secondPlayerPossessed) //If the player had the ball, but didn't shoot it (got fumbled), reset the bools to no one possessing the ball 
+        {                                                       //when the ball collides with anything (including the floor, the position and speed of the ball are set so the ball can't touch the ground being still inside of the player)
             losePossession();   //COMM
         }
 
@@ -216,6 +241,24 @@ public class Ball : MonoBehaviour
 
 
     }
+
+    //void OnTriggerExit(Collider other)
+    //{
+    //    if (firstPlayerShot == false && firstPlayerPossessed && ballPossessed == false && other.gameObject.layer == 8)
+    //    {
+    //        losePossession();
+
+    //        print("PLAYER ONE FUMBLE");
+    //    }
+    //    else if (secondPlayerShot == false && secondPlayerPossessed && ballPossessed == false && other.gameObject.layer == 9)
+    //    {
+    //        losePossession();
+    //        print("PLAYER TWO FUMBLE");
+    //    }
+
+
+    //}
+
 
 
 

@@ -343,7 +343,7 @@ public class Player : MonoBehaviour
         ball.transform.position = transform.TransformPoint(new Vector3(0, 0.5f, 0));    //Teleport the ball from rotating under the map to the center of the player (the anchor of the player is on the very bottom of the tank, so raise it a bit to Y=0.5) (Look Ball.cs to see about this teleportation from under the map)
         ball.rigidbody.useGravity = true;    //Make the ball affected by gravity (when under the map we disable it) 
         ball.rigidbody.angularDrag = ball.BallAngularDrag;  //Set the angular drag back to the ball
-               
+        
         possession = false;                 //Set that the player doesn't have a ball anymore
         if (GameController.Controller.ShotClock != 0)   //If the ShotClock is not 0 (not shot clock violations, gets set in game settings)
         {
