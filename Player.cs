@@ -18,10 +18,15 @@ using Random = UnityEngine.Random;
 
     Next thing to do: come up with damage system with firepower, armor which affects mass. Work on rocket push forces in general
     Maybe turn the rocket spawns inside a bit so the rockets shoot not fully forward
+    Move Stingers rocket spawn even lower, or just point down the shooting
     Same with lasers
     
-    Bake lighting for every arena
     
+    
+
+
+
+
 
 
 
@@ -29,15 +34,10 @@ using Random = UnityEngine.Random;
 
     Consider that we have default Physic Material and there needs to be ball bouncing out of everything     
     
-
     Adjust thrusters lifetime so you don't see it while moving backwards. MAYBE MAKE CULLING SHIT TO CAMERA, SO WITH INSANE FOVS PLAYERS COULDNT SEE THEIR OWN TANK
-         
-    When putting a chosen tank in a scene's container "PlayerOne/Two", set the layer of the tank object to respective one. Care about "PlayerExplosion" layer
-
-
-
-
-
+      
+    Make so you don't have to put announcer to every GameController of every arena
+    Also remove input manager from the arena, and create it before
 
     ADDITIONAL IDEAS:
     When hit, slider slowly going down with red trail like in LOL
@@ -48,7 +48,18 @@ using Random = UnityEngine.Random;
 
 
 
-
+    THINGS TO CONSIDER WHEN MAKING NEW ARENA
+    1. Set all the stuff to "static"
+    2. Bake lighting
+    3. Set all layers to geometry and all interactibles:
+        a) Walls (LevelGeometry)
+        b) Floor (Floor)
+        c) Static Props (LevelGeometry)
+        d) Players (PlayerOne/Two)
+        e) PlayerExplosion
+        f) BallTrigger, BallCollider
+        g) GoalSolid, GoalBallSolid
+    4. Set light, set skybox
 
 
 */
@@ -92,7 +103,7 @@ public class Player : MonoBehaviour
     [SerializeField] private GameObject tankModel;  //Tank model object to enable/disable it when exploding
     [SerializeField] private GameObject deathScreen;    //Reference to UI image covering the screen when dead to enable/disable it when exploding
     [SerializeField] private Text deathTimer;           //Reference to death timer text to count it down when dead
-    [SerializeField] private Animator cameraAnim;       //Reference to camera animator to play the animation when exploded  //TODO get is from Camera camera
+    private Animator cameraAnim;       //Reference to camera animator to play the animation when exploded (getting it from Camera camera)
 
     private int explodedTime = 2;                       //Default time being dead (increases by 1 sec up to 4 sec every 5 deaths)
     private readonly WaitForSeconds secondOfDeath = new WaitForSeconds(1);  //One second of death (we wait for it in the coroutine, then decrease the timer time, then wait again, and so on), used in the BallClock timer
@@ -102,7 +113,7 @@ public class Player : MonoBehaviour
     [SerializeField] private RectTransform ballUI;      //Reference to the "ball-container" UI element that raises from below when player picks up a ball
     [SerializeField] private GameObject ballCamera;     //Reference to the RawImage object containing RenderTexture of the camera looking at the ball to disable it when the player loses the ball
 
-    private Ball ball;          //Caching the reference to the ball from GameController   
+    private Ball ball;          //Caching the shorter reference to the ball from GameController   
 
     private bool possession = false;        //Bool representing if the player has a ball (used when fumbling and when shooting the ball)
     public float ballShootForce = 100;    //TODO Maybe dependant on some tank parameter like BallHandling
@@ -110,8 +121,8 @@ public class Player : MonoBehaviour
     [SerializeField] private GameObject ballClock;      //Reference to Shot Clock UI Image to disable/enable it when have or don't have the ball
     [SerializeField] private Text ballClockText;        //Reference to text timer on the Shot Clock UI
 
-    [SerializeField] private GameObject scoreImage;     //COMM
-    [SerializeField] private Text scoreText;                                                                  
+    [SerializeField] private GameObject scoreImage;     //Reference to score panel-like image where you write score text that you enable when scoring
+    [SerializeField] private Text scoreText;            //Reference to score text to change it when you score                                                 
 
     //====================OTHER=====================
 
@@ -119,9 +130,7 @@ public class Player : MonoBehaviour
     private Rigidbody playerRigidbody;      //And in PlayerMovement custom drag when alive is implemented, so we apply the internal rigidbody drag when dead
     private PlayerMovement movement;        //Reference to disable it when dead
     private Tank tank;                  //Reference to Tank component of attached tank to get its characteristics
-
-    private readonly WaitForSeconds tankFlashTime = new WaitForSeconds(0.05f); //Tank flashes for this time when taking damage
-
+   
     private Collider[] spawnCheckColliders = new Collider[2];   //Premade array of colliders to not have any garbage allocated when checking where to spawn a tank after death with "CheckCapsule"
 
     private Material material;          //Tank material to modify it when the tank gets hit or picks up the ball
@@ -134,11 +143,13 @@ public class Player : MonoBehaviour
     {
         ball = GameController.Controller.ball;
         
-        tank = GetComponentInChildren<Tank>();              //Getting those references
+        tank = GetComponentInChildren<Tank>();              //Getting dose references
         material = tank.GetComponent<Renderer>().material;
 
         playerRigidbody = GetComponent<Rigidbody>();    
-        movement = GetComponent<PlayerMovement>();       
+        movement = GetComponent<PlayerMovement>();
+
+        cameraAnim = camera.GetComponent<Animator>();
     }
 
     private IEnumerator Explode()   //Process of exploding the player
@@ -191,22 +202,18 @@ public class Player : MonoBehaviour
         moduleExplosion.startLifetimeMultiplier = explodedTime;
     }
     
-    private IEnumerator flashTank() 
-    {
-        //material.EnableKeyword("_EMISSION");    //Enable Emission property of the material (it has the flash color set)
-        if (DOTween.IsTweening(material) == false)
+    private readonly WaitForSeconds tankFlashTime = new WaitForSeconds(0.05f); //Tank flashes for this time when taking damage
+
+    private IEnumerator flashTank()     //Flash tank on hit
+    {        
+        if (DOTween.IsTweening(material) == false)      //If the tank material is already flashing from picking up the ball, don't flash it from being hit
         {
-            float fin = 0.35f;
-            Color final = new Color(fin, fin, fin);
+            const float fin = 0.35f;                
+            Color final = new Color(fin, fin, fin); //Flash the tank to this color
             material.SetColor("_EmissionColor", final);
             yield return tankFlashTime;             //Wait
-            material.SetColor("_EmissionColor", Color.black);
-
-
-        }
-        
-
-        //material.DisableKeyword("_EMISSION");   //Disable Emission property //TEST lets hope it actually saves into prefab D:
+            material.SetColor("_EmissionColor", Color.black);   //Set the color back
+        }       
     }
 
     private Vector3 FindRandomPosition()    //Algorithm for finding random position on the map for player to spawn after death
@@ -231,9 +238,7 @@ public class Player : MonoBehaviour
                 if (spawnCheckColliders[0].gameObject.layer == 14 && spawnCheckColliders[1] == null)
                 {
                     return new Vector3(coord.x, 5, coord.y);    //Return position to spawn tank at. Y=5 is the height from where the tank drops
-                }
-                
-
+                }               
             }
             iter++;
             if (iter > 100) Debug.LogError("Couldn't find the spawn site"); //If we performed 100 checks and haven't found a spawn site, there must be something wrong
@@ -241,33 +246,23 @@ public class Player : MonoBehaviour
       
     }
     
-    public void Possession()        //Function that is getting run in the Ball.cs when picking up the ball
+    public void Possession()        //Function that is getting run from Ball.cs when picking up the ball
     {
         possession = true;          //Set the bool so fumbles can occur and so the player can shoot the ball
 
         DOTween.Kill(PlayerNumber); //The next line after it slides up the "ball-container" so in case of player getting the ball instantly after losing it, kill the existing slide-down animation to start a new one
         ballUI.DOAnchorPosY(175, (175 - ballUI.anchoredPosition.y) / 630).SetId(PlayerNumber);  //Slide up the "ball-container" to Y=175 position of the UI over time dependion on its current position (full uninterrupted slide animation takes 0.5 sec)
         ballCamera.SetActive(true);     //Enable rotating ball on the UI
-
-        //============
-
-        //material.EnableKeyword("_EMISSION");    
-
+        //============Flashing Tank on Ball Pickup===========        
         float init = 0.1f;
-        Color initial = new Color(init, init, init);
+        Color initial = new Color(init, init, init);    //"Low" flash color
         material.SetColor("_EmissionColor", initial);
 
         float fin = 0.35f;
-        Color final = new Color(fin, fin, fin);
+        Color final = new Color(fin, fin, fin);         //"High" flash color
 
-        material.DOColor(final, "_EmissionColor", 0.05f).SetLoops(6, LoopType.Yoyo).OnComplete(() => { material.SetColor("_EmissionColor", Color.black); });
-
-        //material.DisableKeyword("_EMISSION");
-        //material.SetColor("_EmissionColor", 1);
-
-
-
-        //============
+        material.DOColor(final, "_EmissionColor", 0.05f).SetLoops(6, LoopType.Yoyo).OnComplete(() => { material.SetColor("_EmissionColor", Color.black); });       //Flash 3 times (6 times back and fourth) and set the color back in the end
+        //====================================================
 
         if (GameController.Controller.ShotClock != 0)   //If in the game settings shot clock is not set to 0, then show the shot clock on screen
         {
@@ -292,8 +287,7 @@ public class Player : MonoBehaviour
         if (possession && InputManager.GetButtonDown(ballButtonName, PlayerNumber)) //If player has a ball and presses Shoot Ball button
         {
             LoseBall(FumbleCause.Shot); //"LOSE" ball due to shooting it
-        }
-       
+        }       
     }
 
     public void Hit(float firePower, Weapon weapon)       //Gets invoked from Rocket or Laser OnCollisionEnter
@@ -305,7 +299,7 @@ public class Player : MonoBehaviour
         if (Health < 0)    //If goes below 0, set it to 0, set the slider to it
         {
             Health = 0;
-            healthSlider.value = Health;
+            healthSlider.value = Health;    //Set slider value
 
             playerStats.Deaths++;    //Increment player's death to change the death timer and for end-game stats
             if (playerStats.Deaths == 5 || playerStats.Deaths == 10) IncreaseDestroyedTime();   //On 5 deaths the death timer is 3 sec, on 10 deaths it is 4 sec
@@ -343,7 +337,7 @@ public class Player : MonoBehaviour
         ballUI.DOAnchorPosY(-140, (ballUI.anchoredPosition.y + 140) / 630).SetId(PlayerNumber); //Animate "ball-container" to slide down to '-140' position with the speed taking into account its current position (so the max distance of sliding would take 0.5 seconds)
 
         ball.transform.position = transform.TransformPoint(new Vector3(0, 0.5f, 0));    //Teleport the ball from rotating under the map to the center of the player (the anchor of the player is on the very bottom of the tank, so raise it a bit to Y=0.5) (Look Ball.cs to see about this teleportation from under the map)
-        ball.rigidbody.useGravity = true;    //Make the ball affected by gravity (when under the map we disable it) 
+        ball.rigidbody.useGravity = true;    //Make the ball affected by gravity (when under the map we disable gravity) 
         ball.rigidbody.angularDrag = ball.BallAngularDrag;  //Set the angular drag back to the ball
         
         possession = false;                 //Set that the player doesn't have a ball anymore
@@ -365,10 +359,12 @@ public class Player : MonoBehaviour
             
             ball.transform.rotation = Quaternion.LookRotation(transform.TransformDirection(Vector3.forward));   //Set the rotation of the ball facing the direction of the tank
             ball.rigidbody.angularVelocity = transform.TransformDirection(new Vector3(20, 0, 0));               //Set angular velocity of the ball rotating to the direction of the shot
-            //ball.rigidbody.AddForce(transform.TransformDirection(Vector3.forward * ballShootForce), ForceMode.Impulse); //Add the force in the direction
-            ball.rigidbody.velocity = transform.TransformDirection(Vector3.forward * ballShootForce);   //TODO Count ball mass here by dividing by it
+            
+            ball.rigidbody.velocity = transform.TransformDirection(Vector3.forward * ballShootForce);   //Setting velocity instead of applying force to be able to store that velocity at the same frame (With force it would get applied the next frame)           
+            //TODO Count ball mass here by dividing by it
 
-            ball.prevVel = ball.rigidbody.velocity;
+            ball.prevVel = ball.rigidbody.velocity; //Store the velocity of the ball, so when the player is right in front of the goal, we actually have some "previous" value to give to the ball 
+            //(gets overrided if some FixedUpdate frame gets snagged in the process of the ball flying from the player to the goal (look FixedUpdate in Ball.cs)
 
             GameController.announcer.ShotLong();        //TODO different length from goal
 
@@ -378,15 +374,11 @@ public class Player : MonoBehaviour
         else if (cause == FumbleCause.Fumble)   //If the other player fumbled the ball with rocket
         {
             fumbleBall();   //Function to get the random direction in the horizontal plane to throw the ball to
-
-            GameController.announcer.Fumble();        //TODO
-
-            //TODO Count fumbles
-            //CHECK if the fumble amount includes deaths with ball and violations
+            GameController.announcer.Fumble();        //TODO         
         }
         else if (cause == FumbleCause.Death)    //If the player died with the ball
         {
-            fumbleBall();   //Just throw the ball to a random direction
+            fumbleBall();   //Just throw the ball to a random direction            
         }
         else if (cause == FumbleCause.Violation)    //If the timer counted all the way down - shot clock violation
         {
@@ -395,13 +387,12 @@ public class Player : MonoBehaviour
         }
         
     }
-
     
-
     private void fumbleBall()       //Function that gets called when fumbled with any mean but player actually shootin the ball himself
     {
-        float fumbleBallforce = 100;    //TODO Adjust the value
+        playerStats.Fumbles++;          //We are counting fumbles for end-stats from normal fumbles, violations and deaths with ball
 
+        float fumbleBallforce = 100;    //TODO Adjust the value        
         Vector2 randDirCircle = Random.insideUnitCircle;    //Get random direction in the cirle lying in the horizontal plane of the player
         Vector3 ballDirection = new Vector3(randDirCircle.x, 0, randDirCircle.y);   //Transform Vector2 to Vector3
         ball.transform.rotation = Quaternion.LookRotation(ballDirection);   //Set ball rotation to this random direction
@@ -410,29 +401,23 @@ public class Player : MonoBehaviour
         
     }
 
-    private readonly WaitForSeconds scoreUITime = new WaitForSeconds(5);
-
-    private IEnumerator ScoreUI()
-    {
-        scoreText.text = playerStats.Score.ToString();
-        scoreImage.SetActive(true);
-        yield return scoreUITime;
-        scoreImage.SetActive(false);
-
-    }
-
-    public void Score()
-    {
-        
-
+    private readonly WaitForSeconds scoreUITime = new WaitForSeconds(5);    //During this time the score shows on screen after scoring
+   
+    public void Score()         //That function gets invoked for both players from Ball.cs when someone scores
+    { 
         StartCoroutine(ScoreUI());
+    }
 
-
+    private IEnumerator ScoreUI()       //Show UI element showing score for 5 seconds
+    {
+        scoreText.text = playerStats.Score.ToString();  //Score is getting counted to playerStats, so get it from there and set the text on the UI
+        scoreImage.SetActive(true);                     //Enable showing the UI element
+        yield return scoreUITime;                       //Wait 5 seconds
+        scoreImage.SetActive(false);                    //Disable the UI
     }
 
 
 
-    
 
-    
+
 }

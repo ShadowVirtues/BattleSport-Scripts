@@ -113,15 +113,15 @@ public class PlayerMovement : MonoBehaviour
     }
 
 
-    void GroundCheck(Collision other)   //Checking if the player is on the ground
+    void GroundCheck(Collision other)   //Checking if the player is on the ground  
     {
-        foreach (ContactPoint contact in other.contacts)    //Takes all contact points from player collider collision
+        foreach (ContactPoint contact in other.contacts)    //Takes all contact points from player collider collision    //OPTIMIZE generates garbage (only in the Editor???)
         {
             //if (contact.normal == Vector3.up)
             if (Vector3.Angle(contact.normal, Vector3.up) < 45) //If the contact to normal has angle lower than 45 degrees with UPWARDS direction means we are standing on something, and you can jump
             { 
                 grounded = true;
-                break;
+                break;              //If we found that some contact has the right normal, no need to check other contacts
             }
             //Debug.DrawRay(contact.point, contact.normal, Color.white);
             //print(Vector3.Angle(contact.normal, Vector3.up) + "    " + grounded);
