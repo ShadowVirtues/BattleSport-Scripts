@@ -9,6 +9,8 @@ public class Ball : MonoBehaviour
     [HideInInspector] public float BallAngularDrag;         //Get initial ball drag and angular drag so we can set them back when disabling those on ball pickup
 
     private Goal goal;
+    private Collider ballTrigger;
+    private Material ballMaterial;
 
     void Awake()
     {
@@ -18,6 +20,8 @@ public class Ball : MonoBehaviour
         BallAngularDrag = rigidbody.angularDrag;
 
         goal = GameController.Controller.goal;
+        ballTrigger = GetComponent<Collider>();
+        ballMaterial = GetComponentInChildren<Renderer>().material;
     }
 
     void Start()
@@ -26,29 +30,29 @@ public class Ball : MonoBehaviour
     }
 
 
-    void Update()
-    {
-        //print(rigidbody.velocity.magnitude);
-        //if (Input.GetKeyDown(KeyCode.Joystick1Button2))
-        //{
+    //void Update()
+    //{
+    //    //print(rigidbody.velocity.magnitude);
+    //    //if (Input.GetKeyDown(KeyCode.Joystick1Button2))
+    //    //{
 
-        //    rigidbody.rotation = Quaternion.LookRotation(GameController.Controller.playerTwo.transform.TransformDirection(Vector3.forward));
-        //    rigidbody.angularVelocity = GameController.Controller.playerTwo.transform.TransformDirection(new Vector3(20, 0, 0));
+    //    //    rigidbody.rotation = Quaternion.LookRotation(GameController.Controller.playerTwo.transform.TransformDirection(Vector3.forward));
+    //    //    rigidbody.angularVelocity = GameController.Controller.playerTwo.transform.TransformDirection(new Vector3(20, 0, 0));
 
-        //}
-
-
-        //Assembly.GetAssembly(typeof(SceneView)).GetType("UnityEditor.LogEntries").GetMethod("Clear").Invoke(new object(), null);
-
-        //if (firstPlayerPossessed) print("FIRST PLAYER POSSESSED");
-        //if (secondPlayerPossessed) print("SECOND PLAYER POSSESSED");
-        //if (firstPlayerPossessed == false && secondPlayerPossessed == false) print("NO ONE POSSESSED");
+    //    //}
 
 
+    //    //Assembly.GetAssembly(typeof(SceneView)).GetType("UnityEditor.LogEntries").GetMethod("Clear").Invoke(new object(), null);
 
-    }
+    //    //if (firstPlayerPossessed) print("FIRST PLAYER POSSESSED");
+    //    //if (secondPlayerPossessed) print("SECOND PLAYER POSSESSED");
+    //    //if (firstPlayerPossessed == false && secondPlayerPossessed == false) print("NO ONE POSSESSED");
 
-    
+
+
+    //}
+
+
     public bool firstPlayerShot;        //This represents if and which player shot the ball (only applies until the ball hits some geometry)
     public bool secondPlayerShot;
 
@@ -138,7 +142,10 @@ public class Ball : MonoBehaviour
 
         //}
         //else 
+        
         yield return new WaitForEndOfFrame();
+
+        if (ballTrigger.enabled == false) yield break;
 
         if (other.gameObject.layer == 8) //PlayerOne layer. If the ball triggered with the first player
         {
@@ -196,6 +203,48 @@ public class Ball : MonoBehaviour
         secondPlayerShot = false;
     }
 
+
+    
+    public Vector3 prevVel;
+
+    void FixedUpdate()
+    {
+        if (firstPlayerShot || secondPlayerShot)
+        {            
+            prevVel = rigidbody.velocity;
+        }
+
+    }
+
+    private WaitForSeconds scoreDelay = new WaitForSeconds(5);
+
+    private IEnumerator BallScore()
+    {
+
+
+        goal.ballSolidCollider.enabled = false;    //Disable goal ball collider
+
+        ballTrigger.enabled = false;    //Disable ball trigger
+
+        ballMaterial.color = new Color(ballMaterial.color.r, ballMaterial.color.g, ballMaterial.color.b, 0.5f);     //Make ball transparent
+
+        rigidbody.velocity = prevVel;   //Set the ball velocity back before colliding
+
+        //TODO COUNT SCORE OR WHATEVER
+
+        yield return scoreDelay;    //Wait 5 seconds
+
+        ballMaterial.color = new Color(ballMaterial.color.r, ballMaterial.color.g, ballMaterial.color.b, 1);    //Disable transparency
+
+        ballTrigger.enabled = true;    //Enable ball trigger
+
+        goal.ballSolidCollider.enabled = true;    //Enable goal ball collider
+
+
+        yield return null;
+    }
+
+
     void OnCollisionEnter(Collision other)  //When the ball collides with the floor or level geometry
     {
 
@@ -218,9 +267,24 @@ public class Ball : MonoBehaviour
 
                 if (normal == goalFacing || normal == -goalFacing)
                 {
-                    print("SCORE");
+                    
                     GameController.announcer.Score();
+                    goal.FlashGoalOnScore();
 
+
+                    if (firstPlayerShot)
+                    {
+                        GameController.Controller.PlayerOne.playerStats.Score++;
+                    }
+                    else if (secondPlayerShot)
+                    {
+                        GameController.Controller.PlayerTwo.playerStats.Score++;
+                    }
+                    GameController.Controller.PlayerOne.Score();
+                    GameController.Controller.PlayerTwo.Score();
+
+
+                    StartCoroutine(BallScore());
                 }
                 else
                 {

@@ -80,9 +80,9 @@ public class Player : MonoBehaviour
     public PlayerStats playerStats; //Instance of PlayerStats so we could fill them with all the stats
 
     [Header("Health")]          //All the stuff about health
-    private float Health = 100;  //Tank Health variable, changes when taking damage
     [SerializeField] private Slider healthSlider;   //Reference to slider to change its value depending on the player health
     [SerializeField] private new Camera camera;     //Reference to player's camera to shake it on rocket hit
+    private float Health = 100;  //Tank Health variable, changes when taking damage
 
     [Header("Explosion")]                   //All the stuff about explosion
     [SerializeField] private ParticleSystem particleSmoke;    //Reference to two particle systems which lengths depend on the death timer, we change their length from those references
@@ -99,17 +99,19 @@ public class Player : MonoBehaviour
     private  readonly  WaitForSeconds deathScreenDelay = new WaitForSeconds(0.5f);  //Time during which play camera animation before entering death screen
 
     [Header("Ball")]            //All the stuff about the ball
+    [SerializeField] private RectTransform ballUI;      //Reference to the "ball-container" UI element that raises from below when player picks up a ball
+    [SerializeField] private GameObject ballCamera;     //Reference to the RawImage object containing RenderTexture of the camera looking at the ball to disable it when the player loses the ball
+
     private Ball ball;          //Caching the reference to the ball from GameController   
 
     private bool possession = false;        //Bool representing if the player has a ball (used when fumbling and when shooting the ball)
     public float ballShootForce = 100;    //TODO Maybe dependant on some tank parameter like BallHandling
-
-    [SerializeField] private RectTransform ballUI;      //Reference to the "ball-container" UI element that raises from below when player picks up a ball
-    [SerializeField] private GameObject ballCamera;     //Reference to the RawImage object containing RenderTexture of the camera looking at the ball to disable it when the player loses the ball
-
+    
     [SerializeField] private GameObject ballClock;      //Reference to Shot Clock UI Image to disable/enable it when have or don't have the ball
     [SerializeField] private Text ballClockText;        //Reference to text timer on the Shot Clock UI
-    
+
+    [SerializeField] private GameObject scoreImage;     //COMM
+    [SerializeField] private Text scoreText;                                                                  
 
     //====================OTHER=====================
 
@@ -363,7 +365,10 @@ public class Player : MonoBehaviour
             
             ball.transform.rotation = Quaternion.LookRotation(transform.TransformDirection(Vector3.forward));   //Set the rotation of the ball facing the direction of the tank
             ball.rigidbody.angularVelocity = transform.TransformDirection(new Vector3(20, 0, 0));               //Set angular velocity of the ball rotating to the direction of the shot
-            ball.rigidbody.AddForce(transform.TransformDirection(Vector3.forward * ballShootForce), ForceMode.Impulse); //Add the force in the direction
+            //ball.rigidbody.AddForce(transform.TransformDirection(Vector3.forward * ballShootForce), ForceMode.Impulse); //Add the force in the direction
+            ball.rigidbody.velocity = transform.TransformDirection(Vector3.forward * ballShootForce);   //TODO Count ball mass here by dividing by it
+
+            ball.prevVel = ball.rigidbody.velocity;
 
             GameController.announcer.ShotLong();        //TODO different length from goal
 
@@ -405,7 +410,25 @@ public class Player : MonoBehaviour
         
     }
 
+    private readonly WaitForSeconds scoreUITime = new WaitForSeconds(5);
 
+    private IEnumerator ScoreUI()
+    {
+        scoreText.text = playerStats.Score.ToString();
+        scoreImage.SetActive(true);
+        yield return scoreUITime;
+        scoreImage.SetActive(false);
+
+    }
+
+    public void Score()
+    {
+        
+
+        StartCoroutine(ScoreUI());
+
+
+    }
 
 
 

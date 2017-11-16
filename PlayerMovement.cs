@@ -119,8 +119,10 @@ public class PlayerMovement : MonoBehaviour
         {
             //if (contact.normal == Vector3.up)
             if (Vector3.Angle(contact.normal, Vector3.up) < 45) //If the contact to normal has angle lower than 45 degrees with UPWARDS direction means we are standing on something, and you can jump
+            { 
                 grounded = true;
-
+                break;
+            }
             //Debug.DrawRay(contact.point, contact.normal, Color.white);
             //print(Vector3.Angle(contact.normal, Vector3.up) + "    " + grounded);
         }

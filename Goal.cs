@@ -1,78 +1,39 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 
 public class Goal : MonoBehaviour
-{
-    //private GameObject ballSolidCollider;
-    //private GameObject ballScoreCollider;
+{    
+    public enum GoalType { OneSided, TwoSided, FourSided }  //GoalType to decide score/reject detection by normals when the ball collides with the goal
 
-    //private Collider ballCollider;
+    public GoalType goalType;   //Variable for each goal
 
-    public enum GoalType { OneSided, TwoSided, FourSided }
+    [HideInInspector] public Collider ballSolidCollider;    //When the ball hits score-registering parts of the goal, we need to pass that ball through the goal, that' why we disable goals collider for the ball (collider for the player still works)
 
-    public GoalType goalType;
+    private Material goalMaterial;
 
     void Awake()
     {
-        //ballCollider = GetComponent<Collider>();
-        //ballSolidCollider = transform.Find("GoalBallSolidCollider").gameObject;
-        //ballScoreCollider = transform.Find("BallScoreCollider").gameObject;
+        ballSolidCollider = GetComponent<Collider>();
+
+        goalMaterial = GetComponent<Renderer>().material;
     }
 
+    public void FlashGoalOnScore()
+    {
+        goalMaterial.EnableKeyword("_EMISSION");    
 
-    //void OnCollisionEnter(Collision other)
-    //{
-    //    if (other.gameObject.layer == 16)   //BallTrigger layer. Even though BallCollider actually collides. This is because the layer of the parent rigidbody is returned
-    //    {
+        float init = 0.1f;
+        Color initial = new Color(init, init, init);
+        goalMaterial.SetColor("_EmissionColor", initial);
 
-            
+        float fin = 0.4f;
+        Color final = new Color(fin, fin, fin);
 
+        goalMaterial.DOColor(final, "_EmissionColor", 0.15f).SetLoops(8, LoopType.Yoyo).OnComplete(() => { goalMaterial.DisableKeyword("_EMISSION"); });
+    }
 
-
-
-
-
-    //        //ballCollider.enabled = false;
-    //        //print("Disabled Collider");
-    //    }
-
-    //}
-
-
-    //void OnCollisionExit(Collision other)
-    //{
-    //    //if (other.gameObject.layer == 17)
-    //    //{
-    //    //    ballScoreCollider.SetActive(true);
-    //    //    print("Enabled Collider");
-    //    //}
-
-    //}
-
-
-    //void OnTriggerEnter(Collider other)
-    //{
-
-    //    if (other.gameObject.layer == 16)
-    //    {
-    //        ballSolidCollider.SetActive(false);
-    //        print("Disabled");
-    //    }
-    //}
-
-
-    //void OnTriggerExit(Collider other)
-    //{
-
-    //    if (other.gameObject.layer == 16)
-    //    {
-    //        ballSolidCollider.SetActive(true);
-    //        print("Enabled");
-    //    }
-    //}
-
-
-
-
+    
+    
 }
