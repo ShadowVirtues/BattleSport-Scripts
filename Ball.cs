@@ -62,25 +62,17 @@ public class Ball : MonoBehaviour
     
     private bool triggering = false;            //Flag to consider the case when two players get into ball's trigger to pick it up at the same frame, so they can't both pick up the ball
 
-    IEnumerator OnTriggerStay(Collider other)  //When the ball "collides" with players (Coroutine version of it so we can delay the trigger to run after OnCollisionXX)
-    {
-        if (triggering) yield break;    //If the other "triggerage" is running during the same frame, don't execute it (the only thing I can think of this happening is when both players touch the ball at one frame)
-        triggering = true;              //Set to true in the beginning of OnTriggerStay, and set to false in the end, that way the code in it can't possibly run more than once at the same time
-        //But when two players DO actually get onto a ball at the same time, "random" player picks it up, just whetever trigger gets to run before the other one
-        
-        yield return new WaitForEndOfFrame();   //By default, Unity processes OnTriggerXX before OnCollisionXX, with this line, we run OnTriggerXX in the end of frame, after OnCollision already executed
-        //This is done to overcome the situation where the ball collides with some obstacle at the same frame player picks up the ball, so "possession" flags don't get reset due to obstacle collision right after player picks up the ball and sets those flags
-
-        if (ballTrigger.enabled == false)   //Due to us DELAYING the execution of OnTriggerStay till the end of the frame, there can be a situation when the player is trying to throw the ball intro    
-        {                                   //the goal being right in front of it, where due to collision with the goal, the possession flags are all getting into 'false', meaning player can pick up the ball again
-            triggering = false;             //The same frame trigger collider of the ball gets disabled (for 5 sec after scoring), but the trigger of getting the ball already GOT 'triggered' in the beginning of the frame
-            yield break;                    //so it would actually mean that the player WOULD get the ball right back. To overcome it, we just check if the ball trigger is disabled, and when it is, player can't possibly pick up the ball
-        }                                   //And also since we break out of the function, set "triggering" to false
-        
+    IEnumerator OnTriggerStay(Collider other)  //When the ball "collides" with players (Coroutine version of it so we can know that trigger function is running during OnCollisionXX)
+    {        
         if (other.gameObject.layer == 8) //PlayerOne layer. If the ball triggered with the first player
         {
             if (firstPlayerPossessed == false)  //Check this so the ball doesn't get right back to the player when he shoots it (because the ball shoots from inside of the player)
             {
+                if (triggering) yield break;    //If the other "triggerage" is running during the same frame, don't execute it (the only thing I can think of this happening is when both players touch the ball at one frame)      
+                triggering = true;              //Set to true in the beginning of OnTriggerStay, and set to false in the end of frame, after OnCollisionXX, that way the code in it can't possibly run more than once at the same time
+                                                //AND we know, that triggerage is running, when the ball collides with something the same frame
+                                                //But when two players DO actually get onto a ball at the same time, "random" player picks it up, just whatever trigger gets to run before the other one
+
                 firstPlayerPossessed = true;    //Set this so when the the ball gets out of player one, the ball triggering with the same player doesn't get processed 
                 firstPlayerShot = false;        //When the player got the ball, he can't possibly be the one who just shot it, so set this just in case of some BS situation (hope that it won't be broken anyway :)
                 secondPlayerPossessed = false;  //In case after fumbling when the ball gets to the other player without touching any collider
@@ -103,6 +95,9 @@ public class Ball : MonoBehaviour
         {
             if (secondPlayerPossessed == false)
             {
+                if (triggering) yield break;                
+                triggering = true;
+
                 secondPlayerPossessed = true;
                 secondPlayerShot = false;
                 firstPlayerPossessed = false;
@@ -120,7 +115,7 @@ public class Ball : MonoBehaviour
                 ballPossess(other);
             }
         }
-
+        yield return new WaitForEndOfFrame();   //Run everything trigger-related before OnCollisionXX, but still know that during the same frame some trigger has run, so don't run some related stuff in OnCollisionXX
         triggering = false; //Disable the flag in the end of frame
     }
 
@@ -167,8 +162,6 @@ public class Ball : MonoBehaviour
     
     void OnCollisionEnter(Collision other)  //When the ball collides with the floor, level geometry or goal
     {
-        //if (triggering) return;
-
         if (firstPlayerShot || secondPlayerShot)  //If either of the players shot the ball before the collision
         {
             if (other.gameObject.layer == 13)   //LevelGeometry layer. If hit level geometry after shooting
@@ -180,7 +173,7 @@ public class Ball : MonoBehaviour
             }
             else if (other.gameObject.layer == 19) //GoalBallSolid layer. If player hit the score
             {
-                //TODO Make other goals
+                //TODO!!! Make other goals
 
                 Vector3 normal = other.contacts[0].normal;  //Normal to the contact point of the goal
                 Vector3 goalFacing = goal.transform.TransformDirection(Vector3.forward);    //The direction where the goal is facing 
@@ -217,15 +210,13 @@ public class Ball : MonoBehaviour
                 losePossession();   //COMM
             }    
         }
-        else if (firstPlayerPossessed || secondPlayerPossessed) //If the player had the ball, but didn't shoot it (got fumbled), reset the bools to no one possessing the ball 
-        {                                                       //when the ball collides with anything (including the floor, the position and velocity of the ball on fumble are set so the ball can't touch the ground being still inside of the player)
+        else if (firstPlayerPossessed || secondPlayerPossessed) //If the player had the ball, but didn't shoot it (got fumbled), reset the bools to no one possessing the ball when the ball collides with anything 
+        {                                                       //(including the floor, the position and velocity of the ball on fumble are set so the ball can't touch the ground being still inside of the player)
+            if (triggering) return;     //If during this frame OnTrigger has run, meaning player picked up or intercepted the ball, then don't reset the possession flags
+
             losePossession();   //COMM
         }
         
     }
     
-
-    //Want to revert so the trigger runs before collision, but instead when both trigger and collision happen at the same frame, in collision ask if the trigger is running, and not run the collision if it does
-    //Also move "triggering = true" to the moment when the ball gets out of the player, so it doesn't trigger in the process of the ball getting out of the player.
-
 }

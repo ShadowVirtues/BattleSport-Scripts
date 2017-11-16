@@ -22,8 +22,10 @@ using Random = UnityEngine.Random;
     Same with lasers
     
     
-    
-
+    DO NEXT:
+    Rocket min speed, speed inherit to the ball
+    Stinger lower the turret
+    Make other goals
 
 
 
