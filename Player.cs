@@ -25,7 +25,7 @@ using Random = UnityEngine.Random;
     
     DO NEXT:
 
-    Make other goals
+    
 
 
 
@@ -138,6 +138,7 @@ public class Player : MonoBehaviour
     private Ball ball;          //Caching the shorter reference to the ball from GameController   
 
     private bool possession = false;        //Bool representing if the player has a ball (used when fumbling and when shooting the ball)
+    public PlayerRadar playerRadar;        //COMM
     public float ballShootForce = 100;    //TODO Maybe dependant on some tank parameter like BallHandling
     private float pickupTime;               //The time moment in seconds from the start of the game the ball got picked up (to count the PossessionTime for stats)
 
@@ -167,6 +168,7 @@ public class Player : MonoBehaviour
         ball = GameController.Controller.ball;
         
         tank = GetComponentInChildren<Tank>();              //Getting dose references
+        playerRadar = GetComponent<PlayerRadar>();
         material = tank.GetComponent<Renderer>().material;
 
         playerRigidbody = GetComponent<Rigidbody>();    
@@ -273,6 +275,9 @@ public class Player : MonoBehaviour
     {
         possession = true;          //Set the bool so fumbles can occur and so the player can shoot the ball
 
+        PlayerRadar.ballPossession = true;
+        PlayerRadar.HideBallFromRadars(true);   //COMM
+
         DOTween.Kill(PlayerNumber); //The next line after it slides up the "ball-container" so in case of player getting the ball instantly after losing it, kill the existing slide-down animation to start a new one
         ballUI.DOAnchorPosY(175, (175 - ballUI.anchoredPosition.y) / 630).SetId(PlayerNumber);  //Slide up the "ball-container" to Y=175 position of the UI over time dependion on its current position (full uninterrupted slide animation takes 0.5 sec)
         ballCamera.SetActive(true);     //Enable rotating ball on the UI
@@ -369,6 +374,10 @@ public class Player : MonoBehaviour
         ball.rigidbody.angularDrag = ball.BallAngularDrag;  //Set the angular drag back to the ball
         
         possession = false;                 //Set that the player doesn't have a ball anymore
+
+        PlayerRadar.ballPossession = false;
+        PlayerRadar.HideBallFromRadars(false);  //COMM
+
         if (GameController.Controller.ShotClock != 0)   //If the ShotClock is not 0 (not shot clock violations, gets set in game settings)
         {
             ballClock.SetActive(false);             //Disable shot clock timer  //OPTIMIZE enabling and disabling the UI Image generates garbage for some reason (look MaskableObject.SetActive, or smth)

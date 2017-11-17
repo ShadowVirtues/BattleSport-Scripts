@@ -34,6 +34,8 @@ public class GameController : MonoBehaviour
 
     public int ShotClock;
 
+    public float arenaSize = 60;    //TODO Get the size from arena 'whatever' (prefab, ScriptableObject) and convert it to float
+
     void Awake()
     {
         Controller = this;
