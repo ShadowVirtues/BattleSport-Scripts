@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using DG.Tweening;
 using TeamUtility.IO;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
@@ -23,8 +24,7 @@ using Random = UnityEngine.Random;
     
     
     DO NEXT:
-    Rocket min speed, speed inherit to the ball
-    Stinger lower the turret
+
     Make other goals
 
 
@@ -41,6 +41,23 @@ using Random = UnityEngine.Random;
     Make so you don't have to put announcer to every GameController of every arena
     Also remove input manager from the arena, and create it before
 
+
+
+
+
+    GENERAL THINGS TO DO:
+        Rocket min speed
+        Radar
+        Scoreboard
+        Tank Parameters > Acceleration, Top Speed, …
+        Audio > Announcer
+        Remaining Tanks
+        Main Menu
+        Loading Level from Main Menu
+        10 Levels > Props, Skyboxes
+        Options
+
+
     ADDITIONAL IDEAS:
     When hit, slider slowly going down with red trail like in LOL
     Ballhandling on a tank changes the speed of the ball the tank shoots it
@@ -48,6 +65,9 @@ using Random = UnityEngine.Random;
     Showing text messages on screen should be done with “ShowMessage(text)”, while the actual function will handle all the stuff about making it next line and pushing existing lines.
     When picked powerup, there should be a tooltip with circular “slider” going representing the time left for it.
 
+    THINGS TO DO WHEN "INJECTING" ALL THE STUFF IN THE ARENA:
+    1. Inject player tanks:
+        a) Set camera viewports and UI panel RectTransform
 
 
     THINGS TO CONSIDER WHEN MAKING NEW ARENA
@@ -119,7 +139,8 @@ public class Player : MonoBehaviour
 
     private bool possession = false;        //Bool representing if the player has a ball (used when fumbling and when shooting the ball)
     public float ballShootForce = 100;    //TODO Maybe dependant on some tank parameter like BallHandling
-    
+    private float pickupTime;               //The time moment in seconds from the start of the game the ball got picked up (to count the PossessionTime for stats)
+
     [SerializeField] private GameObject ballClock;      //Reference to Shot Clock UI Image to disable/enable it when have or don't have the ball
     [SerializeField] private Text ballClockText;        //Reference to text timer on the Shot Clock UI
 
@@ -271,7 +292,11 @@ public class Player : MonoBehaviour
             ballClock.SetActive(true);  //Enable UI element
             StartCoroutine(nameof(ballClockTimer)); //Start the countdown
         }
-
+        else
+        {
+            pickupTime = Time.time; //If we there is no shot clock, remember the time moment when the ball got picked up
+        }
+        
     }
     
     private IEnumerator ballClockTimer()    //Coroutine counting down the shot clock timer
@@ -280,6 +305,7 @@ public class Player : MonoBehaviour
         {
             ballClockText.text = i.ToString("D2"); //i is the current timer value, D2 is the format of the number: 00, 01, 02... //OPTIMIZE Kerning script generates garbage every second timer changes
             yield return secondOfDeath;     //Wait a second between changing timer values
+            playerStats.PossessionTime++;   //Count every second into the PossessionTime of this player
         }
         LoseBall(FumbleCause.Violation);    //If the countown manages to go all the way down, lose ball due to violation. It is written just after the timer, because we StopCoroutine every time countdown is interrupted
     }
@@ -348,6 +374,11 @@ public class Player : MonoBehaviour
             ballClock.SetActive(false);             //Disable shot clock timer  //OPTIMIZE enabling and disabling the UI Image generates garbage for some reason (look MaskableObject.SetActive, or smth)
             StopCoroutine(nameof(ballClockTimer));  //Stop the countdown
         }
+        else
+        {
+            playerStats.PossessionTime += Time.time - pickupTime; //If there is no shot clock, then we count PossessionTime by subtracting the time when the ball got fumbled from the time the ball got picked up
+        }   //Basically, when there is shot clock, we count the possession every second with the shot timer, but when there is none, we count it with time intervals between picking up the ball and losing it
+        
 
         //I would go for "switch-case" here, but it's absolutely unreadable for me, also there is not much performance difference for 4 items
         if (cause == FumbleCause.Shot)      //If the player shot the ball
@@ -361,17 +392,16 @@ public class Player : MonoBehaviour
             
             ball.transform.rotation = Quaternion.LookRotation(transform.TransformDirection(Vector3.forward));   //Set the rotation of the ball facing the direction of the tank
             ball.rigidbody.angularVelocity = transform.TransformDirection(new Vector3(20, 0, 0));               //Set angular velocity of the ball rotating to the direction of the shot
-            
-            ball.rigidbody.velocity = transform.TransformDirection(Vector3.forward * ballShootForce);   //Setting velocity instead of applying force to be able to store that velocity at the same frame (With force it would get applied the next frame)           
-            //TODO Count ball mass here by dividing by it
+
+            //Setting velocity instead of applying force to be able to store that velocity at the same frame (With force it would get applied the next frame), also to be able to add the player speed to inherit it 
+            ball.rigidbody.velocity = transform.TransformDirection(Vector3.forward * ballShootForce) + playerRigidbody.velocity;   //TODO Divide only ballShootForce by mass, so the player velocity get inherited with bigger value
 
             ball.prevVel = ball.rigidbody.velocity; //Store the velocity of the ball, so when the player is right in front of the goal, we actually have some "previous" value to give to the ball 
             //(gets overrided if some FixedUpdate frame gets snagged in the process of the ball flying from the player to the goal (look FixedUpdate in Ball.cs)
 
             GameController.announcer.ShotLong();        //TODO different length from goal
 
-            //TODO Inherit players speed
-
+            
         }
         else if (cause == FumbleCause.Fumble)   //If the other player fumbled the ball with rocket
         {

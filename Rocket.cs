@@ -55,11 +55,13 @@ public class Rocket : MonoBehaviour
             other.rigidbody.AddForce(forceVector * FirePower * forceCoeff, ForceMode.VelocityChange);   //Add force to the other player combined with a vector
             
             if (otherPlayerLayer == 8)           //PlayerOne layer, then hit player one (getting the reference from GameController)
-            { 
+            {
+                GameController.Controller.PlayerTwo.playerStats.MissilesHit++;
                 GameController.Controller.PlayerOne.Hit(FirePower, Weapon.Rocket);    
             }
             else if (otherPlayerLayer == 9)     //PlayerTwo layer 
-            { 
+            {
+                GameController.Controller.PlayerOne.playerStats.MissilesHit++;
                 GameController.Controller.PlayerTwo.Hit(FirePower, Weapon.Rocket);
             }
             //I could do it with "other.gameObject.GetComponent<Player>().Hit(FirePower, Weapon.Rocket);", but to not get reference every time, just get them from GameController

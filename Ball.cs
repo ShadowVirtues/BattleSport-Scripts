@@ -24,6 +24,7 @@ public class Ball : MonoBehaviour
         ballMaterial = GetComponentInChildren<Renderer>().material;
     }
     
+    //TODO [HideInInspector]
     public bool firstPlayerShot;        //This represents if and which player shot the ball (only applies until the ball hits some geometry)
     public bool secondPlayerShot;
 
@@ -32,7 +33,8 @@ public class Ball : MonoBehaviour
     //with the player that just shot the ball (until the ball hits some obstacle, as usual). So the next bools identify which player just shot the ball so the trigger doesn't raise until the ball hits some geometry
     public bool firstPlayerPossessed;  //If and which player possessed the ball when something fumbled it (only applies until the ball hits some geometry)
     public bool secondPlayerPossessed;
-    
+    //TODO make private
+
     private void ballPossess(Collider other)    //This runs when player picks up the ball
     {
         other.gameObject.GetComponentInParent<Player>().Possession();   //Run a public function on the player that picked up the ball (it has everything to possession that is related to the player)
@@ -134,7 +136,7 @@ public class Ball : MonoBehaviour
     //reflected from the goal, even if it scored. That way we store the ball velocity before the collision (because FixedUpdate runs before OnCollision), and then after collision with the goal, we return
     //the velocity back to what it was before the collision, along with disabling the collider of the goal for the ball to pass through that goal
 
-    public Vector3 prevVel; //Velocity of the ball in the previous frame to be able to "pass" the ball through the collider after it actually collides with it
+    [HideInInspector] public Vector3 prevVel; //Velocity of the ball in the previous frame to be able to "pass" the ball through the collider after it actually collides with it
 
     void FixedUpdate()  
     {
@@ -146,7 +148,7 @@ public class Ball : MonoBehaviour
 
     private readonly WaitForSeconds scoreDelay = new WaitForSeconds(5); //5 second delay after scoring during which players can't pick up the ball
 
-    private IEnumerator BallScore()     //Corouting of disabling-enabling colliders to introducy 5 sec delay after scoring
+    private IEnumerator BallScore()     //Coroutine of disabling-enabling colliders to introduce 5 sec delay after scoring
     {
         goal.ballSolidCollider.enabled = false;    //Disable goal collider for the ball (goal collider for the player still works)
         ballTrigger.enabled = false;    //Disable ball trigger to players can't pick up the ball
@@ -172,51 +174,77 @@ public class Ball : MonoBehaviour
                 losePossession();   //Set all possession flags to false, so no one now possesses the ball
             }
             else if (other.gameObject.layer == 19) //GoalBallSolid layer. If player hit the score
-            {
-                //TODO!!! Make other goals
-
-                Vector3 normal = other.contacts[0].normal;  //Normal to the contact point of the goal
-                Vector3 goalFacing = goal.transform.TransformDirection(Vector3.forward);    //The direction where the goal is facing 
-
-                //Z-axis of the goal always points from goal-scoring part of the goal (along with all other goal-scoring parts, if present)
-
-                if (normal == goalFacing || normal == -goalFacing)
+            {               
+                if (goal.goalType == Goal.GoalType.FourSided)   //4-sided goal scores on any collision with the ball
                 {
-                    
-                    GameController.announcer.Score();
-                    goal.FlashGoalOnScore();
-
-
-                    if (firstPlayerShot)
-                    {
-                        GameController.Controller.PlayerOne.playerStats.Score++;
-                    }
-                    else if (secondPlayerShot)
-                    {
-                        GameController.Controller.PlayerTwo.playerStats.Score++;
-                    }
-                    GameController.Controller.PlayerOne.Score();
-                    GameController.Controller.PlayerTwo.Score();
-
-
-                    StartCoroutine(BallScore());
+                    Score();        //Run a function to count the score to the player and flash the goal
                 }
-                else
+                else if (goal.goalType == Goal.GoalType.TwoSided)
                 {
-                    GameController.announcer.Rejected();
-                    //TODO REJECTED
+                    Vector3 normal = other.contacts[0].normal;  //Normal to the contact point of the goal
+                    Vector3 goalFacing = goal.transform.TransformDirection(Vector3.forward);    //The direction where the goal is facing 
+
+                    //Z-axis of the goal always points from one of the goal-scoring parts of the goal
+                    if (normal == goalFacing || normal == -goalFacing)      //For 2-sided goal, if we hit front or back side of it
+                    {
+                        Score();        
+                    }
+                    else    //If we hit some other part - REJECTED
+                    {
+                        GameController.announcer.Rejected();
+                        //TODO REJECTED
+                    }
+
+                }
+                else if (goal.goalType == Goal.GoalType.OneSided)
+                {
+                    Vector3 normal = other.contacts[0].normal;  //Normal to the contact point of the goal
+                    Vector3 goalFacing = goal.transform.TransformDirection(Vector3.forward);    //The direction where the goal is facing 
+                   
+                    if (normal == goalFacing)   //If we hit 1-sided goal exclusively from the front
+                    {
+                        Score();
+                    }
+                    else
+                    {
+                        GameController.announcer.Rejected();
+                        //TODO REJECTED
+                    }
+
                 }
 
-                losePossession();   //COMM
+
+                losePossession();   //After hitting the goal, whether scored or not, reset all possession flags
             }    
         }
         else if (firstPlayerPossessed || secondPlayerPossessed) //If the player had the ball, but didn't shoot it (got fumbled), reset the bools to no one possessing the ball when the ball collides with anything 
         {                                                       //(including the floor, the position and velocity of the ball on fumble are set so the ball can't touch the ground being still inside of the player)
             if (triggering) return;     //If during this frame OnTrigger has run, meaning player picked up or intercepted the ball, then don't reset the possession flags
 
-            losePossession();   //COMM
+            losePossession();   
         }
         
     }
+
+    private void Score()    //Function that runs when someone scores
+    {
+        GameController.announcer.Score();       //TODO
+        goal.FlashGoalOnScore();                //Run a public flash function on the goal
+        
+        if (firstPlayerShot)                    //Add the score to respective player
+        {
+            GameController.Controller.PlayerOne.playerStats.Score++;
+        }
+        else if (secondPlayerShot)
+        {
+            GameController.Controller.PlayerTwo.playerStats.Score++;
+        }
+        GameController.Controller.PlayerOne.Score();    //Run Score functions on both players to show the UI of them
+        GameController.Controller.PlayerTwo.Score();
+
+        StartCoroutine(BallScore());        //Coroutine for disabling-enabling ball and score colliders in 5 sec delay after scoring
+
+    }
+
     
 }
