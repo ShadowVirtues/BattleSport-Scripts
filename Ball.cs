@@ -241,6 +241,7 @@ public class Ball : MonoBehaviour
         }
         GameController.Controller.PlayerOne.Score();    //Run Score functions on both players to show the UI of them
         GameController.Controller.PlayerTwo.Score();
+        GameController.Controller.scoreBoard.UpdateScore(); //Update the score on the scoreboard
 
         StartCoroutine(BallScore());        //Coroutine for disabling-enabling ball and score colliders in 5 sec delay after scoring
 

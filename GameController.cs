@@ -27,7 +27,7 @@ public class GameController : MonoBehaviour
     public static Announcer announcer;
 
     public Goal goal;
-    //public ScoreBoard scoreBoard;
+    public ScoreBoard scoreBoard;
     public Player PlayerOne;
     public Player PlayerTwo;
     public Ball ball;
@@ -41,9 +41,35 @@ public class GameController : MonoBehaviour
         Controller = this;
         announcer = GetComponent<Announcer>();
         ShotClock = 10;
+        PeriodTime = 180;
+        GameTime = PeriodTime;
+
+
+        StartCoroutine(PeriodCountdown());
     }
 
+    public int PeriodTime;
 
+    public int GameTime;
+
+    private readonly WaitForSeconds second = new WaitForSeconds(1);
+
+    IEnumerator PeriodCountdown()
+    {
+        while (GameTime > 0)
+        {
+            
+            yield return second;
+            GameTime--;
+            scoreBoard.UpdateTime();
+            
+            
+        }
+        print("PERIOD ENDED");
+        //TODO END PERIOD
+
+
+    }
 
 
 

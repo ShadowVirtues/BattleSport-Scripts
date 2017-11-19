@@ -46,15 +46,17 @@ using Random = UnityEngine.Random;
 
 
     GENERAL THINGS TO DO:
-        Rocket min speed
-        Radar
-        Scoreboard
-        Tank Parameters > Acceleration, Top Speed, …
-        Audio > Announcer
+              
+        
         Remaining Tanks
+        Tank Parameters > Acceleration, Top Speed, …
+        Rocket min speed  
+        Audio > Announcer
+
+        10 Levels > Props, Skyboxes
         Main Menu
         Loading Level from Main Menu
-        10 Levels > Props, Skyboxes
+       
         Options
 
 
@@ -138,7 +140,7 @@ public class Player : MonoBehaviour
     private Ball ball;          //Caching the shorter reference to the ball from GameController   
 
     private bool possession = false;        //Bool representing if the player has a ball (used when fumbling and when shooting the ball)
-    public PlayerRadar playerRadar;        //COMM
+    public PlayerRadar playerRadar;        //Reference to playerRadar of current player to be able to get the reference to the ball icon on the radar in the static function
     public float ballShootForce = 100;    //TODO Maybe dependant on some tank parameter like BallHandling
     private float pickupTime;               //The time moment in seconds from the start of the game the ball got picked up (to count the PossessionTime for stats)
 
@@ -275,8 +277,8 @@ public class Player : MonoBehaviour
     {
         possession = true;          //Set the bool so fumbles can occur and so the player can shoot the ball
 
-        PlayerRadar.ballPossession = true;
-        PlayerRadar.HideBallFromRadars(true);   //COMM
+        PlayerRadar.ballPossession = true;      //Set the static variable in the Radar so we know to not calculate ball icon on the radar if someone possesses the ball
+        PlayerRadar.HideBallFromRadars(true);   //Hide ball from radars if someone picks up the ball
 
         DOTween.Kill(PlayerNumber); //The next line after it slides up the "ball-container" so in case of player getting the ball instantly after losing it, kill the existing slide-down animation to start a new one
         ballUI.DOAnchorPosY(175, (175 - ballUI.anchoredPosition.y) / 630).SetId(PlayerNumber);  //Slide up the "ball-container" to Y=175 position of the UI over time dependion on its current position (full uninterrupted slide animation takes 0.5 sec)
@@ -375,8 +377,8 @@ public class Player : MonoBehaviour
         
         possession = false;                 //Set that the player doesn't have a ball anymore
 
-        PlayerRadar.ballPossession = false;
-        PlayerRadar.HideBallFromRadars(false);  //COMM
+        PlayerRadar.ballPossession = false;     //Start calculating position of ball icon on the UI now that no one possesses the ball
+        PlayerRadar.HideBallFromRadars(false);  //Reveal the ball on the radar
 
         if (GameController.Controller.ShotClock != 0)   //If the ShotClock is not 0 (not shot clock violations, gets set in game settings)
         {
