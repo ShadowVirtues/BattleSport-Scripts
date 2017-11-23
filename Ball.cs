@@ -138,8 +138,13 @@ public class Ball : MonoBehaviour
 
     [HideInInspector] public Vector3 prevVel; //Velocity of the ball in the previous frame to be able to "pass" the ball through the collider after it actually collides with it
 
+    public Vector3 additionalGravity;       //COMM
+
     void FixedUpdate()  
     {
+        if (PlayerRadar.ballPossession == false) rigidbody.AddForce(additionalGravity, ForceMode.Force);
+
+
         if (firstPlayerShot || secondPlayerShot)    //We need to remember the ball previous velocity when some player actually shoots the ball         
         { 
             prevVel = rigidbody.velocity;

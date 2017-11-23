@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+//TODO INJECT NUMBERS INTO TEXTURES
+
 public class ScoreBoard : MonoBehaviour
 {
     [SerializeField] private Text[] scorePlayerOne;

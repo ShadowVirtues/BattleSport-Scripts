@@ -8,8 +8,8 @@ public class PlayerMovement : MonoBehaviour
     private Player player; //Reference to Player component
     private PlayerID playerNumber; //From TeamUtility InputManager "Add-on". Sets which player is getting controlled by this script and which controls to take from this InputManager
 
-    public float acceleration;  //TODO tank-specific acceleration
-    public float maxSpeed;      //TODO tank-specific top speed   
+    private float acceleration;  //TODO tank-specific acceleration
+    private float maxSpeed;      //TODO tank-specific top speed   
     public float dragCoeff;     //Coefficient of linear drag that all tanks stop from (like air friction) TODO make private
 
     private float rotationSpeed = 125; //Rotation speed when turning the tank with A-D or equivalent on gamepad
@@ -35,6 +35,15 @@ public class PlayerMovement : MonoBehaviour
         //Application.targetFrameRate = 45;
 #endif
     }
+
+    void Start()
+    {
+        Tank tank = GetComponentInChildren<Tank>();
+
+        acceleration = tank.Acceleration / 2;
+        maxSpeed = tank.TopSpeed * 0.2f + 6;
+
+    }
    
     void Update()
     {
@@ -47,6 +56,7 @@ public class PlayerMovement : MonoBehaviour
         //Next commented line was making smooth rotation and smooth interpolated movement, but it would make rigidbody stop when rotating the tank
         //transform.Rotate(0, InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed * Time.deltaTime, 0); //CHECK THIS AFTER UNITY UPDATE IF IT STILL STOPS MOVING OF INTERPOLATED RIGIDBODY
 
+        if (playerNumber == PlayerID.Two) print(rigidbody.velocity.magnitude);
     }
 
     void FixedUpdate () 
