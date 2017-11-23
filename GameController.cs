@@ -34,7 +34,7 @@ public class GameController : MonoBehaviour
 
     public int ShotClock;
 
-    public float arenaSize = 60;    //TODO Get the size from arena 'whatever' (prefab, ScriptableObject) and convert it to float
+    public float arenaDimension;    //This is the size of the arena in one dimension (X or Y, cuz they are equal) 
 
     void Awake()
     {
@@ -42,6 +42,7 @@ public class GameController : MonoBehaviour
         announcer = GetComponent<Announcer>();
         ShotClock = 10;
         PeriodTime = 180;
+        arenaDimension = 100;       //TODO Get the size from arena 'whatever' (prefab, ScriptableObject) and convert it to float
         GameTime = PeriodTime;
 
 

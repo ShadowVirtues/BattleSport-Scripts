@@ -6,7 +6,7 @@ using UnityEngine;
 
 /*
  
-    Test rocket-rocket collisions
+    TODO Manage rocked "gravity"
 
     TODO Armor will mean player mass which also gets calculated in knock force
     
@@ -45,7 +45,7 @@ public class Rocket : MonoBehaviour
             float dot = Vector3.Dot(shotDirection, other.rigidbody.velocity);   //Calculate the dot product to know how much rocket direction and player direction match to decide how much force to apply
             if (dot > 0)    //Only if the rocket and the player face the same direction
             {
-                codirCoeff = dot * 0.2f + 1;    //Multiply by coefficient to get reasonable force and +1 so when dot=0, codirCoeff=1 and the initial force vector doesn't change //TEST 0.2 coefficient of knockback
+                codirCoeff = dot * 0.2f + 1;    //Multiply by coefficient to get reasonable force and +1 so when dot=0, codirCoeff=1 and the initial force vector doesn't change
             }
 
             Vector3 forceVector = normalForceRatio * -other.contacts[0].normal +    //Normal to the collider part
@@ -84,5 +84,20 @@ public class Rocket : MonoBehaviour
 
     }
 
-	
+    void FixedUpdate()
+    {
+        print(rigidbody.velocity.magnitude);
+
+        //if (rigidbody.position.y < 0.6f) rigidbody.velocity = new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z);
+    }
+
+    void OnTriggerEnter(Collider other) //COMM  //TEST with tanks with low turrets
+    {
+        if (other.gameObject.layer == 20)
+        {
+            rigidbody.velocity = new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z);
+        }
+
+    }
+
 }

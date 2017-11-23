@@ -17,19 +17,21 @@ using Random = UnityEngine.Random;
     Ideally i should make ONE SINGLE "PlayerX" prefab with everything setup, and then when instantiating, just set its parameters for different players.
     ==========================================================
 
-    Next thing to do: come up with damage system with firepower, armor which affects mass. Work on rocket push forces in general
-    Maybe turn the rocket spawns inside a bit so the rockets shoot not fully forward
-    Move Stingers rocket spawn even lower, or just point down the shooting
-    Same with lasers
+    
+    
+    
     
     
     DO NEXT:
+    Armor > Mass - consider everything that gets affected by it (knock force of rocket, push force tank-tank, test ramming obstacles)
+    Redo ParticleSpeedDepend script
+    Icon disappear when dead
+    Inject numbers in ScoreBoard
+    Decide if we apply FirePower to every Rocket/Laser, of getting them from static references
+    Move Stingers rocket spawn even lower, or just point down the shooting
+    Turn the rocket/lazer spawns inside a bit so the rockets shoot not fully forward
 
-    
-
-
-
-
+    Make all tanks prefabs
 
 
 
@@ -48,16 +50,15 @@ using Random = UnityEngine.Random;
     GENERAL THINGS TO DO:
               
         
-        Remaining Tanks
-        Tank Parameters > Acceleration, Top Speed, …
-        Rocket min speed  
+        Remaining Tanks       
+        
         Audio > Announcer
 
         10 Levels > Props, Skyboxes
         Main Menu
         Loading Level from Main Menu
        
-        Options
+        Options > KeyBindings
 
 
     ADDITIONAL IDEAS:
@@ -66,6 +67,15 @@ using Random = UnityEngine.Random;
     Different balls having different mass, so you shoot them slower and they feel heavier (from Drag property of rigidbody)
     Showing text messages on screen should be done with “ShowMessage(text)”, while the actual function will handle all the stuff about making it next line and pushing existing lines.
     When picked powerup, there should be a tooltip with circular “slider” going representing the time left for it.
+
+    ARENA PARAMETERS (for prefab, ScriptableObject):
+    1. Size -> GameController.Controller.arenaDimension
+    2. Number
+    3. Name (includes number, for the end levels without number)
+    4. Actual scene with the arena
+    5. Powerups??? (or they will be injected into scene already)
+    6. GoalType,BallType?? (it will be injected, yes, but for the arena selection in the menu)
+
 
     THINGS TO DO WHEN "INJECTING" ALL THE STUFF IN THE ARENA:
     1. Inject player tanks:
@@ -141,7 +151,7 @@ public class Player : MonoBehaviour
 
     private bool possession = false;        //Bool representing if the player has a ball (used when fumbling and when shooting the ball)
     public PlayerRadar playerRadar;        //Reference to playerRadar of current player to be able to get the reference to the ball icon on the radar in the static function
-    public float ballShootForce = 100;    //TODO Maybe dependant on some tank parameter like BallHandling
+    private float ballShootForce;           //Dependant on tank parameter BallHandling
     private float pickupTime;               //The time moment in seconds from the start of the game the ball got picked up (to count the PossessionTime for stats)
 
     [SerializeField] private GameObject ballClock;      //Reference to Shot Clock UI Image to disable/enable it when have or don't have the ball
@@ -177,6 +187,11 @@ public class Player : MonoBehaviour
         movement = GetComponent<PlayerMovement>();
 
         cameraAnim = camera.GetComponent<Animator>();
+    }
+
+    void Start()
+    {
+        ballShootForce = tank.BallHandling;
     }
 
     private IEnumerator Explode()   //Process of exploding the player
@@ -250,7 +265,7 @@ public class Player : MonoBehaviour
         //We use OverlapCapsuleNonAlloc for this, which requires the Collider[] array to store found colliders in this cylinder being checked
         
         int offset = 4;             //Offset from the arena border so player doesn't spawn right next to a wall
-        float levelDimension = 30;  //TODO this will depend on the arene size
+        float levelDimension = GameController.Controller.arenaDimension / 2;  //Get arena dimension (total X=Y length) from GameController, to convert it into max coordinate need to divide by 2
 
         int iter = 0;   //A way to stop the infinite loop of finding the random spawn point if we can't find it
 
@@ -259,7 +274,8 @@ public class Player : MonoBehaviour
             Array.Clear(spawnCheckColliders, 0, spawnCheckColliders.Length);    //Clear the array of colliders just in case before performing the next check 
 
             Vector2 coord = new Vector2(Random.Range(-levelDimension + offset, levelDimension - offset), Random.Range(-levelDimension + offset, levelDimension - offset)); //Get random point of the map with RNG
-            Physics.OverlapCapsuleNonAlloc(new Vector3(coord.x, 0, coord.y), new Vector3(coord.x, 10, coord.y), 2, spawnCheckColliders);    //Capsule starts from Y=0 (floor) to 10 (highest point where arena objects are) TODO increase this when made the highest arena
+            //Capsule starts from Y=0 (floor) to 10 (highest point where arena objects are) TODO increase this when made the highest arena
+            Physics.OverlapCapsuleNonAlloc(new Vector3(coord.x, 0, coord.y), new Vector3(coord.x, 10, coord.y), 2, spawnCheckColliders, ~0, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < 2; i++) //The spawnCheckColliders array has only the length of 2, because the condition when there is only the floor found is when its the first collider found and the second collider is null
             {                           //If the first collider isn't the floor, or second collider isn't the floor as well, then its the wrong condition
                 if (spawnCheckColliders[0].gameObject.layer == 14 && spawnCheckColliders[1] == null)
@@ -268,7 +284,13 @@ public class Player : MonoBehaviour
                 }               
             }
             iter++;
-            if (iter > 100) Debug.LogError("Couldn't find the spawn site"); //If we performed 100 checks and haven't found a spawn site, there must be something wrong
+            if (iter > 100)
+            {
+                Debug.LogError("Couldn't find the spawn site"); //If we performed 100 checks and haven't found a spawn site, there must be something wrong
+                return new Vector3(0, 20, 0);
+            }
+
+                
         }
       
     }
@@ -310,7 +332,7 @@ public class Player : MonoBehaviour
     {
         for (int i = GameController.Controller.ShotClock; i >= 0; i--)  //Count down from the set time in game settings
         {
-            ballClockText.text = i.ToString("D2"); //i is the current timer value, D2 is the format of the number: 00, 01, 02... //OPTIMIZE Kerning script generates garbage every second timer changes
+            ballClockText.text = i.ToString("D2"); //i is the current timer value, D2 is the format of the number: 00, 01, 02... 
             yield return secondOfDeath;     //Wait a second between changing timer values
             playerStats.PossessionTime++;   //Count every second into the PossessionTime of this player
         }
@@ -355,7 +377,7 @@ public class Player : MonoBehaviour
 
             if (possession && weapon == Weapon.Rocket)  //If player had a ball and got hit by a rocket
             {
-                float chance = (firePower - tank.Armor / 5) / 100;  //The chance of fumble is "FirePowerOfShootingTank - ArmorOfReceivingTank/5"
+                float chance = (firePower - tank.Armor * 0.2f) * 0.01f;  //The chance of fumble is "FirePowerOfShootingTank - ArmorOfReceivingTank/5"
                 float random = Random.value;                        //Random value (0,1)
                 if (random < chance) LoseBall(FumbleCause.Fumble);    //Calculate a chance of fumble and fumble the ball with the chance
             }

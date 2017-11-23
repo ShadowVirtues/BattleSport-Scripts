@@ -38,9 +38,10 @@ public class PlayerShooting : MonoBehaviour
     private AudioSource tankSoundSource;    //TODO
     
     public const float defaultRocketSpeed = 35; //Rocket speed is getting set here, it is getting amplified by player velocity in Z direction (it is used in Rocket.cs to calculate the rocket flight vector)
+    private const float minimalRocketSpeed = 25;    //Rocket minimal speed, so when the tank is moving back while shooting, rocket isn't super slow
     private const float defaultLaserSpeed = 60; //Same for lasers, except lasers don't push other players, so private
 
-    private readonly Vector3 rocketDirection = new Vector3(0,-0.005f,1);    //TEST with flight. Vector to shoot rocket to. It is 'forward' with slight drag down (kinda like gravity). In the game has a big effect when one player is flying, the other one can't hit him from longer range
+    private readonly Vector3 rocketDirection = new Vector3(0,-0.01f,1);    //TEST with flight. Vector to shoot rocket to. It is 'forward' with slight drag down (kinda like gravity). In the game has a big effect when one player is flying, the other one can't hit him from longer range
 
     void Awake()
     {
@@ -135,8 +136,15 @@ public class PlayerShooting : MonoBehaviour
                     rocket[i].shotDirection = transform.TransformDirection(Vector3.forward);
 
                     Vector3 playerVelocityZGlobal = Vector3.Project(playerRigidbody.velocity, transform.TransformDirection(Vector3.forward)); //Get the velocity of the player in Z axis (player looking forward). This vector returns the vector in global space, so it just adds to the rocket velocity
+                    
                     rocketRigidbody[i].velocity = defaultRocketSpeed * transform.TransformDirection(rocketDirection) + playerVelocityZGlobal;   //Set rocket velocity. Transform almost-Vector3.forward to local space relative to the tank + inherit tanks Z velocity                   
-                    //TODO Make minimal speed after settled all speed parameters for tanks
+
+                    if (rocketRigidbody[i].velocity.magnitude < minimalRocketSpeed) //Rocket minimal speed is 25, if after inheriting tanks speed it's less then minimal, make it minimal speed
+                    {
+                        rocketRigidbody[i].velocity = rocketRigidbody[i].velocity.normalized * minimalRocketSpeed;
+                    }
+
+                        
                     rocketRigidbody[i].angularVelocity = transform.TransformDirection(Vector3.forward) * 20;    //Set angular velocity so the rocket rotates along its local Z axis for cool looking rocket.
 
                     //if (doubleDamage)

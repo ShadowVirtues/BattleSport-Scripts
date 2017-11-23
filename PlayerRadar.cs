@@ -15,10 +15,12 @@ public class PlayerRadar : MonoBehaviour
     private Transform ball;     //Transforms of respective objects in the arena, which positions will be shown on the radar
     private Transform goal;
 
-    private float arenaDimension;       //This is the size of the arena in one dimension (X or Y, cuz they are equal)
+    private float arenaSize;       //This is the diagonal size of the arena
     private float radarDimension = 120; //This is the radius of the radar in units on the UI
 
     public static bool ballPossession;  //Static variable to know if someone possesses the ball to stop moving it on the radar
+
+    //TODO Make player icon disappear when he is destroyed
 
     public static void HideBallFromRadars(bool state)   //Static function to hide or reveal the ball on the radar if someone possesses/loses the ball
     {
@@ -47,13 +49,15 @@ public class PlayerRadar : MonoBehaviour
 
     void Start()
     {
-        arenaDimension = GameController.Controller.arenaSize;       //Get the arena size from GameController
+        float arenaDimension = GameController.Controller.arenaDimension;
+
+        arenaSize = Mathf.Sqrt(arenaDimension * arenaDimension * 2);       //Get the arena size from GameController
     }
     
     private Vector2 RadarPosition(Transform item)   //Function that converts the relative position of items in the arena to their position on the radar
     {
-        float itemX = (item.position.x - player.position.x) / arenaDimension * radarDimension;  //Subtract X and Z components of the player from the item to get the relative position, normalize them to radar dimensions
-        float itemZ = (item.position.z - player.position.z) / arenaDimension * radarDimension;
+        float itemX = (item.position.x - player.position.x) / arenaSize * radarDimension;  //Subtract X and Z components of the player from the item to get the relative position, normalize them to radar dimensions
+        float itemZ = (item.position.z - player.position.z) / arenaSize * radarDimension;
 
         Vector3 relative = player.TransformDirection(itemX, 0, -itemZ); //Transform direction of the item to be relative to players rotation
         return new Vector2(relative.x, -relative.z);    //Return the coordinates where to put the icon on the radar
