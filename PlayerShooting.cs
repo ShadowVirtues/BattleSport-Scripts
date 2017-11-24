@@ -19,7 +19,6 @@ public class PlayerShooting : MonoBehaviour
     private Tank tank;              //Reference to Tank component to get rocketPower, firePower and rocketSpawnPoints from
     private Rigidbody playerRigidbody; //Reference to player Rigidbody for getting its Z velocity
 
-
     private GameObject[] Rockets;   //Array of pooled rockets
     private Rigidbody[] rocketRigidbody;    //Array of rididbodies of pooled rockets
     private Rocket[] rocket;                //Array of Rocket components of pooled rockets
@@ -27,7 +26,6 @@ public class PlayerShooting : MonoBehaviour
     private GameObject[] Lasers;   //Array of pooled lasers
     private Rigidbody[] laserRigidbody;    //Array of rididbodies of pooled lasers
     private Laser[] laser;                //Array of Laser components of pooled lasers
-
 
     private float laserFireRate = 0.25f;    //TODO TurboLazers
     private int laserCount;
@@ -74,7 +72,7 @@ public class PlayerShooting : MonoBehaviour
             rocketRigidbody[i] = Rockets[i].GetComponent<Rigidbody>();  //Get references to components
             rocket[i] = Rockets[i].GetComponent<Rocket>();
 
-            rocket[i].FirePower = tank.FirePower;   //Assign a firepower to the rocket //TODO for now like this, maybe later there will be static reference for each player
+            rocket[i].FirePower = tank.FirePower;   //Assign a firepower to the rocket  (DoubleDamage just reapplies double firepower to weapons, when picked up)
 
             Rockets[i].layer = layerToSet;     //Assign a layer to rockets. 
             foreach (Transform t in Rockets[i].transform)
@@ -99,9 +97,9 @@ public class PlayerShooting : MonoBehaviour
             laserRigidbody[i] = Lasers[i].GetComponent<Rigidbody>();    //Get references to components
             laser[i] = Lasers[i].GetComponent<Laser>();
 
-            laser[i].FirePower = tank.FirePower;    //Assign a firepower to the rocket //TODO for now like this, maybe later there will be static reference for each player
-                
-            Lasers[i].layer = layerToSet;           //Assign a layer to rockets. 
+            laser[i].FirePower = tank.FirePower;    //Assign a firepower to the lasers  (DoubleDamage just reapplies double firepower to weapons, when picked up)
+
+            Lasers[i].layer = layerToSet;           //Assign a layer to lasers. 
             foreach (Transform t in Lasers[i].transform)
             {
                 t.gameObject.layer = layerToSet;

@@ -19,13 +19,24 @@ public class PlayerRadar : MonoBehaviour
     private float radarDimension = 120; //This is the radius of the radar in units on the UI
 
     public static bool ballPossession;  //Static variable to know if someone possesses the ball to stop moving it on the radar
-
-    //TODO Make player icon disappear when he is destroyed
-
+    
     public static void HideBallFromRadars(bool state)   //Static function to hide or reveal the ball on the radar if someone possesses/loses the ball
     {
         GameController.Controller.PlayerOne.playerRadar.ballRadar.gameObject.SetActive(!state);     //Really long path to get those ball references, but I couldn't find a better approach
         GameController.Controller.PlayerTwo.playerRadar.ballRadar.gameObject.SetActive(!state);
+    }
+
+    public static void HidePlayerFromRadar(PlayerID playerNumber, bool state)   //Hide/reveal some player from radar. Gets called from player that gets exploded, hides/reveals his icon from enemy radar
+    {
+        if (playerNumber == PlayerID.One)
+        {
+            GameController.Controller.PlayerTwo.playerRadar.enemyRadar.gameObject.SetActive(!state);
+        }
+        else if (playerNumber == PlayerID.Two)
+        {
+            GameController.Controller.PlayerOne.playerRadar.enemyRadar.gameObject.SetActive(!state);
+        }
+
     }
 
     void Awake ()

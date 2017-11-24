@@ -142,6 +142,8 @@ public class Ball : MonoBehaviour
 
     void FixedUpdate()
     {
+        //print(rigidbody.velocity.magnitude);
+
         if (PlayerRadar.ballPossession == false) rigidbody.AddForce(additionalGravity, ForceMode.Force);    //Constantly applying additional gravity if the ball is in the arena (not possessed)
 
         if (firstPlayerShot || secondPlayerShot)    //We need to remember the ball previous velocity when some player actually shoots the ball         

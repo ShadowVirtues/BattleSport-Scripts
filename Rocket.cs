@@ -86,7 +86,7 @@ public class Rocket : MonoBehaviour
 
     void FixedUpdate()
     {
-        print(rigidbody.velocity.magnitude);
+        //print(rigidbody.velocity.magnitude);
 
         //if (rigidbody.position.y < 0.6f) rigidbody.velocity = new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z);
     }

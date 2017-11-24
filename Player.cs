@@ -22,22 +22,20 @@ using Random = UnityEngine.Random;
     
     
     
-    DO NEXT:
-    Armor > Mass - consider everything that gets affected by it (knock force of rocket, push force tank-tank, test ramming obstacles)
-    Redo ParticleSpeedDepend script
-    Icon disappear when dead
-    Inject numbers in ScoreBoard
-    Decide if we apply FirePower to every Rocket/Laser, of getting them from static references
+    DO NEXT:    
+    
     Move Stingers rocket spawn even lower, or just point down the shooting
     Turn the rocket/lazer spawns inside a bit so the rockets shoot not fully forward
 
     Make all tanks prefabs
+    Make all ball prefabs
+    Change rocket explosion
 
 
 
 
     Consider that we have default Physic Material and there needs to be ball bouncing out of everything     
-    
+    Ball when fumbling, considers the mass of the ball
     Adjust thrusters lifetime so you don't see it while moving backwards. MAYBE MAKE CULLING SHIT TO CAMERA, SO WITH INSANE FOVS PLAYERS COULDNT SEE THEIR OWN TANK
       
     Make so you don't have to put announcer to every GameController of every arena
@@ -51,13 +49,13 @@ using Random = UnityEngine.Random;
               
         
         Remaining Tanks       
-        
+        Different Balls
         Audio > Announcer
 
         10 Levels > Props, Skyboxes
         Main Menu
         Loading Level from Main Menu
-       
+        Powerups
         Options > KeyBindings
 
 
@@ -141,7 +139,8 @@ public class Player : MonoBehaviour
 
     private int explodedTime = 2;                       //Default time being dead (increases by 1 sec up to 4 sec every 5 deaths)
     private readonly WaitForSeconds secondOfDeath = new WaitForSeconds(1);  //One second of death (we wait for it in the coroutine, then decrease the timer time, then wait again, and so on), used in the BallClock timer
-    private  readonly  WaitForSeconds deathScreenDelay = new WaitForSeconds(0.5f);  //Time during which play camera animation before entering death screen
+    private readonly WaitForSeconds deathScreenDelay = new WaitForSeconds(0.5f);  //Time during which play camera animation before entering death screen
+    private readonly WaitForEndOfFrame endOfFrame = new WaitForEndOfFrame();        //Caching this as well, for enabling enemy radar icon
 
     [Header("Ball")]            //All the stuff about the ball
     [SerializeField] private RectTransform ballUI;      //Reference to the "ball-container" UI element that raises from below when player picks up a ball
@@ -192,6 +191,7 @@ public class Player : MonoBehaviour
     void Start()
     {
         ballShootForce = tank.BallHandling;
+        playerRigidbody.mass = tank.Armor / 10;
     }
 
     private IEnumerator Explode()   //Process of exploding the player
@@ -200,6 +200,8 @@ public class Player : MonoBehaviour
         playerRigidbody.drag = 3;   //Apply drag so the player object stops over some time when exploding, instead of instantly stopping 
         tankModel.SetActive(false); //Disable player tank model to enable its explosion
         explosion.SetActive(true);  //Yeah
+        PlayerRadar.HidePlayerFromRadar(PlayerNumber, true);    //Hide this player icon from enemy radar
+
 
         cameraAnim.enabled = true;  //Enable camera animator to play camera animation when exploded
         cameraAnim.Play("ExplodeCamera",-1,0);  //Play the camera animation, we have no animation layers ("-1" parameter), from the start (time = 0)
@@ -216,6 +218,8 @@ public class Player : MonoBehaviour
 
         cameraAnim.enabled = false;     //Camera animation returns to its initial position after some animation time, so to make sure it had the time to return, disable animator only after the death timer
 
+        
+
         explosion.SetActive(false);     //Explosion quasi-animation (particle system) goes on for the whole time of death (tank is smoking), that's why disable it at the very end
         transform.position = FindRandomPosition();  //Find random position on the map by checking the cylinder where tank can fall from "the sky" to the ground without anything interrupting
         transform.rotation = Quaternion.Euler(0, Random.Range(0,4) * 90, 0);    //Set tank rotation to random between 0,90,180,270 degrees (perpendicular to walls)
@@ -228,6 +232,9 @@ public class Player : MonoBehaviour
 
         tankModel.SetActive(true);      //Enable tank model
         deathScreen.SetActive(false);   //Disable death screen
+
+        yield return endOfFrame; //Wait until the end of frame, before revealing the enemy on the map. This is due to Update updating the radar running before the couroutine yields, so the frame of player being at the explosion position would slip through
+        PlayerRadar.HidePlayerFromRadar(PlayerNumber, false);    //Reveal this player icon from enemy radar
     }
     
     private void IncreaseDestroyedTime()    //Gets launched on 5 and 10 death in a game
