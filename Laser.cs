@@ -47,7 +47,7 @@ public class Laser : MonoBehaviour
         StartCoroutine(LaserExplosion());  //After colliding, disable laser model and make explosion, then disable the whole laser object for reusage
     }
     
-    private readonly WaitForSeconds lifeTime = new WaitForSeconds(0.5f); //Laser life time
+    private readonly WaitForSeconds lifeTime = new WaitForSeconds(0.75f); //Laser life time
 
     IEnumerator LifeTime()
     {

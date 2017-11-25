@@ -188,7 +188,7 @@ public class Ball : MonoBehaviour
                 else if (goal.goalType == Goal.GoalType.TwoSided)
                 {
                     Vector3 normal = other.contacts[0].normal;  //Normal to the contact point of the goal
-                    Vector3 goalFacing = goal.transform.TransformDirection(Vector3.forward);    //The direction where the goal is facing 
+                    Vector3 goalFacing = goal.ballCollider.TransformDirection(Vector3.forward);    //The direction where the goal is facing 
 
                     //Z-axis of the goal always points from one of the goal-scoring parts of the goal
                     if (normal == goalFacing || normal == -goalFacing)      //For 2-sided goal, if we hit front or back side of it
@@ -205,7 +205,7 @@ public class Ball : MonoBehaviour
                 else if (goal.goalType == Goal.GoalType.OneSided)
                 {
                     Vector3 normal = other.contacts[0].normal;  //Normal to the contact point of the goal
-                    Vector3 goalFacing = goal.transform.TransformDirection(Vector3.forward);    //The direction where the goal is facing 
+                    Vector3 goalFacing = goal.ballCollider.TransformDirection(Vector3.forward);    //The direction where the goal is facing 
                    
                     if (normal == goalFacing)   //If we hit 1-sided goal exclusively from the front
                     {

@@ -55,7 +55,7 @@ public class PlayerRadar : MonoBehaviour
         }
 
         ball = GameController.Controller.ball.transform;    //Get reference of ball and goal transforms
-        goal = GameController.Controller.goal.transform;
+        goal = GameController.Controller.goal.ballCollider;
     }
 
     void Start()

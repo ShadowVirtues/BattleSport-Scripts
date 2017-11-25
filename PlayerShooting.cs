@@ -38,6 +38,7 @@ public class PlayerShooting : MonoBehaviour
     public const float defaultRocketSpeed = 35; //Rocket speed is getting set here, it is getting amplified by player velocity in Z direction (it is used in Rocket.cs to calculate the rocket flight vector)
     private const float minimalRocketSpeed = 25;    //Rocket minimal speed, so when the tank is moving back while shooting, rocket isn't super slow
     private const float defaultLaserSpeed = 60; //Same for lasers, except lasers don't push other players, so private
+    private const float minimalLaserSpeed = 40;    //Laser minimal speed, so when the tank is moving back while shooting, laser isn't super slow
 
     private readonly Vector3 rocketDirection = new Vector3(0,-0.01f,1);    //TEST with flight. Vector to shoot rocket to. It is 'forward' with slight drag down (kinda like gravity). In the game has a big effect when one player is flying, the other one can't hit him from longer range
 
@@ -135,13 +136,14 @@ public class PlayerShooting : MonoBehaviour
 
                     Vector3 playerVelocityZGlobal = Vector3.Project(playerRigidbody.velocity, transform.TransformDirection(Vector3.forward)); //Get the velocity of the player in Z axis (player looking forward). This vector returns the vector in global space, so it just adds to the rocket velocity
                     
-                    rocketRigidbody[i].velocity = defaultRocketSpeed * transform.TransformDirection(rocketDirection) + playerVelocityZGlobal;   //Set rocket velocity. Transform almost-Vector3.forward to local space relative to the tank + inherit tanks Z velocity                   
+                    //Set rocket velocity. Tank's turrets point slightly inside, and we have gravity on rockets injected in "rocketDirection", 
+                    //so multiply turret rotation Quaternion by rocketDirection, to get global Vector3 of turret rotation in direction of rocketDirection  + inherit tanks Z velocity                                   
+                    rocketRigidbody[i].velocity = defaultRocketSpeed * (tank.RocketSpawnPoints[turretNumber].rotation * rocketDirection) + playerVelocityZGlobal;
 
                     if (rocketRigidbody[i].velocity.magnitude < minimalRocketSpeed) //Rocket minimal speed is 25, if after inheriting tanks speed it's less then minimal, make it minimal speed
                     {
                         rocketRigidbody[i].velocity = rocketRigidbody[i].velocity.normalized * minimalRocketSpeed;
                     }
-
                         
                     rocketRigidbody[i].angularVelocity = transform.TransformDirection(Vector3.forward) * 20;    //Set angular velocity so the rocket rotates along its local Z axis for cool looking rocket.
 
@@ -167,11 +169,18 @@ public class PlayerShooting : MonoBehaviour
                     int turretNumber = leftLaser ? 0 : 1; //Index number of the turret to shoot the laser from, depending on the boolean
                     leftLaser = !leftLaser;     //After we shot, set the bool so the other turren shoots next
 
-                    laserRigidbody[i].transform.position = tank.LaserSpawnPoints[turretNumber].position;   //Set the position to shoot laser from assigned laser turret Transform Position
+                    laserRigidbody[i].transform.position = tank.LaserSpawnPoints[turretNumber].position + transform.TransformDirection(Vector3.forward);   //Set the position to shoot laser from assigned laser turret Transform Position
                     laserRigidbody[i].transform.rotation = transform.rotation;                               //Set laser rotation from tank rotation.
-
+                    
                     Vector3 playerVelocityZGlobal = Vector3.Project(playerRigidbody.velocity, transform.TransformDirection(Vector3.forward)); //Get the velocity of the player in Z axis (player looking forward). This vector returns the vector in global space, so it just adds to the laser velocity
-                    laserRigidbody[i].velocity = defaultLaserSpeed * transform.TransformDirection(Vector3.forward) + playerVelocityZGlobal;   //Set laser velocity. Transform Vector3.forward to local space relative to the tank + inherit tanks Z velocity
+                    
+                    //Set laser velocity. Transform Vector3.forward to global space relative to the turret rotation by multiplying by rotation Quaternion + inherit tanks Z velocity
+                    laserRigidbody[i].velocity = defaultLaserSpeed * (tank.LaserSpawnPoints[turretNumber].rotation * Vector3.forward) + playerVelocityZGlobal;
+
+                    if (laserRigidbody[i].velocity.magnitude < minimalLaserSpeed) //Laser minimal speed is 40, if after inheriting tanks speed it's less then minimal, make it minimal speed
+                    {
+                        laserRigidbody[i].velocity = laserRigidbody[i].velocity.normalized * minimalLaserSpeed;
+                    }
 
                     //tankSoundSource.Play(); //TODO
 

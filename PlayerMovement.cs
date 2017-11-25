@@ -40,7 +40,7 @@ public class PlayerMovement : MonoBehaviour
     {
         Tank tank = GetComponentInChildren<Tank>();
 
-        acceleration = tank.Acceleration / 2;   //Calculate movement parameters from tank characteristics
+        acceleration = tank.Acceleration * 0.41f + 8.6f;   //Calculate movement parameters from tank characteristics
         maxSpeed = tank.TopSpeed * 0.2f + 6;    //Why those formulas? Cuz.
 
     }

@@ -17,20 +17,15 @@ using Random = UnityEngine.Random;
     Ideally i should make ONE SINGLE "PlayerX" prefab with everything setup, and then when instantiating, just set its parameters for different players.
     ==========================================================
 
-    
-    
-    
-    
+
     
     DO NEXT:    
+   
     
-    Move Stingers rocket spawn even lower, or just point down the shooting
-    Turn the rocket/lazer spawns inside a bit so the rockets shoot not fully forward
-
     Make all tanks prefabs
     Make all ball prefabs
     Change rocket explosion
-
+    Repaing Runner
 
 
 
@@ -50,12 +45,13 @@ using Random = UnityEngine.Random;
         
         Remaining Tanks       
         Different Balls
-        Audio > Announcer
+        Audio > Announcer, Music
 
         10 Levels > Props, Skyboxes
         Main Menu
         Loading Level from Main Menu
         Powerups
+        Pause the game
         Options > KeyBindings
 
 
@@ -74,11 +70,14 @@ using Random = UnityEngine.Random;
     5. Powerups??? (or they will be injected into scene already)
     6. GoalType,BallType?? (it will be injected, yes, but for the arena selection in the menu)
 
+    WHEN REPLACING SOMETHING LIKE BALL OR GOAL:
+    1. SET THE GameController REFERENCE!!!
 
     THINGS TO DO WHEN "INJECTING" ALL THE STUFF IN THE ARENA:
     1. Inject player tanks:
-        a) Set camera viewports and UI panel RectTransform
-
+        a) Set camera viewports and UI panel RectTransform 
+        b) Disable PlayerX for PlayerX in Camera Culling mask
+        c) Set reference to tank model GameObject that we inject (to disable it on explosion)
 
     THINGS TO CONSIDER WHEN MAKING NEW ARENA
     1. Set all the stuff to "static"
@@ -131,8 +130,7 @@ public class Player : MonoBehaviour
     [SerializeField] private ParticleSystem particleSmoke;    //Reference to two particle systems which lengths depend on the death timer, we change their length from those references
     [SerializeField] private ParticleSystem particleExplosion;
 
-    [SerializeField] private GameObject explosion;  //Explosion particle system object parented to player object to enable/disable it when exploding
-    [SerializeField] private GameObject tankModel;  //Tank model object to enable/disable it when exploding
+    [SerializeField] private GameObject explosion;  //Explosion particle system object parented to player object to enable/disable it when exploding   
     [SerializeField] private GameObject deathScreen;    //Reference to UI image covering the screen when dead to enable/disable it when exploding
     [SerializeField] private Text deathTimer;           //Reference to death timer text to count it down when dead
     private Animator cameraAnim;       //Reference to camera animator to play the animation when exploded (getting it from Camera camera)
@@ -149,7 +147,7 @@ public class Player : MonoBehaviour
     private Ball ball;          //Caching the shorter reference to the ball from GameController   
 
     private bool possession = false;        //Bool representing if the player has a ball (used when fumbling and when shooting the ball)
-    public PlayerRadar playerRadar;        //Reference to playerRadar of current player to be able to get the reference to the ball icon on the radar in the static function
+    [HideInInspector] public PlayerRadar playerRadar;        //Reference to playerRadar of current player to be able to get the reference to the ball icon on the radar in the static function
     private float ballShootForce;           //Dependant on tank parameter BallHandling
     private float pickupTime;               //The time moment in seconds from the start of the game the ball got picked up (to count the PossessionTime for stats)
 
@@ -198,7 +196,7 @@ public class Player : MonoBehaviour
     {       
         movement.enabled = false;   //Disable players ability to move with buttons
         playerRigidbody.drag = 3;   //Apply drag so the player object stops over some time when exploding, instead of instantly stopping 
-        tankModel.SetActive(false); //Disable player tank model to enable its explosion
+        tank.gameObject.SetActive(false); //Disable player tank model to enable its explosion
         explosion.SetActive(true);  //Yeah
         PlayerRadar.HidePlayerFromRadar(PlayerNumber, true);    //Hide this player icon from enemy radar
 
@@ -230,7 +228,7 @@ public class Player : MonoBehaviour
         Health = 100;
         healthSlider.value = Health;  //Set full health and update the slider
 
-        tankModel.SetActive(true);      //Enable tank model
+        tank.gameObject.SetActive(true);      //Enable tank model
         deathScreen.SetActive(false);   //Disable death screen
 
         yield return endOfFrame; //Wait until the end of frame, before revealing the enemy on the map. This is due to Update updating the radar running before the couroutine yields, so the frame of player being at the explosion position would slip through
@@ -435,7 +433,8 @@ public class Player : MonoBehaviour
 
             //Setting velocity instead of applying force to be able to store that velocity at the same frame (With force it would get applied the next frame), also to be able to add the player speed to inherit it 
             ball.rigidbody.velocity = transform.TransformDirection(Vector3.forward * ballShootForce) + playerRigidbody.velocity;   //TODO Divide only ballShootForce by mass, so the player velocity get inherited with bigger value
-
+            if (ball.rigidbody.velocity.y < 0) ball.rigidbody.velocity = new Vector3(ball.rigidbody.velocity.x, 0, ball.rigidbody.velocity.z);  //COMM
+            print(ball.rigidbody.velocity);
             ball.prevVel = ball.rigidbody.velocity; //Store the velocity of the ball, so when the player is right in front of the goal, we actually have some "previous" value to give to the ball 
             //(gets overrided if some FixedUpdate frame gets snagged in the process of the ball flying from the player to the goal (look FixedUpdate in Ball.cs)
 

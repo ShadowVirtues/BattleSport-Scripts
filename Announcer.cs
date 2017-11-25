@@ -15,6 +15,7 @@ public class Announcer : MonoBehaviour
     [SerializeField] private AudioClip[] kill;
     [SerializeField] private AudioClip violation;
 
+    [SerializeField] private AudioClip cloak;
 
     private AudioSource audioSource;
 
@@ -33,5 +34,7 @@ public class Announcer : MonoBehaviour
     public void Fumble() => audioSource.PlayOneShot(fumble);                                    //When the other player fumbles the ball from the holder
     public void Kill() => audioSource.PlayOneShot(kill[Random.Range(0, 3)]);                    //When some player dies
     public void Violation() => audioSource.PlayOneShot(violation);                              //When the shot clock timer goes all the way down and player loses the ball
+
+    public void Cloak() => audioSource.PlayOneShot(cloak);
 
 }
