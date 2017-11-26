@@ -20,12 +20,9 @@ using Random = UnityEngine.Random;
 
     
     DO NEXT:    
-   
-    
-    Make all tanks prefabs
+      
     Make all ball prefabs
-    Change rocket explosion
-    Repaing Runner
+    
 
 
 
@@ -43,10 +40,10 @@ using Random = UnityEngine.Random;
     GENERAL THINGS TO DO:
               
         
-        Remaining Tanks       
+        
         Different Balls
         Audio > Announcer, Music
-
+        Messages on Screen
         10 Levels > Props, Skyboxes
         Main Menu
         Loading Level from Main Menu

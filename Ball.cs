@@ -11,6 +11,7 @@ public class Ball : MonoBehaviour
     private Goal goal;          //To cache shorter reference to goal
     private Collider ballTrigger;   //To disable ball trigger collider for 5 seconds after scoring (so it can't get picked up)
     private Material ballMaterial;  //To be able to make the ball transparent during 5 second delay after scoring
+    private float originalAlpha;    //COMM
 
     void Awake()
     {
@@ -22,6 +23,7 @@ public class Ball : MonoBehaviour
         goal = GameController.Controller.goal;
         ballTrigger = GetComponent<Collider>();     //Getting dose references
         ballMaterial = GetComponentInChildren<Renderer>().material;
+        originalAlpha = ballMaterial.color.a;   //COMM
     }
     
     //TODO [HideInInspector]
@@ -154,16 +156,18 @@ public class Ball : MonoBehaviour
 
     private readonly WaitForSeconds scoreDelay = new WaitForSeconds(5); //5 second delay after scoring during which players can't pick up the ball
 
+    //TODO Get original alpha and set the ball alpha from it
+
     private IEnumerator BallScore()     //Coroutine of disabling-enabling colliders to introduce 5 sec delay after scoring
     {
         goal.ballSolidCollider.enabled = false;    //Disable goal collider for the ball (goal collider for the player still works)
         ballTrigger.enabled = false;    //Disable ball trigger to players can't pick up the ball
-        ballMaterial.color = new Color(ballMaterial.color.r, ballMaterial.color.g, ballMaterial.color.b, 0.5f);     //Make ball half-transparent
+        ballMaterial.color = new Color(ballMaterial.color.r, ballMaterial.color.g, ballMaterial.color.b, originalAlpha * 0.4f);     //Make ball half-transparent
         rigidbody.velocity = prevVel;   //Set the ball velocity back to what it was before colliding (so the ball goes through the goal and doesn't bounce from it)
         
         yield return scoreDelay;    //Wait 5 seconds
 
-        ballMaterial.color = new Color(ballMaterial.color.r, ballMaterial.color.g, ballMaterial.color.b, 1);    //Disable transparency
+        ballMaterial.color = new Color(ballMaterial.color.r, ballMaterial.color.g, ballMaterial.color.b, originalAlpha);    //Disable transparency
         ballTrigger.enabled = true;    //Enable ball trigger
         goal.ballSolidCollider.enabled = true;    //Enable goal ball collider        
     }
