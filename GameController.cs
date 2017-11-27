@@ -49,6 +49,13 @@ public class GameController : MonoBehaviour
         StartCoroutine(PeriodCountdown());
     }
 
+    void Start()
+    {
+        if (ball.gameObject.name == "ElectricBall") //KLUUUUUUUUUUUUUUDGEEEEEEEEEEEEEEEEEEEEE (DELETE this shit tho)
+            GameObject.Find("BallCamera").GetComponent<Camera>().backgroundColor = new Color(49f / 256, 77f / 256, 121f / 256, 0);
+
+    }
+
     public int PeriodTime;
 
     public int GameTime;

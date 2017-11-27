@@ -9,6 +9,7 @@ public class Announcer : MonoBehaviour
     [SerializeField] private AudioClip possession;
     [SerializeField] private AudioClip[] interception;
     [SerializeField] private AudioClip[] missClose;
+    [SerializeField] private AudioClip[] missLong;
     [SerializeField] private AudioClip rejected;
     [SerializeField] private AudioClip shotLong;
     [SerializeField] private AudioClip fumble;
@@ -29,6 +30,7 @@ public class Announcer : MonoBehaviour
     public void Possession() => audioSource.PlayOneShot(possession);                            //When the player gets the ball from the ground
     public void Interception() => audioSource.PlayOneShot(interception[Random.Range(0, 2)]);    //When the player shoots the ball and the other player is in the way and intercepts it
     public void MissClose() => audioSource.PlayOneShot(missClose[Random.Range(0, 2)]);          //COMM
+    public void MissLong() => audioSource.PlayOneShot(missLong[Random.Range(0, 2)]);          //COMM
     public void Rejected() => audioSource.PlayOneShot(rejected);                                //When the player hits the solid part of the goal
     public void ShotLong() => audioSource.PlayOneShot(shotLong);                                //COMM
     public void Fumble() => audioSource.PlayOneShot(fumble);                                    //When the other player fumbles the ball from the holder

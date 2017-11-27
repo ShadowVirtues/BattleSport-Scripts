@@ -1,4 +1,6 @@
 ﻿using System.Collections;
+using DG.Tweening;
+using TeamUtility.IO;
 using UnityEngine;
 
 public class Ball : MonoBehaviour
@@ -9,10 +11,11 @@ public class Ball : MonoBehaviour
     [HideInInspector] public float BallAngularDrag;         //Get initial ball drag and angular drag so we can set them back when disabling those on ball pickup, we enable drag when getting the ball into arena (shot, fumble)
 
     private Goal goal;          //To cache shorter reference to goal
+    private Transform goalTransform;    //Reference to goal transform, position from it gets taken every frame when the ball is flying towards the goal being shot by the player
     private Collider ballTrigger;   //To disable ball trigger collider for 5 seconds after scoring (so it can't get picked up)
     private Material ballMaterial;  //To be able to make the ball transparent during 5 second delay after scoring
-    private float originalAlpha;    //COMM
-
+    private float originalAlpha;    //Different balls have different original alpha, we set it to the fraction of original when ball scores
+    
     void Awake()
     {
         rigidbody = GetComponent<Rigidbody>();  
@@ -21,22 +24,77 @@ public class Ball : MonoBehaviour
         BallAngularDrag = rigidbody.angularDrag;    //Store the ball's default angular drag so we can set it back when it gets into arena
 
         goal = GameController.Controller.goal;
+        goalTransform = goal.transform;
         ballTrigger = GetComponent<Collider>();     //Getting dose references
         ballMaterial = GetComponentInChildren<Renderer>().material;
-        originalAlpha = ballMaterial.color.a;   //COMM
+        originalAlpha = ballMaterial.color.a;   //And some parameters as well
     }
     
-    //TODO [HideInInspector]
-    public bool firstPlayerShot;        //This represents if and which player shot the ball (only applies until the ball hits some geometry)
+    //TODO [HideInInspector]    and maybe move this to "playerOne.possessed", "playerOne.ballShot"? This should simplify a lot of code here. But only do it after we are sure everything works withot bugs or errors
+    public bool firstPlayerShot;        //This represents if and which player shot the ball for scoring and interceptions (only applies until the ball hits some geometry)
     public bool secondPlayerShot;
 
     //We shoot the ball from the middle of the tank (inside of it) (we can't shoot it from in front of the player, cuz it will then go inside of terrain if the player is right next to it)
     //So for the player to not get the ball right back after shooting it (because OnTriggerStay raises from the ball being inside of the tank), we don't process the triggering of the ball
-    //with the player that just shot the ball (until the ball hits some obstacle, as usual). So the next bools identify which player just shot the ball so the trigger doesn't raise until the ball hits some geometry
-    public bool firstPlayerPossessed;  //If and which player possessed the ball when something fumbled it (only applies until the ball hits some geometry)
+    //with the player that just shot the ball (until the ball hits some obstacle or after 2 seconds, as usual). So the next bools identify which player just shot the ball (or got fumbled from) 
+    //so the trigger doesn't raise until the ball hits some geometry
+    public bool firstPlayerPossessed;  //If and which player possessed the ball when something fumbled it (only applies until the ball hits some geometry, or 2 seconds)
     public bool secondPlayerPossessed;
+
+    public bool firstPlayerPossessedShot;   //Those are for the player to be able to pick the ball back after 2 seconds since shooting it (when the ball ended up moving super slow)
+    public bool secondPlayerPossessedShot;  //And also those ones will prevent the player to refresh the ballClock against some wall (basically, you can't pick up the ball for 2 seconds after shooting it) (you can do so if rejected tho)
     //TODO make private
 
+    private readonly WaitForSeconds pickupAfterShotDelay = new WaitForSeconds(2);   //Delay after shooting when the shooting player can't pick up the ball
+
+    public void PlayerShot(PlayerID player)     //Public function that gets called from Player.cs when player shoots the ball
+    {
+        if (player == PlayerID.One) StartCoroutine(nameof(pickupDelayOne));     //Depending on which player shot, start respective corouting of 2 seconds delay until this player can pick the ball up again
+        else if (player == PlayerID.Two) StartCoroutine(nameof(pickupDelayTwo));
+
+        StartCoroutine(nameof(BallShot));   //Also run the coroutine checking when the ball flew past the goal to register a miss
+    }
+    
+    private IEnumerator BallShot()  //Corouting registering a miss at the moment ball flies past the goal if the player missed it
+    {                               //In the original game it would register only if the ball hit some geometry after shooting it
+        while (true)    //So until we break out of coroutine (when the ball flies past the goal)
+        {
+            Vector3 ballToGoal = goalTransform.position - rigidbody.position;   //This gets the vector pointing from the ball to the goal 
+            if (Vector3.Angle(rigidbody.velocity, ballToGoal) > 90)             //If the angle between preceding vector and ball velocity is more than 90 deg, 
+            {                                                                   //it means that the ball is flying away from the goal (player can't possibly score anymore with this ball flight path)
+                float distance = Vector3.Distance(rigidbody.position, goalTransform.position);  //Calculate the distance to the goal from the ball
+                if (distance > 1.5f)    //Register a miss only if the ball is farther than 1.5 units away from goal to consider the situation when the ball hits the farthest point of the goal from the player (when its already past goal's center)
+                {                    
+                    Miss(distance);     //Run a function deciding if it was a "Close Shot" or "Way Off"
+                    yield break;        //Stop coroutine from running, cuz the ball already flew past the goal
+                }           
+            }
+            yield return null;          //If the angle is less than 90, the ball is still moving towards the goal, check it at the next frame
+        }                               //Even if the ball never reaches the goal like this, other player, or same player after 2 seconds can pick up the ball 
+    }
+
+    private void Miss(float distance)   //Function that checks if it was a "Close Shot" or "Way Off"
+    {
+        if (distance > 5) GameController.announcer.MissLong();  //If the ball flew past the goal more than 5 units away, its a "Way Off"
+        else GameController.announcer.MissClose();
+
+        losePossession(false);                                  //Lose possession from both players, but the shooting player still can't pick up the ball for 2 seconds
+    }
+   
+    private IEnumerator pickupDelayOne()    //Have to make a coroutines for each player, to be able to stop them (I couldn't find an easier way to stop a coroutine with a parameter, so two no-parameter ones)
+    {
+        yield return pickupAfterShotDelay;  //Wait 2 seconds
+        firstPlayerPossessed = false;       //Set possession flags so the shooting player can again pick up the ball
+        firstPlayerPossessedShot = false;                
+    }
+
+    private IEnumerator pickupDelayTwo()    //Same for other player
+    {
+        yield return pickupAfterShotDelay;
+        secondPlayerPossessed = false;
+        secondPlayerPossessedShot = false;
+    }
+    
     private void ballPossess(Collider other)    //This runs when player picks up the ball
     {
         other.gameObject.GetComponentInParent<Player>().Possession();   //Run a public function on the player that picked up the ball (it has everything to possession that is related to the player)
@@ -70,7 +128,7 @@ public class Ball : MonoBehaviour
     {        
         if (other.gameObject.layer == 8) //PlayerOne layer. If the ball triggered with the first player
         {
-            if (firstPlayerPossessed == false)  //Check this so the ball doesn't get right back to the player when he shoots it (because the ball shoots from inside of the player)
+            if (firstPlayerPossessed == false && firstPlayerPossessedShot == false)  //Check this so the ball doesn't get right back to the player when he shoots it (because the ball shoots from inside of the player)
             {
                 if (triggering) yield break;    //If the other "triggerage" is running during the same frame, don't execute it (the only thing I can think of this happening is when both players touch the ball at one frame)      
                 triggering = true;              //Set to true in the beginning of OnTriggerStay, and set to false in the end of frame, after OnCollisionXX, that way the code in it can't possibly run more than once at the same time
@@ -78,13 +136,17 @@ public class Ball : MonoBehaviour
                                                 //But when two players DO actually get onto a ball at the same time, "random" player picks it up, just whatever trigger gets to run before the other one
 
                 firstPlayerPossessed = true;    //Set this so when the the ball gets out of player one, the ball triggering with the same player doesn't get processed 
-                firstPlayerShot = false;        //When the player got the ball, he can't possibly be the one who just shot it, so set this just in case of some BS situation (hope that it won't be broken anyway :)
+                firstPlayerShot = false;        //When the player got the ball, set so he isn't shooting it now
                 secondPlayerPossessed = false;  //In case after fumbling when the ball gets to the other player without touching any collider
+                secondPlayerPossessedShot = false;  //In case after shooting the ball, it flies past the goal and hits the other player before ending the 2sec delay
+
+                StopCoroutine(nameof(pickupDelayTwo)); //Stop 2 sec delay coroutine on other player if this player got the ball before it ended (This player coroutine can't possibly be running here, if the player can pick up a ball)
+                StopCoroutine(nameof(BallShot));       //In case before missing the ball, other player intercepts the ball
                 if (secondPlayerShot)  //If second player shot the ball previsouly (before the ball hit some obstacle, as usual), the first player "INTERCEPTED" the ball
                 {
                     GameController.Controller.PlayerOne.playerStats.Interceptions++;    //Increment the amount of interceptions for player one for end-stats
                     GameController.announcer.Interception();    //TODO
-                    secondPlayerShot = false;      //If the ball got intercepted, we have to reset it here                     
+                    secondPlayerShot = false;      //If the ball got intercepted, we have to reset it here (we have to know the player shot before actually setting it up to false)
                 }
                 else                        //Otherwise player just picked up the ball
                 {
@@ -97,7 +159,7 @@ public class Ball : MonoBehaviour
         }
         else if (other.gameObject.layer == 9) //PlayerTwo layer. All the same here as for the first player, but reversed for the second one
         {
-            if (secondPlayerPossessed == false)
+            if (secondPlayerPossessed == false && secondPlayerPossessedShot == false)
             {
                 if (triggering) yield break;                
                 triggering = true;
@@ -105,11 +167,15 @@ public class Ball : MonoBehaviour
                 secondPlayerPossessed = true;
                 secondPlayerShot = false;
                 firstPlayerPossessed = false;
+                firstPlayerPossessedShot = false;
+
+                StopCoroutine(nameof(pickupDelayOne));
+                StopCoroutine(nameof(BallShot));
                 if (firstPlayerShot)
                 {
                     GameController.Controller.PlayerTwo.playerStats.Interceptions++;   
                     GameController.announcer.Interception();
-                    firstPlayerShot = false;                    
+                    firstPlayerShot = false;
                 }
                 else
                 {
@@ -123,12 +189,22 @@ public class Ball : MonoBehaviour
         triggering = false; //Disable the flag in the end of frame
     }
 
-    private void losePossession()   //This gets reset when the ball hits the obstacle both when shot the ball or fumbled
-    {        
+    private void losePossession(bool full)   //This gets reset when the ball hits the obstacle both when shot the ball or fumbled
+    {                                        //The parameter to be able to reset ALL possible possession flags (when someone scores or rejected), or all of them without 2 sec player shot delay (when hit geometry or missed)
         firstPlayerPossessed = false;
         secondPlayerPossessed = false;
         firstPlayerShot = false;
         secondPlayerShot = false;
+        StopCoroutine(nameof(BallShot));    //Stop coroutine checking if the ball flew past the goal
+
+        if (full)   //If scored or rejected, stop 2 second delay on both players
+        {
+            firstPlayerPossessedShot = false;
+            secondPlayerPossessedShot = false;
+            StopCoroutine(nameof(pickupDelayOne));
+            StopCoroutine(nameof(pickupDelayTwo));
+        }
+
     }
     
 
@@ -146,7 +222,7 @@ public class Ball : MonoBehaviour
     {
         //print(rigidbody.velocity.magnitude);
 
-        if (PlayerRadar.ballPossession == false) rigidbody.AddForce(additionalGravity, ForceMode.Force);    //Constantly applying additional gravity if the ball is in the arena (not possessed)
+        if (PlayerRadar.ballPossession == false) rigidbody.AddForce(additionalGravity, ForceMode.Acceleration);    //Constantly applying additional gravity if the ball is in the arena (not possessed)
 
         if (firstPlayerShot || secondPlayerShot)    //We need to remember the ball previous velocity when some player actually shoots the ball         
         { 
@@ -156,35 +232,35 @@ public class Ball : MonoBehaviour
 
     private readonly WaitForSeconds scoreDelay = new WaitForSeconds(5); //5 second delay after scoring during which players can't pick up the ball
 
-    //TODO Get original alpha and set the ball alpha from it
-
     private IEnumerator BallScore()     //Coroutine of disabling-enabling colliders to introduce 5 sec delay after scoring
     {
         goal.ballSolidCollider.enabled = false;    //Disable goal collider for the ball (goal collider for the player still works)
         ballTrigger.enabled = false;    //Disable ball trigger to players can't pick up the ball
-        ballMaterial.color = new Color(ballMaterial.color.r, ballMaterial.color.g, ballMaterial.color.b, originalAlpha * 0.4f);     //Make ball half-transparent
+        if (additionalGravity.y == -20) ballMaterial.color = new Color(ballMaterial.color.r, ballMaterial.color.g, ballMaterial.color.b, originalAlpha * 0.03f);    //Hack to get BurningBall alpha to very small amount instead of 0.4
+        else ballMaterial.color = new Color(ballMaterial.color.r, ballMaterial.color.g, ballMaterial.color.b, originalAlpha * 0.4f);     //Make ball half-transparent
+        
         rigidbody.velocity = prevVel;   //Set the ball velocity back to what it was before colliding (so the ball goes through the goal and doesn't bounce from it)
         
         yield return scoreDelay;    //Wait 5 seconds
 
-        ballMaterial.color = new Color(ballMaterial.color.r, ballMaterial.color.g, ballMaterial.color.b, originalAlpha);    //Disable transparency
+        if (additionalGravity.y == -20) ballMaterial.DOFade(originalAlpha, 1f);     //Hack for the BurningBall to fade over one second to original transparency
+        else ballMaterial.DOFade(originalAlpha, 0.2f);    //Disable transparency
+
         ballTrigger.enabled = true;    //Enable ball trigger
         goal.ballSolidCollider.enabled = true;    //Enable goal ball collider        
     }
     
     void OnCollisionEnter(Collision other)  //When the ball collides with the floor, level geometry or goal
     {
-        if (firstPlayerShot || secondPlayerShot)  //If either of the players shot the ball before the collision
+        if (firstPlayerShot || secondPlayerShot)  //If either of the players shot the ball before
         {
             if (other.gameObject.layer == 13)   //LevelGeometry layer. If hit level geometry after shooting
-            {
-                GameController.announcer.MissClose();
-                //TODO MISS
-
-                losePossession();   //Set all possession flags to false, so no one now possesses the ball
+            {                
+                float distance = Vector3.Distance(rigidbody.position, goalTransform.position);  //Calculate the distance from the goal
+                Miss(distance);     //To decide if it was "Near Miss" or "Way Off"                
             }
             else if (other.gameObject.layer == 19) //GoalBallSolid layer. If player hit the score
-            {               
+            {                
                 if (goal.goalType == Goal.GoalType.FourSided)   //4-sided goal scores on any collision with the ball
                 {
                     Score();        //Run a function to count the score to the player and flash the goal
@@ -224,14 +300,14 @@ public class Ball : MonoBehaviour
                 }
 
 
-                losePossession();   //After hitting the goal, whether scored or not, reset all possession flags
+                losePossession(true);   //After hitting the goal, whether scored or not, reset ALL possession flags
             }    
         }
         else if (firstPlayerPossessed || secondPlayerPossessed) //If the player had the ball, but didn't shoot it (got fumbled), reset the bools to no one possessing the ball when the ball collides with anything 
         {                                                       //(including the floor, the position and velocity of the ball on fumble are set so the ball can't touch the ground being still inside of the player)
             if (triggering) return;     //If during this frame OnTrigger has run, meaning player picked up or intercepted the ball, then don't reset the possession flags
 
-            losePossession();   
+            losePossession(false);   
         }
         
     }

@@ -30,8 +30,8 @@ public class PlayerShooting : MonoBehaviour
     private float laserFireRate = 0.25f;    //TODO TurboLazers
     private int laserCount;
     private int playerRocketCount;          //Variable to hold rocket count of the player
-    private string rocketButtonName = "Rocket";        //Input for rocket shooting is handled here so caching this
-    private string laserButtonName = "Laser";         //Input for laser shooting
+    private const string rocketButtonName = "Rocket";        //Input for rocket shooting is handled here so caching this
+    private const string laserButtonName = "Laser";         //Input for laser shooting
 
     private AudioSource tankSoundSource;    //TODO
     

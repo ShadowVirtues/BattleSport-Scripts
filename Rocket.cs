@@ -2,16 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-
-
-/*
- 
-    TODO Manage rocked "gravity"
-
-    TODO Armor will mean player mass which also gets calculated in knock force
-    
-    
-*/
 public class Rocket : MonoBehaviour
 {
     [SerializeField] private GameObject rocketModel;    //Reference to rocket model and explosion to disable-enable them when rocket explodes
@@ -91,11 +81,11 @@ public class Rocket : MonoBehaviour
         //if (rigidbody.position.y < 0.6f) rigidbody.velocity = new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z);
     }
 
-    void OnTriggerEnter(Collider other) //COMM  //TEST with tanks with low turrets
-    {
-        if (other.gameObject.layer == 20)
+    void OnTriggerEnter(Collider other) //So the rocket moved a bit down (like from gravity), and after reaching some height, stops dropping and goes straight forward
+    {                                   //To not detect it in Update every frame, there is a "Rocket Height Trigger" collider that if the rocket goes inside, makes it go forward from that point
+        if (other.gameObject.layer == 20)   //This is the layer of this trigger collider
         {
-            rigidbody.velocity = new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z);
+            rigidbody.velocity = new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z);    //Just clear Y-velocity
         }
 
     }
