@@ -54,7 +54,7 @@ using Random = UnityEngine.Random;
 
     ADDITIONAL IDEAS:
     When hit, slider slowly going down with red trail like in LOL
-    Ballhandling on a tank changes the speed of the ball the tank shoots it
+    
     Different balls having different mass, so you shoot them slower and they feel heavier (from Drag property of rigidbody)
     Showing text messages on screen should be done with “ShowMessage(text)”, while the actual function will handle all the stuff about making it next line and pushing existing lines.
     When picked powerup, there should be a tooltip with circular “slider” going representing the time left for it.
@@ -73,8 +73,9 @@ using Random = UnityEngine.Random;
     THINGS TO DO WHEN "INJECTING" ALL THE STUFF IN THE ARENA:
     1. Inject player tanks:
         a) Set camera viewports and UI panel RectTransform 
-        b) Disable PlayerX for PlayerX in Camera Culling mask
-        c) Set reference to tank model GameObject that we inject (to disable it on explosion)
+        b) Set PlayerX layer on injected tanks
+        c) Disable PlayerX for PlayerX in Camera Culling mask
+        
 
     THINGS TO CONSIDER WHEN MAKING NEW ARENA
     1. Set all the stuff to "static"
@@ -429,7 +430,7 @@ public class Player : MonoBehaviour
             ball.rigidbody.angularVelocity = transform.TransformDirection(new Vector3(20, 0, 0));               //Set angular velocity of the ball rotating to the direction of the shot
 
             //Setting velocity instead of applying force to be able to store that velocity at the same frame (With force it would get applied the next frame), also to be able to add the player speed to inherit it 
-            ball.rigidbody.velocity = transform.TransformDirection(Vector3.forward * ballShootForce) + playerRigidbody.velocity;   //TODO Divide only ballShootForce by mass, so the player velocity get inherited with bigger value
+            ball.rigidbody.velocity = transform.TransformDirection(Vector3.forward * ballShootForce / ball.rigidbody.mass) + playerRigidbody.velocity;   //TODO Divide only ballShootForce by mass, so the player velocity get inherited with bigger value
             if (ball.rigidbody.velocity.y < 0) ball.rigidbody.velocity = new Vector3(ball.rigidbody.velocity.x, 0, ball.rigidbody.velocity.z);  //COMM
             print(ball.rigidbody.velocity);
             ball.prevVel = ball.rigidbody.velocity; //Store the velocity of the ball, so when the player is right in front of the goal, we actually have some "previous" value to give to the ball 
@@ -465,7 +466,7 @@ public class Player : MonoBehaviour
         Vector3 ballDirection = new Vector3(randDirCircle.x, 0, randDirCircle.y);   //Transform Vector2 to Vector3
         ball.transform.rotation = Quaternion.LookRotation(ballDirection);   //Set ball rotation to this random direction
         //Since the ball flies to random direction, no need to set the angular velocity, let it just be free since its all random anyway
-        ball.rigidbody.AddForce(ballDirection * fumbleBallforce, ForceMode.Impulse);    //Add force to the generated direction
+        ball.rigidbody.AddForce(ballDirection * fumbleBallforce / ball.rigidbody.mass, ForceMode.Impulse);    //Add force to the generated direction    //COMM
         
     }
 
