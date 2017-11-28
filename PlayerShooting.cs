@@ -33,8 +33,9 @@ public class PlayerShooting : MonoBehaviour
     private const string rocketButtonName = "Rocket";        //Input for rocket shooting is handled here so caching this
     private const string laserButtonName = "Laser";         //Input for laser shooting
 
-    private AudioSource tankSoundSource;    //TODO
-    
+    [SerializeField] private AudioSource rocketSource;    //Each player has 3 AudioSources on them, two or which are for laser and rocket shot sound, which are self-interrupting
+    [SerializeField] private AudioSource laserSource;      
+
     public const float defaultRocketSpeed = 35; //Rocket speed is getting set here, it is getting amplified by player velocity in Z direction (it is used in Rocket.cs to calculate the rocket flight vector)
     private const float minimalRocketSpeed = 25;    //Rocket minimal speed, so when the tank is moving back while shooting, rocket isn't super slow
     private const float defaultLaserSpeed = 60; //Same for lasers, except lasers don't push other players, so private
@@ -49,9 +50,7 @@ public class PlayerShooting : MonoBehaviour
         playerRigidbody = GetComponent<Rigidbody>();
         tank = GetComponentInChildren<Tank>(); //Tank component gets inserted to PlayerX gameObject with the tank model when the tank is picked.
         //rocketButtonName = "Rocket";
-        //laserButtonName = "Laser";
-
-        tankSoundSource = GetComponent<AudioSource>();  //TODO
+        //laserButtonName = "Laser";        
     }
 
     void Start()
@@ -147,6 +146,8 @@ public class PlayerShooting : MonoBehaviour
                         
                     rocketRigidbody[i].angularVelocity = transform.TransformDirection(Vector3.forward) * 20;    //Set angular velocity so the rocket rotates along its local Z axis for cool looking rocket.
 
+                    rocketSource.Play();    //Play rocket shot sound that would interrupt itself if played in quick succession
+
                     //if (doubleDamage)
                     //    rocket[i].FirePower = tank.firePower * 2; //TEST. TODO When implementing, remember to set the damage back to normal
 
@@ -182,7 +183,7 @@ public class PlayerShooting : MonoBehaviour
                         laserRigidbody[i].velocity = laserRigidbody[i].velocity.normalized * minimalLaserSpeed;
                     }
 
-                    //tankSoundSource.Play(); //TODO
+                    laserSource.Play(); //Play laser shot sound that would interrupt itself if played in quick succession
 
                     //if (doubleDamage)
                     //    laser[i].FirePower = tank.firePower * 2; //TEST. TODO When implementing, remember to set the damage back to normal

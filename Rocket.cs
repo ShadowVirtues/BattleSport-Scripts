@@ -19,11 +19,11 @@ public class Rocket : MonoBehaviour
     private const float upForceRatio = 0.3f;      //The knockup force
     //And the actual velocity vector of the rocket which equals to (1 - normalForceRatio - upForceRatio). So they add up to total value of 1 in the end.
 
-    private new Rigidbody rigidbody; //Cache rockets rigidbody to get its velocity vector
+    private new Rigidbody rigidbody; //Cache rockets rigidbody to get its velocity vector   
 
     void Awake()
     {
-        rigidbody = GetComponent<Rigidbody>();  //Cache rockets rigidbody to get its velocity vector
+        rigidbody = GetComponent<Rigidbody>();  //Cache rockets rigidbody to get its velocity vector       
     }
 
     void OnCollisionEnter(Collision other)  //When the rocket collides with something
@@ -62,6 +62,8 @@ public class Rocket : MonoBehaviour
 
     IEnumerator RocketExplosion()
     {
+        GameController.audioManager.Explosion();    //Play explosion sound that is self-interrupting (so even one player can interrupt other player's explosion sound)
+        
         rigidbody.velocity = Vector3.zero;          //Since rocket's collider is not trigger (cuz we need collision normal), on collision with something it will reflect, that's why we manually stop it
         rigidbody.angularVelocity = Vector3.zero;
 

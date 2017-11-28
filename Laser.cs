@@ -56,7 +56,9 @@ public class Laser : MonoBehaviour
     }
 
     IEnumerator LaserExplosion()
-    {       
+    {
+        GameController.audioManager.LaserHit();    //Laser hits are not "Self-interrupting" so this will PlayOneShot them
+
         rigidbody.velocity = Vector3.zero;          //Since laser's collider is not trigger, on collision with something it will reflect, that's why we manually stop it
         rigidbody.angularVelocity = Vector3.zero;
         

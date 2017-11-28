@@ -20,8 +20,9 @@ using Random = UnityEngine.Random;
 
     
     DO NEXT:    
-    ElectricBall disappears for a second sometimes, idk wtf is this
-    Test out more of Burning Ball
+    Fix runner front
+    After play tests, refactor in Ball.cs first/secondPlayerPossessed and all dat shit
+    
     
     
 
@@ -29,7 +30,6 @@ using Random = UnityEngine.Random;
 
     Consider that we have default Physic Material and there needs to be ball bouncing out of everything     
 
-    Make so you don't have to put announcer to every GameController of every arena
     Also remove input manager from the arena, and create it before
 
 
@@ -37,12 +37,7 @@ using Random = UnityEngine.Random;
 
 
     GENERAL THINGS TO DO:
-              
-        
-        
-        Different Balls
-        Audio > Announcer, Music
-        Messages on Screen
+
         10 Levels > Props, Skyboxes
         Main Menu
         Loading Level from Main Menu
@@ -53,9 +48,8 @@ using Random = UnityEngine.Random;
 
     ADDITIONAL IDEAS:
     When hit, slider slowly going down with red trail like in LOL
-
-    Showing text messages on screen should be done with “ShowMessage(text)”, while the actual function will handle all the stuff about making it next line and pushing existing lines.
     When picked powerup, there should be a tooltip with circular “slider” going representing the time left for it.
+
 
     ARENA PARAMETERS (for prefab, ScriptableObject):
     1. Size -> GameController.Controller.arenaDimension
@@ -77,8 +71,9 @@ using Random = UnityEngine.Random;
 
     THINGS TO CONSIDER WHEN MAKING NEW ARENA
     1. Set all the stuff to "static"
-    2. Bake lighting
-    3. Set all layers to geometry and all interactibles:
+    2. Set light, set skybox
+    3. Bake lighting
+    4. Set all layers to geometry and all interactibles:
         a) Walls (LevelGeometry)
         b) Floor (Floor)
         c) Static Props (LevelGeometry)
@@ -86,12 +81,21 @@ using Random = UnityEngine.Random;
         e) PlayerExplosion
         f) BallTrigger, BallCollider
         g) GoalSolid, GoalBallSolid
-    4. Set light, set skybox
+    
 
 
 */
 
-
+public static class Message //Just a class container for all on-screen messages for players
+{
+    public const string Score = "SCORE";
+    public const string Possession = "POSSESSION";
+    public const string Fumble = "FUMBLE";
+    public const string EnemyDestroyed = "ENEMY DESTROYED";
+    public const string Miss = "MISS";
+    public const string Violation = "VIOLATION";
+    //TODO Add powerup messages
+}
 
 [Serializable]
 public class PlayerStats    //Class-container for all end-game stats
@@ -148,6 +152,8 @@ public class Player : MonoBehaviour
     private float ballShootForce;           //Dependant on tank parameter BallHandling
     private float pickupTime;               //The time moment in seconds from the start of the game the ball got picked up (to count the PossessionTime for stats)
 
+    [SerializeField] private AudioSource pickup;    //"Self-interruptible" audioSource player the pickup sound (ball shot is the same sound as well)
+
     [SerializeField] private GameObject ballClock;      //Reference to Shot Clock UI Image to disable/enable it when have or don't have the ball
     [SerializeField] private Text ballClockText;        //Reference to text timer on the Shot Clock UI
 
@@ -160,7 +166,8 @@ public class Player : MonoBehaviour
     private Rigidbody playerRigidbody;      //And in PlayerMovement custom drag when alive is implemented, so we apply the internal rigidbody drag when dead
     private PlayerMovement movement;        //Reference to disable it when dead
     private Tank tank;                  //Reference to Tank component of attached tank to get its characteristics
-   
+    [SerializeField] private Text messageBox;   //Text box in the middle of the screen to show messages on for players
+
     private Collider[] spawnCheckColliders = new Collider[2];   //Premade array of colliders to not have any garbage allocated when checking where to spawn a tank after death with "CheckCapsule"
 
     private Material material;          //Tank material to modify it when the tank gets hit or picks up the ball
@@ -185,7 +192,7 @@ public class Player : MonoBehaviour
 
     void Start()
     {
-        ballShootForce = tank.BallHandling;
+        ballShootForce = tank.BallHandling;     //BallHandling means the force the player shoots the ball with
         playerRigidbody.mass = tank.Armor / 10; //Setting tank mass to tenth of the armor, so more armored tanks throw the less armored across the map when colliding with them
     }
 
@@ -297,7 +304,8 @@ public class Player : MonoBehaviour
     public void Possession()        //Function that is getting run from Ball.cs when picking up the ball
     {
         possession = true;          //Set the bool so fumbles can occur and so the player can shoot the ball
-
+        ShowMessage(Message.Possession);    //Show "POSSESSION" message on screen for this player
+        
         PlayerRadar.ballPossession = true;      //Set the static variable in the Radar so we know to not calculate ball icon on the radar if someone possesses the ball
         PlayerRadar.HideBallFromRadars(true);   //Hide ball from radars if someone picks up the ball
 
@@ -361,7 +369,15 @@ public class Player : MonoBehaviour
             if (playerStats.Deaths == 5 || playerStats.Deaths == 10) IncreaseDestroyedTime();   //On 5 deaths the death timer is 3 sec, on 10 deaths it is 4 sec
             StartCoroutine(Explode());  //Start explosion sequence           
 
-            GameController.announcer.Kill();        //TODO
+            if (PlayerNumber == PlayerID.One)
+            {
+                GameController.Controller.PlayerTwo.ShowMessage(Message.EnemyDestroyed);    //Show "ENEMY DESTROYED" message for the opposite player
+            }
+            else if (PlayerNumber == PlayerID.Two)
+            {
+                GameController.Controller.PlayerOne.ShowMessage(Message.EnemyDestroyed);
+            }
+            GameController.announcer.Kill();        //Kill line from announcer
 
             if (possession) LoseBall(FumbleCause.Death);    //If player had a ball, fumble it           
         }
@@ -427,6 +443,8 @@ public class Player : MonoBehaviour
             }                
             ball.PlayerShot(PlayerNumber);      //Run a function on a ball to check when the ball missed the goal
 
+            pickup.Play();      //COMM
+
             playerStats.ShotsOnGoal++;  //Increment the amount of ShotsOnGoal for the end-stats
             
             ball.transform.rotation = Quaternion.LookRotation(transform.TransformDirection(Vector3.forward));   //Set the rotation of the ball facing the direction of the tank
@@ -439,14 +457,18 @@ public class Player : MonoBehaviour
             ball.prevVel = ball.rigidbody.velocity; //Store the velocity of the ball, so when the player is right in front of the goal, we actually have some "previous" value to give to the ball 
             //(gets overrided if some FixedUpdate frame gets snagged in the process of the ball flying from the player to the goal (look FixedUpdate in Ball.cs)
 
-            GameController.announcer.ShotLong();        //TODO different length from goal
+            float distance = Vector3.Distance(playerRigidbody.position, GameController.Controller.goal.ballCollider.position);  //Calculate the distance from the goal at the ball shot point
+            if (distance > 30)
+                GameController.announcer.ShotLong();        //Announcer says different line depending on how far from the goal the ball was shot
+            else
+                GameController.announcer.ShotShort();
 
-            
         }
         else if (cause == FumbleCause.Fumble)   //If the other player fumbled the ball with rocket
         {
             fumbleBall();   //Function to get the random direction in the horizontal plane to throw the ball to
-            GameController.announcer.Fumble();        //TODO         
+            GameController.announcer.Fumble();        //"Fumble" line from announcer
+            ShowMessage(Message.Fumble);              //"Fumble" on screen for player
         }
         else if (cause == FumbleCause.Death)    //If the player died with the ball
         {
@@ -455,7 +477,9 @@ public class Player : MonoBehaviour
         else if (cause == FumbleCause.Violation)    //If the timer counted all the way down - shot clock violation
         {
             fumbleBall();   //Throw the ball to random directoin
-            GameController.announcer.Violation(); //TODO
+            GameController.announcer.Violation(); 
+            ShowMessage(Message.Violation);         //Announcer says "Shot clock violation" and "Violation" + "Fumble" on screen
+            ShowMessage(Message.Fumble);
         }
         
     }
@@ -464,7 +488,7 @@ public class Player : MonoBehaviour
     {
         playerStats.Fumbles++;          //We are counting fumbles for end-stats from normal fumbles, violations and deaths with ball
 
-        float fumbleBallforce = 100;    //TODO Adjust the value        
+        float fumbleBallforce = 100;    //TODO Adjust the value maybe     
         Vector2 randDirCircle = Random.insideUnitCircle.normalized;    //Get random direction in the cirle lying in the horizontal plane of the player
         Vector3 ballDirection = new Vector3(randDirCircle.x, 0, randDirCircle.y);   //Transform Vector2 to Vector3       
         ball.transform.rotation = Quaternion.LookRotation(ballDirection);   //Set ball rotation to this random direction
@@ -488,6 +512,22 @@ public class Player : MonoBehaviour
     }
 
 
+    private readonly WaitForSeconds messageDelay = new WaitForSeconds(3);   //Messages show for 3 seconds on screen
+
+    public void ShowMessage(string message) //Public function getting launched from everywhere showing messages on screen for the player
+    {
+        StartCoroutine(MessageQueue(message));
+    }
+
+    private IEnumerator MessageQueue(string message)    
+    {
+        messageBox.text += message + Environment.NewLine;   //Each message adds the message to existing written messages and adds the line (so the next possible message will by displayed at the next line)
+        yield return messageDelay;                          //Then we wait 3 seconds before disabling the message
+        messageBox.text = messageBox.text.Remove(0, messageBox.text.IndexOf(Environment.NewLine, StringComparison.Ordinal) + 2);    //Removes the first line written in the message box
+        //Since all the messages have exactly 3 second delay, the first line will ALWAYS be the one that was actually written by this function
+    }
+    
+    
 
 
 

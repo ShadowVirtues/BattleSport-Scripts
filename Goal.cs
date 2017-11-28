@@ -16,7 +16,7 @@ public class Goal : MonoBehaviour
     private Material goalMaterial;  //To flash the goal on score
 
     [HideInInspector] public Transform ballCollider; //Reference to child object of goal "BallCollider", which changes its position for the moving goal (the parent with this script remains at the same place)
-    //We need it in PlayerRadar.cs for position and in Ball.cs to get where it is facing
+    //We need it in PlayerRadar.cs for position, in Ball.cs to get where it is facing and to calculate misses, in Player.cs to get how far from the goal the player shot the ball
 
     private const string emissionColor = "_EmissionColor";    //Caching those strings for no garbage
     private const string emissionKeyword = "_EMISSION";
@@ -59,7 +59,7 @@ public class Goal : MonoBehaviour
         while (teleporting) //Not sure if this is needed, maybe will be useful in period switching idk
         {
             yield return teleportDelay; //Wait 9 seconds
-            GameController.announcer.Cloak();   //Play the sound of cloaking
+            GameController.audioManager.Cloak();   //Play the sound of cloaking
             goalMaterial.DOFade(0, 1);          //Start fading tween over 1 second
             yield return fadeDelay;             //Wait one second
             goalMaterial.color = Color.white;   //Set the color back to opaque
