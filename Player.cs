@@ -20,16 +20,16 @@ using Random = UnityEngine.Random;
 
     
     DO NEXT:    
-    Fix runner front
+    
     After play tests, refactor in Ball.cs first/secondPlayerPossessed and all dat shit
+    Maybe recover balls position after scoring to get rid of that jitter, using bounds stuff?
     
-    
-    
+    Balls be spawned in the map. It's logical, because I can make changes to them, they all have to be the same across all the arenas
+    BUT GOALS have to be already in the arena cuz they will have different Animators attached to them, and also to be able to make them Static 
 
 
 
     Consider that we have default Physic Material and there needs to be ball bouncing out of everything     
-
     Also remove input manager from the arena, and create it before
 
 
@@ -72,7 +72,7 @@ using Random = UnityEngine.Random;
     THINGS TO CONSIDER WHEN MAKING NEW ARENA
     1. Set all the stuff to "static"
     2. Set light, set skybox
-    3. Bake lighting
+    3. Bake lighting, set Fog
     4. Set all layers to geometry and all interactibles:
         a) Walls (LevelGeometry)
         b) Floor (Floor)
@@ -81,6 +81,7 @@ using Random = UnityEngine.Random;
         e) PlayerExplosion
         f) BallTrigger, BallCollider
         g) GoalSolid, GoalBallSolid
+    5. Rocket Height Trigger
     
 
 
