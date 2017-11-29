@@ -53,7 +53,7 @@ public class GameController : MonoBehaviour
 
         ShotClock = 10;
         PeriodTime = 180;
-        arenaDimension = 100;       //TODO Get the size from arena 'whatever' (prefab, ScriptableObject) and convert it to float
+        //arenaDimension = 100;       //TODO Get the size from arena 'whatever' (prefab, ScriptableObject) and convert it to float
         GameTime = PeriodTime;
 
 

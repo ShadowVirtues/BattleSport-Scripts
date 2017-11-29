@@ -80,8 +80,9 @@ public class Announcer : MonoBehaviour
 
     public void Kill()
     {
-        announcerSource.clip = kill[Random.Range(0, 3)];
-        announcerSource.Play();
+        //announcerSource.clip = kill[Random.Range(0, 3)];
+        //announcerSource.Play();
+        announcerSourceScore.PlayOneShot(kill[Random.Range(0, 3)]);
     }
 
     public void Violation()

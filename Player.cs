@@ -70,7 +70,7 @@ using Random = UnityEngine.Random;
         
 
     THINGS TO CONSIDER WHEN MAKING NEW ARENA
-    1. Set all the stuff to "static"
+    1. Set all the stuff to "static", Colliders for props
     2. Set light, set skybox
     3. Bake lighting, set Fog
     4. Set all layers to geometry and all interactibles:
@@ -117,6 +117,7 @@ public class PlayerStats    //Class-container for all end-game stats
 
 public class Player : MonoBehaviour
 {
+    [ContextMenuItem("Set Player", nameof(SetPlayer))]    //BADASS THING in the editor to right click "PlayerNumber" field for the player to have a MenuItem to set all stuff like Camera viewport, layers and UI for the selected value in that field
     public PlayerID PlayerNumber; //From TeamUtility InputManager "Add-on". Sets which player it is
 
     public PlayerStats playerStats; //Instance of PlayerStats so we could fill them with all the stats
@@ -527,8 +528,76 @@ public class Player : MonoBehaviour
         messageBox.text = messageBox.text.Remove(0, messageBox.text.IndexOf(Environment.NewLine, StringComparison.Ordinal) + 2);    //Removes the first line written in the message box
         //Since all the messages have exactly 3 second delay, the first line will ALWAYS be the one that was actually written by this function
     }
+
+
     
+    //TODO IF IN EDITOR
+    void SetPlayer()    //Function that is getting called when you right click "PlayerNumber" field in the inspector and select "Set Player"
+    {        
+        Tank tankObject = GetComponentInChildren<Tank>();   //Try get child Tank component of that player
+        if (tankObject == null)                             //If tank component wasn't assigned, tell error
+        {
+            Debug.LogError("Where is the tank?");
+            return;
+        }
+        Camera playerCamera = GetComponentInChildren<Camera>(); //Get camera in the children to set it's viewport and culling mask
+        RectTransform playerHUD = playerCamera.transform.Find("Player HUD Canvas/PlayerPanel").GetComponent<RectTransform>();   //Get PlayerPanel UI RectTransform to set it
+
+        if (PlayerNumber == PlayerID.One)   //If the value selected for PlayerNumber field is "One"
+        {
+            gameObject.name = "PlayerOne";  //Set player object name 
+            gameObject.layer = 8;           //Set layer of the "root" object to respective player
+            
+            SetLayerRecursively(tankObject.gameObject, 8);  //Set the whole hierarchy of the tank object to respective player layer 
+            //(setting layers only for tank because only they have colliders that consider layers, and only tank has solid objects and particles to exclude from camera culling mask)
+
+            playerCamera.rect = new Rect(0, 0, 0.5f, 1);    //Set camera rect
+            playerCamera.cullingMask = ~(1 << 8);           //Set camera culling mask (so the player can't see his own tank and its particles)
+            
+            playerHUD.anchorMin = new Vector2(0,0);         //Set player UI RectTransform
+            playerHUD.anchorMax = new Vector2(0.5f, 1);
+
+            GameObject.Find("GameController").GetComponent<GameController>().PlayerOne = GetComponent<Player>();    //Set player variable in the GameController       
+        }          
+        else if (PlayerNumber == PlayerID.Two)  //All the same stuff for player two
+        {
+            gameObject.name = "PlayerTwo";
+            gameObject.layer = 9;
+            
+            SetLayerRecursively(tankObject.gameObject, 9);
+ 
+            playerCamera.rect = new Rect(0.5f, 0, 0.5f, 1);
+            playerCamera.cullingMask = ~(1 << 9);
+
+            playerHUD.anchorMin = new Vector2(0.5f, 0);
+            playerHUD.anchorMax = new Vector2(1, 1);
+
+            GameObject.Find("GameController").GetComponent<GameController>().PlayerTwo = GetComponent<Player>();
+        }
+   
+    }
+
+    void SetLayerRecursively(GameObject obj, int newLayer)  //Function that sets the whole hierarchy of the object to specified layer
+    {
+        if (obj == null)    //We recursively set layers for every object we find in the hierarchy, so the recursion will stop if there are no objects in the hierarchy
+        {
+            return;
+        }
+
+        obj.layer = newLayer;   //Set the actual object to the layer
+
+        foreach (Transform child in obj.transform)  //And look all children of this object
+        {
+            if (child == null)      //Idk why this honestly, it's what I copied. Foreach shouldn't just return null results from what I understand
+            {
+                continue;
+            }
+            SetLayerRecursively(child.gameObject, newLayer);    //Launch the same layer setting for each child and for their hierarchy if they have it
+        }
+    }
     
+
+
 
 
 
