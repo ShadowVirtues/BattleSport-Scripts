@@ -6,6 +6,7 @@ using UnityEngine;
 
 public class Ball : MonoBehaviour
 {
+    public enum BallType { Wheel, Burning, Electric }
 
     [HideInInspector] public new Rigidbody rigidbody;    //Caching ball rigidbody to modify it when someone picks it up    
     [HideInInspector] public float BallAngularDrag;         //Get initial ball drag and angular drag so we can set them back when disabling those on ball pickup, we enable drag when getting the ball into arena (shot, fumble)
