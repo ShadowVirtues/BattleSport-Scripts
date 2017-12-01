@@ -10,15 +10,15 @@ using UnityEngine.EventSystems;
 public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDeselectHandler, ISelectHandler          //UI Interfaces
 {
     [SerializeField] private Text OptionName;     //Name of the option like "Arena", "PlayerOne"
-    [SerializeField] protected Text OptionValue;    //The value we change 
+    [SerializeField] protected Text OptionValue;    //The value we change, we use it in derived classes as well, to set default values on menu load for it
     [SerializeField] private Button Left;           //Button for the Previous Item for mouse clicks
     [SerializeField] private Button Right;          //Button for the Next Item for mouse clicks
 
     protected int index;                            //Index of currently selected item, used in derived classes
 
-    protected abstract string Option { get; }
-    protected abstract string NextOption { get; }       //Abstract fields that have to get implemented in derived classes, used to actually get and select data from "Options" container of derived classes
-    protected abstract string PreviousOption { get; }
+    protected abstract string Option { get; }           //Abstract fields that have to get implemented in derived classes, used to actually get and select data from "Options" container of derived classes
+    protected abstract string NextOption { get; }       //String, because every value has at least a string value to show on screen, the other UI fields that get changed by switching options are implemented in actual derived classes
+    protected abstract string PreviousOption { get; }   //The usage for those properties is all the same and is defined here, in the base class, but getting this value is different for each derived selector
 
     private const string turningAxisName = "Turning";   //"Turning" buttons will switch between options for keyboard and controller input
 
@@ -38,15 +38,17 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
 
             if (axis != 0)  //If axis is actually pressed
             {
-                if (isAxisInUse == false) //Only if axis wasn't previously pressed and held down
+                if (isAxisInUse == false) //Only if axis wasn't previously pressed and held down    //TODO manage holding down a button
                 {
                     if (axis == -1) //If axis is negative (Pressed Left)
                     {
-                        PreviousItem(); //Switch to previous item
+                        //PreviousItem(); //Switch to previous item
+                        Left.onClick.Invoke();
                     }
                     else if (axis == 1) //If axis is positive (Pressed Right)
                     {
-                        NextItem();     //Switch to next item
+                        //NextItem();     //Switch to next item
+                        Right.onClick.Invoke();
                     }
 
                     isAxisInUse = true; //Until we release the axis button, this will remain true
