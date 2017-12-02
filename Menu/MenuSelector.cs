@@ -16,7 +16,7 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
 
     protected int index;                            //Index of currently selected item, used in derived classes
 
-    protected abstract string Option { get; }           //Abstract fields that have to get implemented in derived classes, used to actually get and select data from "Options" container of derived classes
+    //protected abstract string Option { get; }       //TODO Delete this, if in the end we don't need general functionality for Option defined in this class somewhere   //Abstract fields that have to get implemented in derived classes, used to actually get and select data from "Options" container of derived classes
     protected abstract string NextOption { get; }       //String, because every value has at least a string value to show on screen, the other UI fields that get changed by switching options are implemented in actual derived classes
     protected abstract string PreviousOption { get; }   //The usage for those properties is all the same and is defined here, in the base class, but getting this value is different for each derived selector
 

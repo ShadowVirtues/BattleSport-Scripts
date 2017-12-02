@@ -38,8 +38,8 @@ public class PlayerRadar : MonoBehaviour
         }
 
     }
-
-    void Awake ()
+    
+    void Start()    //No Awake, cuz no references after the scene load
     {
         Player playerPlayer = GetComponent<Player>();   //Get the Player reference to figure out which player number it is
 
@@ -56,11 +56,8 @@ public class PlayerRadar : MonoBehaviour
 
         ball = GameController.Controller.ball.transform;    //Get reference of ball and goal transforms
         goal = GameController.Controller.goal.ballCollider; //Not the goal itself, cuz we move the child object of it
-    }
-
-    void Start()
-    {
-        float arenaDimension = GameController.Controller.arenaDimension;
+        
+        float arenaDimension = GameController.Controller.ArenaDimension;
 
         arenaSize = Mathf.Sqrt(arenaDimension * arenaDimension * 2);       //Get the arena size from GameController
     }

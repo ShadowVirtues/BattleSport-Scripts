@@ -10,7 +10,7 @@ public class InstantActionSetup : MonoBehaviour
     [SerializeField] private Text numberOfPeriods;
     [SerializeField] private Text periodTime;
     [SerializeField] private Text periodTimeValue;
-    [SerializeField] private ValueSelector periodTimeSelector;
+    
 
     private int previousPeriodTime = 3;         //TODO Consider that "prevoiusPeriodTime" from the start gets set to "1", which is what gets set by default in Awake of ValueSelector
     private int previousPlayToScore = 5;         //TODO get those from 'save' container 
@@ -45,6 +45,28 @@ public class InstantActionSetup : MonoBehaviour
     }
 
 
+
+    [SerializeField] private ArenaSelector arenaSelector;
+    [SerializeField] private TankSelector playerOneSelector;
+    [SerializeField] private TankSelector playerTwoSelector;
+    [SerializeField] private ValueSelector numberOfPeriodsSelector;
+    [SerializeField] private ValueSelector periodTimeSelector;
+    [SerializeField] private ValueSelector shotClockSelector;
+    
+    public void GAMEButtonPress()
+    {
+        StartupController startup = GameObject.Find(nameof(StartupController)).GetComponent<StartupController>();
+
+        startup.arena = arenaSelector.Option;
+        startup.PlayerOneTank = playerOneSelector.Option;
+        startup.PlayerTwoTank = playerTwoSelector.Option;
+        startup.NumberOfPeriods = numberOfPeriodsSelector.Option;
+        startup.PeriodTime = periodTimeSelector.Option;
+        startup.ShotClock = shotClockSelector.Option;
+        
+        startup.GAMEButtonPress();
+        
+    }
 
 
 

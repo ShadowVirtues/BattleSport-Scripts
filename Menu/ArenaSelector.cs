@@ -20,7 +20,7 @@ public class ArenaSelector : MenuSelector
 
     }
 
-    protected override string Option => Options[index].Name;    //Abstract property in the base class to get the arena name with current index //TODO probably only for transfering the value to the scene
+    public Arena Option => Options[index]; //This gets called when confirming game settings, for transfering the selected value to the loading scene (we need the whole Arena object with all its fields)
 
     protected override string NextOption                //To get the next arena from the list
     {

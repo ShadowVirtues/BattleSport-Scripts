@@ -16,10 +16,10 @@ public class TankMenu : MonoBehaviour
         transform.Rotate(Vector3.up, 60 * Time.deltaTime);
     }
 
-    void OnDisable()
-    {
-        transform.localRotation = Quaternion.identity;  //When you select another tank, this tank gets disabled, so set his rotating back so it doesn't get saved each time you deselect this tank
-    }
+    //void OnDisable()
+    //{
+    //    transform.localRotation = Quaternion.identity;  //When you select another tank, this tank gets disabled, so set his rotating back so it doesn't get saved each time you deselect this tank
+    //}
 
 
 }

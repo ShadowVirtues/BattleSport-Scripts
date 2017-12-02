@@ -9,7 +9,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioClip laserHit;
 
     [SerializeField] private AudioSource audioSource;
-    [SerializeField] private AudioSource music;
+    public AudioSource music;
 
     public void Cloak() => audioSource.PlayOneShot(cloak);
     public void Explosion()
@@ -23,6 +23,7 @@ public class AudioManager : MonoBehaviour
     {
         music.clip = GameController.Controller.Music;
         music.Play();
+        music.Pause();
 
     }
 

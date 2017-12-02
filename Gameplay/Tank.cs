@@ -37,7 +37,7 @@ public class TankPropertyDrawer : PropertyDrawer
         SerializedProperty value = prop.FindPropertyRelative("value");
         
         float barWidth;
-        if (pos.width < 340)    //So this kinda makes the ProgressBar shot on the right of the text field and those numbers make it scale appropriately with inspector window width
+        if (pos.width < 340)    //So this kinda makes the ProgressBar shown on the right of the text field and those numbers make it scale appropriately with inspector window width
         {
             barWidth = 200 - (355 - pos.width);
         }        

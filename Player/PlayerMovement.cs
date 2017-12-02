@@ -24,29 +24,29 @@ public class PlayerMovement : MonoBehaviour
     private const string turningAxisName = "Turning";
     private const string jumpButtonName = "Jump";
 
-    void Awake ()
+
+#if UNITY_EDITOR
+    //QualitySettings.vSyncCount = 0;  // Tests for different fps
+    //Application.targetFrameRate = 45;
+#endif
+
+    void Start()    //Again, no Awake, cuz no references
     {
         player = GetComponent<Player>();
         playerNumber = player.PlayerNumber;
         rigidbody = GetComponent<Rigidbody>();     //Caching rigidbody        
 
-#if UNITY_EDITOR
-        //QualitySettings.vSyncCount = 0;  // Tests for different fps
-        //Application.targetFrameRate = 45;
-#endif
-    }
-
-    void Start()
-    {
         Tank tank = GetComponentInChildren<Tank>();
 
         acceleration = tank.Acceleration * 0.41f + 8.6f;   //Calculate movement parameters from tank characteristics
         maxSpeed = tank.TopSpeed * 0.2f + 6;    //Why those formulas? Cuz.
-
     }
    
     void Update()
     {
+        if (Time.timeScale == 0) return;    //We don't want players to move during pause
+        if (Time.deltaTime == 0) return;    //After unpausing, for one frame Time.deltaTime is still 0, which results in division by it in the next line, so don't run the function if that the case as well
+
         float rotationY = InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed * Time.deltaTime * (0.005f / Time.deltaTime + 0.75f); //To rotate depending on input axis (rotation around Y axis)
         float tankRotation = transform.localEulerAngles.y + rotationY;      //Add the rotation to current rotation of the tank
                 

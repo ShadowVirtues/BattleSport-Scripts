@@ -17,7 +17,7 @@ public class Ball : MonoBehaviour
     private Material ballMaterial;  //To be able to make the ball transparent during 5 second delay after scoring
     private float originalAlpha;    //Different balls have different original alpha, we set it to the fraction of original when ball scores
     
-    void Awake()
+    void Start()    //Again, Awake would run instantly after the code line where the ball is instantiated, where not all references have been made already, so getting everything in Start
     {
         rigidbody = GetComponent<Rigidbody>();  
         rigidbody.maxAngularVelocity = 50;      //We don't want the ball to have limited angular velocity of 7, we want it to roll FAST, as fast as it can get rolling  

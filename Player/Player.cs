@@ -20,7 +20,12 @@ using Random = UnityEngine.Random;
 
     
     DO NEXT:    
-    
+    Manage audiolisteners
+    Cut all the bullshit music
+
+
+
+
     After play tests, refactor in Ball.cs first/secondPlayerPossessed and all dat shit
     Maybe recover balls position after scoring to get rid of that jitter, using bounds stuff?
     
@@ -117,7 +122,9 @@ public class PlayerStats    //Class-container for all end-game stats
 
 public class Player : MonoBehaviour
 {
+#if UNITY_EDITOR
     [ContextMenuItem("Set Player", nameof(SetPlayer))]    //BADASS THING in the editor to right click "PlayerNumber" field for the player to have a MenuItem to set all stuff like Camera viewport, layers and UI for the selected value in that field
+#endif
     public PlayerID PlayerNumber; //From TeamUtility InputManager "Add-on". Sets which player it is
 
     public PlayerStats playerStats; //Instance of PlayerStats so we could fill them with all the stats
@@ -177,23 +184,20 @@ public class Player : MonoBehaviour
     private const string ballButtonName = "ShootBall";    //Caching button name for shooting the ball
 
     //=============================================
-
-    void Awake()
+    
+    void Start() //Since when loading the scene, we first spawn PlayerPrefab (which would INSTANTLY run Awake here) and only after that we get the Tank in, we have to get all references in Start, when the Tank has already been put in
     {
         ball = GameController.Controller.ball;
-        
+
         tank = GetComponentInChildren<Tank>();              //Getting dose references
         playerRadar = GetComponent<PlayerRadar>();
         material = tank.GetComponent<Renderer>().material;
 
-        playerRigidbody = GetComponent<Rigidbody>();    
+        playerRigidbody = GetComponent<Rigidbody>();
         movement = GetComponent<PlayerMovement>();
 
         cameraAnim = camera.GetComponent<Animator>();
-    }
 
-    void Start()
-    {
         ballShootForce = tank.BallHandling;     //BallHandling means the force the player shoots the ball with
         playerRigidbody.mass = tank.Armor / 10; //Setting tank mass to tenth of the armor, so more armored tanks throw the less armored across the map when colliding with them
     }
@@ -273,7 +277,7 @@ public class Player : MonoBehaviour
         //We use OverlapCapsuleNonAlloc for this, which requires the Collider[] array to store found colliders in this cylinder being checked
         
         int offset = 4;             //Offset from the arena border so player doesn't spawn right next to a wall
-        float levelDimension = GameController.Controller.arenaDimension / 2;  //Get arena dimension (total X=Y length) from GameController, to convert it into max coordinate need to divide by 2
+        float levelDimension = GameController.Controller.ArenaDimension / 2;  //Get arena dimension (total X=Y length) from GameController, to convert it into max coordinate need to divide by 2
 
         int iter = 0;   //A way to stop the infinite loop of finding the random spawn point if we can't find it
 
@@ -349,11 +353,20 @@ public class Player : MonoBehaviour
     }
     
     void Update()
-    {
+    {        
+        if (InputManager.GetButtonDown("Pause", PlayerNumber))
+        {
+            GameController.Controller.Pause();  //COMM
+        }
+
+        if (Time.timeScale == 0) return;    //COMM
+
         if (possession && InputManager.GetButtonDown(ballButtonName, PlayerNumber)) //If player has a ball and presses Shoot Ball button
         {
             LoseBall(FumbleCause.Shot); //"LOSE" ball due to shooting it
-        }       
+        }
+
+
     }
 
     public void Hit(float firePower, Weapon weapon)       //Gets invoked from Rocket or Laser OnCollisionEnter
@@ -445,7 +458,7 @@ public class Player : MonoBehaviour
             }                
             ball.PlayerShot(PlayerNumber);      //Run a function on a ball to check when the ball missed the goal
 
-            pickup.Play();      //COMM
+            pickup.Play();      //Play "pickup" sound when player shoots the ball
 
             playerStats.ShotsOnGoal++;  //Increment the amount of ShotsOnGoal for the end-stats
             
@@ -528,11 +541,8 @@ public class Player : MonoBehaviour
         messageBox.text = messageBox.text.Remove(0, messageBox.text.IndexOf(Environment.NewLine, StringComparison.Ordinal) + 2);    //Removes the first line written in the message box
         //Since all the messages have exactly 3 second delay, the first line will ALWAYS be the one that was actually written by this function
     }
-
-
     
-    //TODO IF IN EDITOR
-    void SetPlayer()    //Function that is getting called when you right click "PlayerNumber" field in the inspector and select "Set Player"
+    public void SetPlayer()    //Function that is getting called after injecting players when loading the scene, also when you right click "PlayerNumber" field in the inspector and select "Set Player"
     {        
         Tank tankObject = GetComponentInChildren<Tank>();   //Try get child Tank component of that player
         if (tankObject == null)                             //If tank component wasn't assigned, tell error

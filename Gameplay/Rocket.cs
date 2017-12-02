@@ -21,9 +21,15 @@ public class Rocket : MonoBehaviour
 
     private new Rigidbody rigidbody; //Cache rockets rigidbody to get its velocity vector   
 
-    void Awake()
+    void Awake()   
     {
-        rigidbody = GetComponent<Rigidbody>();  //Cache rockets rigidbody to get its velocity vector       
+        rigidbody = GetComponent<Rigidbody>();  //Cache rockets rigidbody to get its velocity vector              
+    }
+
+    void Start()    //Rocket Prefab has all its components enabled by default, so all Awake caching runs at scene start and not when rocket actually gets shot, this is so we dont get frame drop at first rocket shot
+    {
+        explosion.SetActive(false);         //Not doing this in Start, so explosion doesn't get deactivated before its Awake runs which also gets some references
+        gameObject.SetActive(false);        //That's why we disable the rocket explosion and rocket itself after (rocket get enabled with explosion disabled, which gets enabled when the rocket explodes)
     }
 
     void OnCollisionEnter(Collision other)  //When the rocket collides with something

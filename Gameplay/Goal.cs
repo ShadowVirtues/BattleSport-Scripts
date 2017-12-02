@@ -21,7 +21,7 @@ public class Goal : MonoBehaviour
     private const string emissionColor = "_EmissionColor";    //Caching those strings for no garbage
     private const string emissionKeyword = "_EMISSION";
 
-    void Awake()
+    void Awake()    //Those all depend on actual goal which is already in the scene from the start, so no errors with objects not yet instantiated
     {
         ballCollider = transform.Find("BallCollider");  //Get the child object
 
@@ -80,7 +80,7 @@ public class Goal : MonoBehaviour
         //We use OverlapCapsuleNonAlloc for this, which requires the Collider[] array to store found colliders in this cylinder being checked
 
         int offset = 4;             //Offset from the arena border so goal doesn't spawn right next to a wall
-        float levelDimension = GameController.Controller.arenaDimension / 2;  //Get arena dimension (total X=Y length) from GameController, to convert it into max coordinate need to divide by 2
+        float levelDimension = GameController.Controller.ArenaDimension / 2;  //Get arena dimension (total X=Y length) from GameController, to convert it into max coordinate need to divide by 2
 
         int iter = 0;   //A way to stop the infinite loop of finding the random spawn point if we can't find it
 

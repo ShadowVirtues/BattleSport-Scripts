@@ -27,8 +27,8 @@ public class ValueSelector : MenuSelector   //This selector selects only numeric
 
     }
     
-    protected override string Option => Options[index].ToString();  //Abstract property in the base class to get the option with current index  //TODO probably only for transferring the value to the scene
-                                                                    
+    public int Option => Options[index];  //This gets called when confirming game settings, for transfering the selected value to the loading scene
+
     protected override string NextOption    //To get next option and increment the index
     {
         get

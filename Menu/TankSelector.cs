@@ -15,8 +15,8 @@ public class TankSelector : MenuSelector
 
     }
 
-    protected override string Option => Options[index].name.ToUpper();      //Get the name of the tank from the name of the prefab in the list, and all options in the menu are written with uppercase letters
-                                                                            //TODO We will probably need the option only for actually selecting and transfering the tank over to the scene, so there may be no need for ToUpper()
+    public string Option => Options[index].name;  //This gets called when confirming game settings, for transfering the selected tank to the loading scene (we compare the name of Tank UI prefabs with "playable" Tank prefabs
+
     protected override string NextOption    //To select the next tank
     {
         get
@@ -26,7 +26,7 @@ public class TankSelector : MenuSelector
             {
                 index++;                        //Increment the index
                 Options[index].SetActive(true); //Enable the tank with new index
-                return Options[index].name.ToUpper();   //And finally return the name of the tank to show
+                return Options[index].name.ToUpper();   //And finally return the name of the tank to show (all options in the menu are written with uppercase letters)
             }
             else                                //If we went over array length, show the first tank with index 0
             {

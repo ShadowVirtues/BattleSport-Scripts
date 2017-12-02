@@ -13,9 +13,11 @@ public class Laser : MonoBehaviour
 
     private new Rigidbody rigidbody; //Cache rockets rigidbody to set its velocity to zero when the laser hits
 
-    void Awake()
+    void Awake()    //Laser Prefab has all its components enabled by default, so all Awake caching runs at scene start and not when laser actually gets shot, this is so we dont get frame drop at first laser shot
     {
         rigidbody = GetComponent<Rigidbody>();  //Cache rockets rigidbody
+        explosion.SetActive(false);
+        gameObject.SetActive(false);        //And disable laser explosion and laser itself (they are pooled)
     }
 
     void OnEnable() //When we enable the laser to shoot it, start the countdown, so the laser fades after some time (0.5 sec)

@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 
-public enum ArenaSize { Tiny, Small, MidSized, Large, Humongous }
+public enum ArenaSize { Tiny, Small = 60, MidSized = 75, Large, Humongous = 100 }
 
 
 

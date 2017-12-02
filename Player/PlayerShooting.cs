@@ -42,19 +42,14 @@ public class PlayerShooting : MonoBehaviour
     private const float minimalLaserSpeed = 40;    //Laser minimal speed, so when the tank is moving back while shooting, laser isn't super slow
 
     private readonly Vector3 rocketDirection = new Vector3(0,-0.01f,1);    //TEST with flight. Vector to shoot rocket to. It is 'forward' with slight drag down (kinda like gravity). In the game has a big effect when one player is flying, the other one can't hit him from longer range
-
-    void Awake()
+    
+    void Start()        //Since when loading the scene, we first spawn PlayerPrefab (which would INSTANTLY run Awake here) and only after that we get the Tank in, we have to get all references in Start, when the Tank has already been put in
     {
-        player = GetComponent<Player>();
+        player = GetComponent<Player>();    
         playerNumber = player.PlayerNumber;
         playerRigidbody = GetComponent<Rigidbody>();
         tank = GetComponentInChildren<Tank>(); //Tank component gets inserted to PlayerX gameObject with the tank model when the tank is picked.
-        //rocketButtonName = "Rocket";
-        //laserButtonName = "Laser";        
-    }
 
-    void Start()
-    {
         GameObject weaponPoolContainer = new GameObject($"Player{playerNumber}Weapons");    //Create a container to child rockets to, so all pooled rockets are not all on top of Hierarchy
         int layerToSet = playerNumber == PlayerID.One ? 10 : 11;    //Hardcoded for now which player will be able to hit which player. 10 - "WeaponPlayerOne", 11 - "WeaponPlayerTwo"
 
@@ -115,6 +110,7 @@ public class PlayerShooting : MonoBehaviour
 
     void Update()
     {
+        if (Time.timeScale == 0) return;    //When you pause the game with timeScale, Updates still keep running, and we don't want players to shoot rockets while in pause
         //==================ROCKETS==================
         if (InputManager.GetButtonDown(rocketButtonName, playerNumber)) //If rocket-shoot button is pressed for respective player
         {

@@ -32,9 +32,21 @@ public class GameController : MonoBehaviour
     public Player PlayerTwo;
     public Ball ball;
 
-    public int ShotClock;
+    public Transform PlayerOneSpawn;
+    public Transform PlayerTwoSpawn;
+    public Transform BallSpawn;
 
-    public float arenaDimension;    //This is the size of the arena in one dimension (X or Y, cuz they are equal) 
+
+    public int ShotClock;
+    public int PeriodTime;
+    public int NumberOfPeriods;
+
+    
+
+
+
+
+    public float ArenaDimension;    //This is the size of the arena in one dimension (X or Y, cuz they are equal) 
     public AudioClip Music;
 
     [SerializeField] private GameObject audioManagerPrefab;
@@ -47,20 +59,27 @@ public class GameController : MonoBehaviour
     {
         Controller = this;
 
+        StartupController.Controller.LoadItemsToArena();
+
+        
+
+        
+
         audioManagerObject = Instantiate(audioManagerPrefab);
         announcer = audioManagerObject.GetComponent<Announcer>();
         audioManager = audioManagerObject.GetComponent<AudioManager>();
 
-        ShotClock = 10;
-        PeriodTime = 180;
-        //arenaDimension = 100;       //TODO Get the size from arena 'whatever' (prefab, ScriptableObject) and convert it to float
+        
+
+        //ShotClock = 10;
+        //PeriodTime = 180;
+        //ArenaDimension = 100;       //TODO Get the size from arena 'whatever' (prefab, ScriptableObject) and convert it to float
         GameTime = PeriodTime;
 
-
-        //Missile missileCopy = Instantiate<Missile>(missile);
-
-
+        
         StartCoroutine(PeriodCountdown());
+
+        
     }
 
     void Start()
@@ -68,10 +87,10 @@ public class GameController : MonoBehaviour
         if (ball.gameObject.name == "ElectricBall") //KLUUUUUUUUUUUUUUDGEEEEEEEEEEEEEEEEEEEEE (DELETE this shit tho)
             GameObject.Find("BallCamera").GetComponent<Camera>().backgroundColor = new Color(49f / 256, 77f / 256, 121f / 256, 0);
 
+        Pause();
     }
 
-    public int PeriodTime;
-
+    
     public int GameTime;
 
     private readonly WaitForSeconds second = new WaitForSeconds(1);
@@ -93,7 +112,25 @@ public class GameController : MonoBehaviour
 
     }
 
+    public bool paused = false;    //COMM
 
+
+    public void Pause()
+    {
+        if (paused == false)
+        {
+            Time.timeScale = 0;
+            paused = true;
+            audioManager.music.Pause();
+        }
+        else
+        {
+            Time.timeScale = 1;
+            paused = false;
+            audioManager.music.UnPause();
+        }
+
+    }
 
 
 
