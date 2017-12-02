@@ -38,7 +38,7 @@ public class StartupController : MonoBehaviour
 
         SceneManager.LoadScene(arena.Scene);
 
-
+        
 
 
 

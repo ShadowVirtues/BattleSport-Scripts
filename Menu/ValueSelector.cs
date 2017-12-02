@@ -21,10 +21,7 @@ public class ValueSelector : MenuSelector   //This selector selects only numeric
             Options[i] = value;                 //Set current index with current value
             value += step;                      //Increase the value for the next step to fill it in
         }
-
-        index = 0;                              //Setting default shown index when the Menu loads //TODO Get from some 'save' container the previously chosen value
-        OptionValue.text = Options[index].ToString();   //Show default value from index
-
+        
     }
     
     public int Option => Options[index];  //This gets called when confirming game settings, for transfering the selected value to the loading scene
@@ -64,11 +61,18 @@ public class ValueSelector : MenuSelector   //This selector selects only numeric
         }
     }
 
-    public void ChangeIndex(int ind)
+    //public void ChangeIndex(int ind)
+    //{
+    //    int find = Array.IndexOf(Options, ind);
+    //    index = find;
+    //    OptionValue.text = Options[index].ToString();
+    //}
+
+    public void SetIndex(int ind)
     {
-        int find = Array.IndexOf(Options, ind);
-        index = find;
+        index = ind;
         OptionValue.text = Options[index].ToString();
+
     }
 
 }

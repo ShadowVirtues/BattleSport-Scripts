@@ -6,15 +6,7 @@ public class TankSelector : MenuSelector
 {
 
     public List<GameObject> Options;        //For tank selector the options are actual tank prefabs (the tank collection specifically for UI tho, without thrusters and colliders)
-
-    void Awake()                     //Stuff to do when the menu loads
-    {
-        index = 0;
-        Options[index].SetActive(true);                      //So show the first tank    //TODO get the tank number from 'save' container to show previously selected option
-        OptionValue.text = Options[index].name.ToUpper();
-
-    }
-
+    
     public string Option => Options[index].name;  //This gets called when confirming game settings, for transfering the selected tank to the loading scene (we compare the name of Tank UI prefabs with "playable" Tank prefabs
 
     protected override string NextOption    //To select the next tank
@@ -58,7 +50,13 @@ public class TankSelector : MenuSelector
         }
     }
 
-   
+    public void SetIndex(int ind)
+    {        
+        index = ind;
+        Options[index].SetActive(true);
+        OptionValue.text = Options[index].name.ToUpper();
+
+    }
 
 
 

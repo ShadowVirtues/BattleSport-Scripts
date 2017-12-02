@@ -6,19 +6,19 @@ public class ArenaSelector : MenuSelector
 {
     [SerializeField] private List<Arena> Options;     //The list of Arena ScriptableObjects to shoose from, gets filled in the inspector
 
-    void Awake()            //Stuff to do when the menu loads
-    {
-        for (int i = 0; i < Options.Count; i++)     //We need to find the first arena that is available in the list, so look through the whole list
-        {
-            if (Options[i] != null)
-            {
-                index = i;
-                OptionValue.text = Options[index].Name; //Set the option value to found arena
-                break;                                  //Don't look further if we found it
-            }
-        }
+    //void Awake()            //Stuff to do when the menu loads
+    //{
+    //    for (int i = 0; i < Options.Count; i++)     //We need to find the first arena that is available in the list, so look through the whole list
+    //    {
+    //        if (Options[i] != null)
+    //        {
+    //            index = i;
+    //            OptionValue.text = Options[index].Name; //Set the option value to found arena
+    //            break;                                  //Don't look further if we found it
+    //        }
+    //    }
 
-    }
+    //}
 
     public Arena Option => Options[index]; //This gets called when confirming game settings, for transfering the selected value to the loading scene (we need the whole Arena object with all its fields)
 
@@ -71,6 +71,11 @@ public class ArenaSelector : MenuSelector
         }
     }
 
-    
+    public void SetIndex(int ind)
+    {
+        index = ind;
+        OptionValue.text = Options[index].Name;
+
+    }
 
 }
