@@ -30,7 +30,8 @@ public class Ball : MonoBehaviour
         originalAlpha = ballMaterial.color.a;   //And some parameters as well
     }
     
-    //TODO [HideInInspector]    and maybe move this to "playerOne.possessed", "playerOne.ballShot"? This should simplify a lot of code here. But only do it after we are sure everything works withot bugs or errors
+    //TODO [HideInInspector]    
+    //I would refactor this to have "playerOne.possessed", "playerOne.ballShot", but in the current state it works so great without any bugs, I feel like if I refactor, some stuff will break,and it's not gonna simplify a lot of stuff anyway
     public bool firstPlayerShot;        //This represents if and which player shot the ball for scoring and interceptions (only applies until the ball hits some geometry)
     public bool secondPlayerShot;
 

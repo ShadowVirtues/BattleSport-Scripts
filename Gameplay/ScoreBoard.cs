@@ -3,19 +3,42 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-//TODO INJECT NUMBERS INTO TEXTURES
+
+
+
+//Period positions: 
+
+
+
+
+
 
 public class ScoreBoard : MonoBehaviour
 {
     [SerializeField] private Text[] scorePlayerOne;
     [SerializeField] private Text[] scorePlayerTwo; //There are multiple "fields" on th scoreboard holding the same value, that's why reference them in arrays
     [SerializeField] private Text[] PeriodTime;
-    
+    [SerializeField] private Text[] PlayerOneLabel;
+    [SerializeField] private Text[] PlayerTwoLabel;
+    [SerializeField] private RectTransform[] PeriodContainer;
+
+
     void Start()
     {
-        //TODO Set player names
+        SetPlayerNames();   //COMM
         UpdateScore();      //When the scene starts, set scoreboard values to starting ones
         UpdateTime();
+    }
+
+    public void SetPlayerNames()
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            PlayerOneLabel[i].text = GameController.Controller.PlayerOne.PlayerName;
+            PlayerTwoLabel[i].text = GameController.Controller.PlayerTwo.PlayerName;
+        }
+
+
     }
 
     public void UpdateScore()   //Public function that runs when someone scores

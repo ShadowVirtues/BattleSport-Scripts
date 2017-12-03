@@ -11,7 +11,7 @@ using Random = UnityEngine.Random;
 
 
 /*
-    ==================GLOBAL CONCEPTS========================
+    ===================GLOBAL CONCEPTS========================
     
 
 
@@ -20,12 +20,12 @@ using Random = UnityEngine.Random;
 
     
     DO NEXT:       
-    Cut all the bullshit music
+    Player Names
    
 
 
 
-    After play tests, refactor in Ball.cs first/secondPlayerPossessed and all dat shit
+   
     Maybe recover balls position after scoring to get rid of that jitter, using bounds stuff?
     
     
@@ -175,7 +175,10 @@ public class Player : MonoBehaviour
     private Rigidbody playerRigidbody;      //And in PlayerMovement custom drag when alive is implemented, so we apply the internal rigidbody drag when dead
     private PlayerMovement movement;        //Reference to disable it when dead
     private Tank tank;                  //Reference to Tank component of attached tank to get its characteristics
+    [Header("Other UI")]
     [SerializeField] private Text messageBox;   //Text box in the middle of the screen to show messages on for players
+    [HideInInspector] public string PlayerName;     //Player Name that gets set in the menu
+    [SerializeField] private Text playerNameUI;   //Player Name textBox below player health
 
     private Collider[] spawnCheckColliders = new Collider[2];   //Premade array of colliders to not have any garbage allocated when checking where to spawn a tank after death with "CheckCapsule"
 
@@ -197,6 +200,8 @@ public class Player : MonoBehaviour
         movement = GetComponent<PlayerMovement>();
 
         cameraAnim = camera.GetComponent<Animator>();
+
+        playerNameUI.text = PlayerName;     //Set player name on the UI
 
         ballShootForce = tank.BallHandling;     //BallHandling means the force the player shoots the ball with
         playerRigidbody.mass = tank.Armor / 10; //Setting tank mass to tenth of the armor, so more armored tanks throw the less armored across the map when colliding with them
@@ -455,7 +460,7 @@ public class Player : MonoBehaviour
             {
                 ball.secondPlayerShot = true;
                 ball.secondPlayerPossessedShot = true;
-            }                
+            }
             ball.PlayerShot(PlayerNumber);      //Run a function on a ball to check when the ball missed the goal
 
             pickup.Play();      //Play "pickup" sound when player shoots the ball

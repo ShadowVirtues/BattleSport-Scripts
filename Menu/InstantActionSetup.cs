@@ -70,6 +70,9 @@ public class InstantActionSetup : MonoBehaviour
         startup.NumberOfPeriods = numberOfPeriodsSelector.Option;
         startup.PeriodTime = periodTimeSelector.Option;
         startup.ShotClock = shotClockSelector.Option;
+        startup.PlayerOneName = "PLAYER 1";
+        startup.PlayerTwoName = "PLAYER 2"; //Instant Action is a quickest way to start the game, so no name entry and default names for players
+
 
         SavePreviousSettings();                             //Save the selectors states to PlayerPrefs
 

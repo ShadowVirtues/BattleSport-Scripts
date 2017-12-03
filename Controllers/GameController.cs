@@ -46,12 +46,10 @@ public class GameController : MonoBehaviour
     public int ShotClock;
     public int PeriodTime;
     public int NumberOfPeriods;
-
-
     public float ArenaDimension;    //This is the size of the arena in one dimension (X or Y, cuz they are equal) 
-    public AudioClip Music;
+    public AudioClip Music;   
 
-    //[SerializeField] private GameObject audioManagerPrefab;
+    [SerializeField] private GameObject audioManagerPrefab; //FOR TESTING
     public GameObject audioManagerObject;
 
     public static AudioManager audioManager;
@@ -61,21 +59,34 @@ public class GameController : MonoBehaviour
     {
         Controller = this;
 
-        StartupController.Controller.LoadItemsToArena();
+        if (StartupController.Controller != null)
+        {
+            StartupController.Controller.LoadItemsToArena();
+        }
+        else    //TESTING!!! DELETE THIS
+        {
+            audioManagerObject = Instantiate(audioManagerPrefab);
+            ShotClock = 10;
+            PeriodTime = 180;
+            ArenaDimension = 100;       //TODO Get the size from arena 'whatever' (prefab, ScriptableObject) and convert it to float
+            PlayerOne.PlayerName = "PLAYER 1";
+            PlayerTwo.PlayerName = "PLAYER 2";
+        }
 
-        
 
-        
 
-        
+
+
+
+
         announcer = audioManagerObject.GetComponent<Announcer>();
         audioManager = audioManagerObject.GetComponent<AudioManager>();
 
         
 
-        //ShotClock = 10;
-        //PeriodTime = 180;
-        //ArenaDimension = 100;       //TODO Get the size from arena 'whatever' (prefab, ScriptableObject) and convert it to float
+        
+        
+        
         GameTime = PeriodTime;
 
         

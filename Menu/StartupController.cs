@@ -16,14 +16,15 @@ public class StartupController : MonoBehaviour
 
     [SerializeField] private GameObject audioManagerPrefab;
 
-    [Header("Not getting set into StartupController")]
+    [Header("Not getting set into Inspector")]
     public Arena arena;
     public int ShotClock;
     public int PeriodTime;
     public int NumberOfPeriods; //[HideInInspector]
     public string PlayerOneTank;
     public string PlayerTwoTank;
-
+    public string PlayerOneName;
+    public string PlayerTwoName;
 
     void Awake()
     {
@@ -97,6 +98,9 @@ public class StartupController : MonoBehaviour
 
         gameController.PlayerOne.SetPlayer();
         gameController.PlayerTwo.SetPlayer();
+
+        gameController.PlayerOne.PlayerName = PlayerOneName;
+        gameController.PlayerTwo.PlayerName = PlayerTwoName;
 
         gameController.audioManagerObject = Instantiate(audioManagerPrefab);
     }
