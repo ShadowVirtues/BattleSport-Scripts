@@ -26,31 +26,33 @@ public class GameController : MonoBehaviour
 
     public static Announcer announcer;
 
+    [Header("Setting In the Arena")]   
     public Goal goal;
     public ScoreBoard scoreBoard;
-    public Player PlayerOne;
-    public Player PlayerTwo;
-    public Ball ball;
 
+    
     public Transform PlayerOneSpawn;
     public Transform PlayerTwoSpawn;
     public Transform BallSpawn;
 
 
+   
+
+    [Header("Shouldn't be set in the Arena")]
+    public Player PlayerOne;
+    public Player PlayerTwo;
+    public Ball ball;
+
     public int ShotClock;
     public int PeriodTime;
     public int NumberOfPeriods;
-
-    
-
-
 
 
     public float ArenaDimension;    //This is the size of the arena in one dimension (X or Y, cuz they are equal) 
     public AudioClip Music;
 
-    [SerializeField] private GameObject audioManagerPrefab;
-    private GameObject audioManagerObject;
+    //[SerializeField] private GameObject audioManagerPrefab;
+    public GameObject audioManagerObject;
 
     public static AudioManager audioManager;
 
@@ -65,7 +67,7 @@ public class GameController : MonoBehaviour
 
         
 
-        audioManagerObject = Instantiate(audioManagerPrefab);
+        
         announcer = audioManagerObject.GetComponent<Announcer>();
         audioManager = audioManagerObject.GetComponent<AudioManager>();
 

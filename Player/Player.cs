@@ -12,43 +12,41 @@ using Random = UnityEngine.Random;
 
 /*
     ==================GLOBAL CONCEPTS========================
-    EVERYTHING PLAYER-PLAYER RELATED HAS TO REVOLVE AROUND WHICH PLAYER NUMBER IS SET UP TO EACH ONE ON TOP OF HIERARCHY IN THIS SCRIPT
+    
 
-    Ideally i should make ONE SINGLE "PlayerX" prefab with everything setup, and then when instantiating, just set its parameters for different players.
+
     ==========================================================
 
 
     
-    DO NEXT:    
-    Manage audiolisteners
+    DO NEXT:       
     Cut all the bullshit music
-
+   
 
 
 
     After play tests, refactor in Ball.cs first/secondPlayerPossessed and all dat shit
     Maybe recover balls position after scoring to get rid of that jitter, using bounds stuff?
     
-    Balls be spawned in the map. It's logical, because I can make changes to them, they all have to be the same across all the arenas
-    BUT GOALS have to be already in the arena cuz they will have different Animators attached to them, and also to be able to make them Static 
+    
 
-
-
-    Consider that we have default Physic Material and there needs to be ball bouncing out of everything     
-    Also remove input manager from the arena, and create it before
-
+    
 
 
 
 
     GENERAL THINGS TO DO:
 
+        Periods
+        Game End
+        Game Stats
         10 Levels > Props, Skyboxes
-        Main Menu
-        Loading Level from Main Menu
-        Powerups
+        Arena Preview (TUGUSH-TUGUSH)
+        Powerups      
         Pause the game
         Options > KeyBindings
+        Design Main Menu       
+        2 Player Exhibition (Maybe make an arena screenshot showing, rotating video or whatever)
 
 
     ADDITIONAL IDEAS:
@@ -75,7 +73,7 @@ using Random = UnityEngine.Random;
         
 
     THINGS TO CONSIDER WHEN MAKING NEW ARENA
-    1. Set all the stuff to "static", Colliders for props
+    1. Set all the stuff to "static", Colliders for props!!!
     2. Set light, set skybox
     3. Bake lighting, set Fog
     4. Set all layers to geometry and all interactibles:
@@ -87,6 +85,8 @@ using Random = UnityEngine.Random;
         f) BallTrigger, BallCollider
         g) GoalSolid, GoalBallSolid
     5. Rocket Height Trigger
+    6. PlayerOne/Two/Ball Spawns
+    7. GameController References
     
 
 

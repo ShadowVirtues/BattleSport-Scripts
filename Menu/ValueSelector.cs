@@ -60,19 +60,11 @@ public class ValueSelector : MenuSelector   //This selector selects only numeric
             
         }
     }
-
-    //public void ChangeIndex(int ind)
-    //{
-    //    int find = Array.IndexOf(Options, ind);
-    //    index = find;
-    //    OptionValue.text = Options[index].ToString();
-    //}
-
-    public void SetIndex(int ind)
+    
+    public void SetIndex(int ind)   //Set index for selector, when loading previous state of the menu, or switching between "Period (Minutes)" and "Play To Score"
     {
         index = ind;
         OptionValue.text = Options[index].ToString();
-
     }
 
 }

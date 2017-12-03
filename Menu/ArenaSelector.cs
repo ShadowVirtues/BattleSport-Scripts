@@ -71,7 +71,7 @@ public class ArenaSelector : MenuSelector
         }
     }
 
-    public void SetIndex(int ind)
+    public void SetIndex(int ind)   //Set index for selector, when loading previous state of the menu
     {
         index = ind;
         OptionValue.text = Options[index].Name;

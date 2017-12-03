@@ -13,8 +13,10 @@ public class StartupController : MonoBehaviour
     public GameObject[] Tanks;
     public GameObject[] Balls;
     public GameObject PlayerPrefab;
-    
 
+    [SerializeField] private GameObject audioManagerPrefab;
+
+    [Header("Not getting set into StartupController")]
     public Arena arena;
     public int ShotClock;
     public int PeriodTime;
@@ -27,12 +29,12 @@ public class StartupController : MonoBehaviour
     {
         Controller = this;
 
-        DontDestroyOnLoad(gameObject);
+        
     }
 
     public void GAMEButtonPress()
     {
-        
+        DontDestroyOnLoad(gameObject);
 
         //StartCoroutine(ArenaLoadSequence());
 
@@ -96,6 +98,7 @@ public class StartupController : MonoBehaviour
         gameController.PlayerOne.SetPlayer();
         gameController.PlayerTwo.SetPlayer();
 
+        gameController.audioManagerObject = Instantiate(audioManagerPrefab);
     }
 
 
