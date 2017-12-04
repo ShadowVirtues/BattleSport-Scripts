@@ -5,22 +5,23 @@ using TeamUtility.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+//StartupController is present in menu scenes where you start setting up the game, then persists until the actual game scene. During setting up the game, different menu controllers 'Find" StartupController object, and fill their settings in it
+
 public class StartupController : MonoBehaviour
 {
-    public static StartupController Controller;
+    public static StartupController Controller; //Reference to current instance of StartupController, now only gets used to set up the arena AFTER one frame of LoadScene, and BEFORE all arena objects Awakes
+    
+    public GameObject[] Tanks;      //StartupController has all the gameplay Tanks prefabs to inject chosen ones into loaded arena scene
+    public GameObject[] Balls;      //Same for all balls
+    public GameObject PlayerPrefab; //And PlayerPrefab that also gets injected
 
+    [SerializeField] private GameObject audioManagerPrefab;     //AudioManagerPrefab that also gets loaded into arena from here (to not have it referenced on each arena GameController
 
-    public GameObject[] Tanks;
-    public GameObject[] Balls;
-    public GameObject PlayerPrefab;
-
-    [SerializeField] private GameObject audioManagerPrefab;
-
-    [Header("Not getting set into Inspector")]
+    [Header("Not getting set into Inspector")]  //TODO [HideInInspector]. For now they are visible for testing purposes
     public Arena arena;
     public int ShotClock;
     public int PeriodTime;
-    public int NumberOfPeriods; //[HideInInspector]
+    public int NumberOfPeriods;     //All the settings that get set in menus before the game
     public string PlayerOneTank;
     public string PlayerTwoTank;
     public string PlayerOneName;
@@ -28,116 +29,57 @@ public class StartupController : MonoBehaviour
 
     void Awake()
     {
-        Controller = this;
+        Controller = this;      //Set static controller reference
 
-        
+        DontDestroyOnLoad(gameObject);  //Make it not get destroyed in further scenes (if you go back to main menu, it gets destroyed manually)
     }
 
-    public void GAMEButtonPress()
-    {
-        DontDestroyOnLoad(gameObject);
-
-        //StartCoroutine(ArenaLoadSequence());
-
-        SceneManager.LoadScene(arena.Scene);
-
-        
-
-
-
-
-
-        //Load Arena Scene
-        //Find GameController in it
-        //Put all the game parameters in GameController
-        //Get PlayerOneSpawn, PlayerTwoSpawn, BallSpawn from GameController
-        //Place PlayerPrefab's and a ball into those spots, assign them to GameController
-        //Place Tanks into PlayerPrefab's
-        //Have GameController SetPlayer's
-
-
-
-        //Need to make UI Canvas over in-game player UIs for fading stuff, for writing "Approaching Arena", and there also have "Period" screen
-        //TO CONSIDER: UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects()
+    public void GAMEButtonPress()   //This gets launched in the very end screen of the menu before the game
+    {       
+        SceneManager.LoadScene(arena.Scene);    //Load arena scene. All setting up of the arena gets invoked from actual scene via StartupController.Controller.LoadItemsToArena
     }
-
-    //IEnumerator ArenaLoadSequence()
-    //{
-        
-
-    //    yield return null;
-
-        
-
-
-    //}
-
-    public void LoadItemsToArena()
-    {
-        //GameObject[] rootObjects = SceneManager.GetActiveScene().GetRootGameObjects();
-        GameController gameController = GameObject.Find("GameController").GetComponent<GameController>();
-
-        gameController.ShotClock = ShotClock;
-        gameController.PeriodTime = PeriodTime * 60;
+    
+    public void LoadItemsToArena(GameController gameController)      //This gets invoked from arena's GameController, passing its reference so we can fill its fields and use its functions
+    {      
+        gameController.ShotClock = ShotClock;               //Setting all settings from StartupController to GameController of the loaded scene
         gameController.NumberOfPeriods = NumberOfPeriods;
-        gameController.ArenaDimension = (int)arena.Size;    //TEST
-        gameController.Music = arena.Music;
-
-        gameController.ball = Instantiate(Balls[(int)arena.ballType], gameController.BallSpawn.position, gameController.BallSpawn.rotation).GetComponent<Ball>();      //?????
-        gameController.PlayerOne = Instantiate(PlayerPrefab, gameController.PlayerOneSpawn.position, gameController.PlayerOneSpawn.rotation).GetComponent<Player>();        //???
-        gameController.PlayerTwo = Instantiate(PlayerPrefab, gameController.PlayerTwoSpawn.position, gameController.PlayerTwoSpawn.rotation).GetComponent<Player>();
+        if (NumberOfPeriods == 0)   //If number of periods is 0, means the game mode is "Play To Score"
+        {
+            gameController.isPlayToScore = true;
+            gameController.PeriodTime = PeriodTime;     //In that case, PeriodTime holds the amount of score needed to end the game
+        }
+        else
+        {
+            gameController.isPlayToScore = false;
+            gameController.PeriodTime = PeriodTime * 60;    //If its time-based, then multiply the amount of minutes set in StartupController to put seconds into GameController
+        }
         
-        int playerOneTankIndex = Array.FindIndex(Tanks, x => x.name == PlayerOneTank);
+        gameController.ArenaDimension = (int)arena.Size;    //arena.Size is an enum that has its int identifiers set to actual arena dimensions
+        gameController.Music = arena.Music;                 //Music is arena-specific
+
+        //Instantiate particular ball, which is set into arena file, into BallSpawn transform, which is the empty transform in the arena. Athe the same time get the referenct to ball component and assign it to GameController
+        gameController.ball = Instantiate(Balls[(int)arena.ballType], gameController.BallSpawn.position, gameController.BallSpawn.rotation).GetComponent<Ball>();      
+        gameController.PlayerOne = Instantiate(PlayerPrefab, gameController.PlayerOneSpawn.position, gameController.PlayerOneSpawn.rotation).GetComponent<Player>();   //Same stuff for players
+        gameController.PlayerTwo = Instantiate(PlayerPrefab, gameController.PlayerTwoSpawn.position, gameController.PlayerTwoSpawn.rotation).GetComponent<Player>();   
+        
+        int playerOneTankIndex = Array.FindIndex(Tanks, x => x.name == PlayerOneTank);  //Tanks to assign to each player are identified by the name of their prefab, so find the prefab in the array with that name, and remember its index
         int playerTwoTankIndex = Array.FindIndex(Tanks, x => x.name == PlayerTwoTank);
 
-        Instantiate(Tanks[playerOneTankIndex], gameController.PlayerOne.transform);
+        Instantiate(Tanks[playerOneTankIndex], gameController.PlayerOne.transform);     //Instantiate the tank with the corresponding index into Player object
         Instantiate(Tanks[playerTwoTankIndex], gameController.PlayerTwo.transform);
 
-        gameController.PlayerOne.PlayerNumber = PlayerID.One;
+        gameController.PlayerOne.PlayerNumber = PlayerID.One;                           //Set player numbers
         gameController.PlayerTwo.PlayerNumber = PlayerID.Two;
 
-        gameController.PlayerOne.SetPlayer();
+        gameController.PlayerOne.SetPlayer();                       //Run the function to set all the stuff for players, like camera viewport, HUD Canvas Rect, corresponding layers
         gameController.PlayerTwo.SetPlayer();
 
-        gameController.PlayerOne.PlayerName = PlayerOneName;
+        gameController.PlayerOne.PlayerName = PlayerOneName;        //Set player names
         gameController.PlayerTwo.PlayerName = PlayerTwoName;
 
-        gameController.audioManagerObject = Instantiate(audioManagerPrefab);
+        gameController.audioManagerObject = Instantiate(audioManagerPrefab);        //Instantiate AudioManager
     }
-
-
-    //void OnEnable()
-    //{
-    //    //Tell our 'OnLevelFinishedLoading' function to start listening for a scene change as soon as this script is enabled.
-    //    SceneManager.sceneLoaded += OnLevelFinishedLoading;
-    //}
-
-    //void OnDisable()
-    //{
-    //    //Tell our 'OnLevelFinishedLoading' function to stop listening for a scene change as soon as this script is disabled. Remember to always have an unsubscription for every delegate you subscribe to!
-    //    SceneManager.sceneLoaded -= OnLevelFinishedLoading;
-    //}
-
-    //void OnLevelFinishedLoading(Scene scene, LoadSceneMode mode)
-    //{
-    //    Debug.Log("Level Loaded");
-    //    Debug.Log(scene.name);
-    //    Debug.Log(mode);
-    //}
-
-}
-
-/*
- WHAT TO SET BEFORE PLAYING
-        Arena
-        ShotClock
-        PeriodTime
-        NumberOfPeriods
-
-        Tanks
-
-
 
     
 
- */
+}

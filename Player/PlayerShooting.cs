@@ -3,11 +3,7 @@ using System.Collections.Generic;
 using TeamUtility.IO;
 using UnityEngine;
 
-
-
-
 public enum Weapon { Rocket, Laser }
-
 
 public class PlayerShooting : MonoBehaviour
 {

@@ -125,11 +125,13 @@ public class InstantActionSetup : MonoBehaviour
     }
 
 
-    public void BACKButtonPress()       //TODO
+    public void BACKButtonPress()       //Going back to the main menu button
     {
-        SavePreviousSettings();
+        SavePreviousSettings(); //Save the state of Instant Action Setup menu
 
-        SceneManager.LoadScene("MainMenu");
+        Destroy(GameObject.Find(nameof(StartupController)));    //Destroy StartupController of this scene (cuz it gets DontDestroyOnLoad in its Awake)
+
+        SceneManager.LoadScene("MainMenu"); //Load Main Menu scene
         
     }
 

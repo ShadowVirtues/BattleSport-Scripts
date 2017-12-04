@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Announcer : MonoBehaviour
 {
-    //COMM EVERYTHING
+    //Announcer script component is attached to AudioManager object 
 
     [SerializeField] private AudioClip possession;
     [SerializeField] private AudioClip[] interception;
@@ -18,75 +18,67 @@ public class Announcer : MonoBehaviour
     [SerializeField] private AudioClip[] kill;
     [SerializeField] private AudioClip violation;
  
-    [SerializeField] private AudioSource announcerSource;
-    [SerializeField] private AudioSource announcerSourceScore;
-
-    void Awake()
-    {
-        
-    }
-
-
-    public void Score()
+    [SerializeField] private AudioSource announcerSource;       //Interruptible announcer source
+    [SerializeField] private AudioSource announcerSourceScore;  //Non-interruptible announcer source
+    
+    public void Score()     //"He scores!" (its clip is attached to this source)
     {
         announcerSourceScore.Play();
     }
 
-    public void Possession()
+    public void Possession()    //When the player gets the ball from the ground
     {
         announcerSource.clip = possession;
         announcerSource.Play();
     }
 
-    public void Interception()
+    public void Interception()  //When the player shoots the ball and the other player is in the way and intercepts it
     {
         announcerSource.clip = interception[Random.Range(0, 2)];
         announcerSource.Play();
     }
 
-    public void MissClose()
+    public void MissClose()  //Missed close to the goal
     {
         announcerSource.clip = missClose[Random.Range(0, 2)];
         announcerSource.Play();
     }
 
-    public void MissLong()
+    public void MissLong()  //Missed far away from goal
     {
         announcerSource.clip = missLong[Random.Range(0, 2)];
         announcerSource.Play();
     }
 
-    public void Rejected()
+    public void Rejected()  //When the player hits the solid part of the goal
     {
         announcerSource.clip = rejected;
         announcerSource.Play();
     }
 
-    public void ShotShort()
+    public void ShotShort() //Ball shot being close to the goal: "He Shoots"
     {
         announcerSource.clip = shotShort;
         announcerSource.Play();
     }
 
-    public void ShotLong()
+    public void ShotLong()  //Ball shot from far away: "From Downtown" (non-interruptible)
     {
         announcerSourceScore.PlayOneShot(shotLong);
     }
 
-    public void Fumble()
+    public void Fumble()    //When the other player fumbles the ball from the holder
     {
         announcerSource.clip = fumble;
         announcerSource.Play();
     }
 
-    public void Kill()
-    {
-        //announcerSource.clip = kill[Random.Range(0, 3)];
-        //announcerSource.Play();
+    public void Kill()      //When some player dies (non-interruptible)
+    {       
         announcerSourceScore.PlayOneShot(kill[Random.Range(0, 3)]);
     }
 
-    public void Violation()
+    public void Violation() //When the shot clock timer goes all the way down and player loses the ball
     {
         announcerSource.clip = violation;
         announcerSource.Play();
@@ -95,26 +87,11 @@ public class Announcer : MonoBehaviour
     
 
 
-
-    //When the player gets the ball from the ground
-    //When the player shoots the ball and the other player is in the way and intercepts it
-    //COMM
-    //COMM
-    //When the player hits the solid part of the goal
-    //COMM
-    //When the other player fumbles the ball from the holder
-    //When some player dies
-    //When the shot clock timer goes all the way down and player loses the ball
+    
 
 
 
-
-
-
-
-
-
-    //================================================
+    //============Prototype of Interruption matrix to define which sound can interrupt which (in case we fall back to this system)==================
 
     //private bool[,] interruptionMatrix = new bool[12, 12];
     //private string[] respection = new string[12];
