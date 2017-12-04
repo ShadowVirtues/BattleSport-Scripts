@@ -21,7 +21,7 @@ using Random = UnityEngine.Random;
     
     DO NEXT:       
     Player Names
-   
+    Periods on ScoreBoard
 
 
 

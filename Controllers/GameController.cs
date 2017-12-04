@@ -66,6 +66,7 @@ public class GameController : MonoBehaviour
         else    //TESTING!!! DELETE THIS
         {
             audioManagerObject = Instantiate(audioManagerPrefab);
+            NumberOfPeriods = 0;
             ShotClock = 10;
             PeriodTime = 180;
             ArenaDimension = 100;       //TODO Get the size from arena 'whatever' (prefab, ScriptableObject) and convert it to float
@@ -87,10 +88,10 @@ public class GameController : MonoBehaviour
         
         
         
-        GameTime = PeriodTime;
+        
 
         
-        StartCoroutine(PeriodCountdown());
+            
 
         
     }
@@ -100,11 +101,22 @@ public class GameController : MonoBehaviour
         if (ball.gameObject.name == "ElectricBall") //KLUUUUUUUUUUUUUUDGEEEEEEEEEEEEEEEEEEEEE (DELETE this shit tho)
             GameObject.Find("BallCamera").GetComponent<Camera>().backgroundColor = new Color(49f / 256, 77f / 256, 121f / 256, 0);
 
+
+        if (NumberOfPeriods != 0)
+        {
+            GameTime = PeriodTime;
+            CurrentPeriod = 1;
+            scoreBoard.NextPeriod();
+            StartCoroutine(PeriodCountdown());
+
+        }
+
         Pause();
     }
 
     
     public int GameTime;
+    public int CurrentPeriod;
 
     private readonly WaitForSeconds second = new WaitForSeconds(1);
 

@@ -21,11 +21,16 @@ public class ScoreBoard : MonoBehaviour
     [SerializeField] private Text[] PlayerOneLabel;
     [SerializeField] private Text[] PlayerTwoLabel;
     [SerializeField] private RectTransform[] PeriodContainer;
+    [SerializeField] private Text[] PlayToScore;
+    [SerializeField] private GameObject PeriodCirclePrefab;
+
+    private GameObject[,] periodCircles;
 
 
-    void Start()
+    void Awake()
     {
         SetPlayerNames();   //COMM
+        SetPeriods();
         UpdateScore();      //When the scene starts, set scoreboard values to starting ones
         UpdateTime();
     }
@@ -39,6 +44,45 @@ public class ScoreBoard : MonoBehaviour
         }
 
 
+    }
+
+    public void SetPeriods()
+    {
+        int number = GameController.Controller.NumberOfPeriods;
+
+        if (number == 0)
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                PlayToScore[i].gameObject.SetActive(true);
+                PlayToScore[i].text = $"PLAY TO {GameController.Controller.PeriodTime / 60}";
+                PeriodContainer[i].gameObject.SetActive(false);
+            }
+            for (int i = 0; i < 4; i++)
+            {
+                PeriodTime[i].gameObject.SetActive(false);
+            }
+        }
+        else
+        {
+            periodCircles = new GameObject[2, number];
+
+            for (int i = 0; i < 2; i++)
+            {
+                for (int j = 0; j < number; j++)
+                {
+                    float x = PeriodContainer[i].rect.x;
+                    float w = PeriodContainer[i].rect.width;
+                    //float pos = x + w * (1 + 2 * j) / (2 * number);
+                    float pos = x + w * (j + 1) / (number + 1);
+
+                    GameObject circle = Instantiate(PeriodCirclePrefab, PeriodContainer[i]);    //TODO POSITION
+                    circle.GetComponent<RectTransform>().anchoredPosition = new Vector2(pos, 0);
+                    periodCircles[i, j] = circle.transform.GetChild(0).gameObject;
+                }
+            }
+        }
+    
     }
 
     public void UpdateScore()   //Public function that runs when someone scores
@@ -62,7 +106,20 @@ public class ScoreBoard : MonoBehaviour
 
     }
 
-    //TODO public void NextPeriod
+    public void NextPeriod()
+    {
+        int periods = GameController.Controller.CurrentPeriod;
+
+        for (int i = 0; i < 2; i++)
+        {
+            for (int j = 0; j < periods; j++)
+            {
+                
+                periodCircles[i, j].SetActive(true);
+            }
+        }
+
+    }
 
 
 
