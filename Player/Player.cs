@@ -20,8 +20,7 @@ using Random = UnityEngine.Random;
 
     
     DO NEXT:       
-    Player Names
-    Periods on ScoreBoard
+    Period ending player UI, correlation with ShotClock
 
 
 
@@ -195,7 +194,7 @@ public class Player : MonoBehaviour
         tank = GetComponentInChildren<Tank>();              //Getting dose references
         playerRadar = GetComponent<PlayerRadar>();
         material = tank.GetComponent<Renderer>().material;
-
+         
         playerRigidbody = GetComponent<Rigidbody>();
         movement = GetComponent<PlayerMovement>();
 

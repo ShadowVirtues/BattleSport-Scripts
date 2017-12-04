@@ -16,6 +16,8 @@ public class StartupController : MonoBehaviour
     public GameObject PlayerPrefab; //And PlayerPrefab that also gets injected
 
     [SerializeField] private GameObject audioManagerPrefab;     //AudioManagerPrefab that also gets loaded into arena from here (to not have it referenced on each arena GameController
+    [SerializeField] private GameObject GameUIPrefab;                 //COMM
+
 
     [Header("Not getting set into Inspector")]  //TODO [HideInInspector]. For now they are visible for testing purposes
     public Arena arena;
@@ -51,7 +53,7 @@ public class StartupController : MonoBehaviour
         else
         {
             gameController.isPlayToScore = false;
-            gameController.PeriodTime = PeriodTime * 60;    //If its time-based, then multiply the amount of minutes set in StartupController to put seconds into GameController
+            gameController.PeriodTime = PeriodTime * 5;    //If its time-based, then multiply the amount of minutes set in StartupController to put seconds into GameController
         }
         
         gameController.ArenaDimension = (int)arena.Size;    //arena.Size is an enum that has its int identifiers set to actual arena dimensions
@@ -78,6 +80,7 @@ public class StartupController : MonoBehaviour
         gameController.PlayerTwo.PlayerName = PlayerTwoName;
 
         gameController.audioManagerObject = Instantiate(audioManagerPrefab);        //Instantiate AudioManager
+        gameController.gameUI = Instantiate(GameUIPrefab).GetComponent<GameUI>();                      //COMM
     }
 
     

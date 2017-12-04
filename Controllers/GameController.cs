@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -30,6 +31,7 @@ public class GameController : MonoBehaviour
 
     [SerializeField] private GameObject audioManagerPrefab; //DELETE. This is to be able to load INJECTED scenes, otherwise audioManager gets instantiates from StartupController
     public GameObject audioManagerObject;           //This is where the audioManager gets instantiated into (to have reference to it to get reference to Announcer and actual AudioManager component)
+    public GameUI gameUI;                       //COMM
 
     public static AudioManager audioManager;        //Static reference for AudioManager component to produce sound from various sources in scripts
 
@@ -44,8 +46,8 @@ public class GameController : MonoBehaviour
         else    //DELETE. Setting game parameters when StarupController doesn't exist
         {
             audioManagerObject = Instantiate(audioManagerPrefab);
-            NumberOfPeriods = 0;
-            isPlayToScore = true;
+            NumberOfPeriods = 3;
+            isPlayToScore = false;
             ShotClock = 10;
             PeriodTime = 180;
             ArenaDimension = 100;      
@@ -55,7 +57,7 @@ public class GameController : MonoBehaviour
 
         announcer = audioManagerObject.GetComponent<Announcer>();           //Get Announcer component from instantiated audioManager object
         audioManager = audioManagerObject.GetComponent<AudioManager>();     //Get AudioManager component from instantiated audioManager object
-
+        
     }
 
     void Start()    //Stuff we need to do when all Awakes has executed
@@ -72,6 +74,8 @@ public class GameController : MonoBehaviour
         }
 
         Pause();    //When everything in the arena finishes loading, game gets paused while start-game-countdown screen still runs TODO still tho
+
+        StartCoroutine(Countdown());    //TEST
     }
    
     public int GameTime;        //Variable indicating current time left until end of the period, counts down in Coroutine
@@ -88,33 +92,31 @@ public class GameController : MonoBehaviour
             GameTime--;             //Decrease game time by one second
             scoreBoard.UpdateTime();//Update time on scoreBoard           
         }
-        print("PERIOD ENDED");
+        //print("PERIOD ENDED");
+        gameUI.EndPeriod();
         //TODO END PERIOD
 
 
     }
 
-    IEnumerator EndPeriod()
+    IEnumerator Countdown()
     {
+        int count = 3;
+         
+        for (int i = count; i >= 0; i--)
+        {           
+            gameUI.Countdown.text = $"GAME STARTING IN {i}";
+            //yield return countdownSecond;
+            yield return new WaitForSecondsRealtime(1);
+        }
+        gameUI.GameFader.color = Color.clear;        
+        Destroy(gameUI.CountdownPanel); //TEST for hiccups
+        gameUI.gameObject.SetActive(false);
+        GC.Collect();   //IDK
         Pause();
-        audioManager.PeriodHorn();
-
-
-
-
-        //Play Sound
-        //Fade out
-        //Fill in all stats
-        //Fade in period thing
-        //Wait for input
-        //Put a circle in
-        //Set everything in the arena to their places
-        //Fade out the period
-        //Instantly disable the UI
-
-        yield return null;
-
     }
+
+    
 
     public bool paused = false;    //Flag to know if the game is paused (for other scripts to know maybe)
 
