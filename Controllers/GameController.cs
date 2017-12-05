@@ -83,6 +83,8 @@ public class GameController : MonoBehaviour
 
     private readonly WaitForSeconds second = new WaitForSeconds(1); //One second of period time
 
+    public bool PeriodEnding;   //COMM
+
     IEnumerator PeriodCountdown()   //Gets started on the scene load TODO or in the start of every period
     {
         scoreBoard.UpdateTime();    //Set initial timer on scoreboard (so it's correct in the first second of the game)
@@ -90,6 +92,14 @@ public class GameController : MonoBehaviour
         {           
             yield return second;    //Wait a second
             GameTime--;             //Decrease game time by one second
+
+            if (GameTime <= 20 && PeriodEnding == false)
+            {
+                PeriodEnding = true;    //COMM
+                PlayerOne.PeriodEnding();
+                PlayerTwo.PeriodEnding();
+            }
+                
             scoreBoard.UpdateTime();//Update time on scoreBoard           
         }      
         gameUI.EndPeriod();
@@ -161,6 +171,7 @@ public class GameController : MonoBehaviour
         PlayerOne.GetComponent<PlayerShooting>().SetEverythingBack();   //Launch it on PlayerShooting as well
         PlayerTwo.GetComponent<PlayerShooting>().SetEverythingBack();
 
+        PeriodEnding = false;         //Set so period isn't ending
         GameTime = PeriodTime;        //Set period time back
         scoreBoard.NextPeriod();      //Set period circles on scoreboard
         StartCoroutine(PeriodCountdown());  //Start period countdown

@@ -166,6 +166,7 @@ public class Player : MonoBehaviour
 
     [SerializeField] private GameObject ballClock;      //Reference to Shot Clock UI Image to disable/enable it when have or don't have the ball
     [SerializeField] private Text ballClockText;        //Reference to text timer on the Shot Clock UI
+    [SerializeField] private GameObject endPeriodTimer; //COMM
 
     [SerializeField] private GameObject scoreImage;     //Reference to score panel-like image where you write score text that you enable when scoring
     [SerializeField] private Text scoreText;            //Reference to score text to change it when you score                                                 
@@ -337,7 +338,25 @@ public class Player : MonoBehaviour
 
         if (GameController.Controller.ShotClock != 0)   //If in the game settings shot clock is not set to 0, then show the shot clock on screen
         {
-            ballClock.SetActive(true);  //Enable UI element
+            // && GameController.Controller.ShotClock < GameController.Controller.GameTime
+            if (GameController.Controller.PeriodEnding == false)
+            {               
+                ballClock.SetActive(true);  //Enable UI element
+            }
+            else
+            {
+                if (GameController.Controller.ShotClock < GameController.Controller.GameTime)
+                {
+                    endPeriodTimer.SetActive(false);
+                    ballClock.SetActive(true);
+                }
+                else
+                {
+                    //endPeriodTimer.SetActive(true);
+                }
+                
+            }
+            
             StartCoroutine(nameof(ballClockTimer)); //Start the countdown
         }
         else
@@ -346,7 +365,18 @@ public class Player : MonoBehaviour
         }
         
     }
-    
+
+    public void PeriodEnding()
+    {
+        if (GameController.Controller.ShotClock == 0 || (GameController.Controller.ShotClock != 0 && possession == false) || (possession == true && GameController.Controller.ShotClock > GameController.Controller.GameTime))
+        {
+            endPeriodTimer.SetActive(true);
+            ballClock.SetActive(false);
+        }
+        
+
+    }
+
     private IEnumerator ballClockTimer()    //Coroutine counting down the shot clock timer
     {
         for (int i = GameController.Controller.ShotClock; i >= 0; i--)  //Count down from the set time in game settings
@@ -440,6 +470,10 @@ public class Player : MonoBehaviour
 
         if (GameController.Controller.ShotClock != 0)   //If the ShotClock is not 0 (not shot clock violations, gets set in game settings)
         {
+            if (GameController.Controller.PeriodEnding)
+            {
+                endPeriodTimer.SetActive(true);
+            }           
             ballClock.SetActive(false);             //Disable shot clock timer  //OPTIMIZE enabling and disabling the UI Image generates garbage for some reason (look MaskableObject.SetActive, or smth)
             StopCoroutine(nameof(ballClockTimer));  //Stop the countdown
         }
@@ -651,6 +685,7 @@ public class Player : MonoBehaviour
         PlayerRadar.ballPossession = false;     //Start calculating position of ball icon on the UI now that no one possesses the ball
         PlayerRadar.HideBallFromRadars(false);  //Reveal the ball on the radar
         ballClock.SetActive(false);             //Disable shot clock timer  
+        endPeriodTimer.SetActive(false);        //Disable end period timer
         StopCoroutine(nameof(ballClockTimer));  //Stop the countdown
 
         //=================POSSESSION============

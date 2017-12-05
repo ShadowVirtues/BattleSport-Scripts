@@ -120,7 +120,10 @@ public class GameUI : MonoBehaviour
         }
         if (P1Score != P2Score) //If players are not tied, say "Next period" after player presses the button
         {
-            audioSource.PlayOneShot(periodSound[period - 2]);
+            if (number == 4 && period == 4)
+                audioSource.PlayOneShot(periodSound[period - 1]);
+            else
+                audioSource.PlayOneShot(periodSound[period - 2]);
         }
 
         for (int i = 0; i < period; i++)    //After pressing the button activate next red circle
