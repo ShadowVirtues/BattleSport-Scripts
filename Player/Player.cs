@@ -39,6 +39,7 @@ using Random = UnityEngine.Random;
         Periods
         Game End
         Game Stats
+        Sound in Menus
         10 Levels > Props, Skyboxes
         Arena Preview (TUGUSH-TUGUSH)
         Powerups      
@@ -46,6 +47,7 @@ using Random = UnityEngine.Random;
         Options > KeyBindings
         Design Main Menu       
         2 Player Exhibition (Maybe make an arena screenshot showing, rotating video or whatever)
+        Mouse/Stick controls
 
 
     ADDITIONAL IDEAS:
@@ -609,9 +611,56 @@ public class Player : MonoBehaviour
             SetLayerRecursively(child.gameObject, newLayer);    //Launch the same layer setting for each child and for their hierarchy if they have it
         }
     }
+
     
 
+    public void SetEverythingBack()
+    {
+        playerRigidbody.velocity = Vector3.zero;    //Zero player's velocity
 
+        gameObject.SetActive(false);        //Simple way to stop all coroutines
+        gameObject.SetActive(true);
+
+        //=============EXPLODING============= Everything here is concequence of player exploding just before period ends     
+        
+        camera.transform.localPosition = new Vector3(0, 0.8f, 0);   //Set camera position to it's original position
+        camera.transform.localRotation = Quaternion.identity;       //Rotation as well
+        cameraAnim.enabled = false;     //Disable animator (with exploding camera animation)
+
+        explosion.SetActive(false);     //Disable explosion 
+        
+        movement.enabled = true;        //Enable player ability to move if it was disabled due to explosion
+        playerRigidbody.drag = 0;       //Disable rigidbody's drag we used for stopping the player after exploding
+
+        Health = 100;
+        healthSlider.value = Health;  //Set full health and update the slider
+
+        tank.gameObject.SetActive(true);      //Enable tank model
+        deathScreen.SetActive(false);   //Disable death screen
+
+        PlayerRadar.HidePlayerFromRadar(PlayerNumber, false);    //Reveal this player icon from enemy radar
+        //====================EXPLODE================
+
+        //=================POSSESSION============   This all is a consequence of picking up a ball
+        DOTween.CompleteAll();      //Complete all tweens (for current stage, there are none we need to still be going)
+        ballCamera.SetActive(false);    //Disable ball
+        ballUI.anchoredPosition = new Vector2(ballUI.anchoredPosition.x, -140);  //Set ballUI thingy back
+        ball.rigidbody.useGravity = true;    //Make the ball affected by gravity (when under the map we disable gravity) 
+        ball.rigidbody.angularDrag = ball.BallAngularDrag;  //Set the angular drag back to the ball
+        possession = false;                     //Set so we don't possess
+        PlayerRadar.ballPossession = false;     //Start calculating position of ball icon on the UI now that no one possesses the ball
+        PlayerRadar.HideBallFromRadars(false);  //Reveal the ball on the radar
+        ballClock.SetActive(false);             //Disable shot clock timer  
+        StopCoroutine(nameof(ballClockTimer));  //Stop the countdown
+
+        //=================POSSESSION============
+
+
+        material.SetColor(emissionColor, Color.black);  //Set the tank color back if it was flashing
+        scoreImage.SetActive(false);                    //Hide showing scores on screen if they were showing
+        messageBox.text = string.Empty;                 //Clear message box
+        
+    }
 
 
 

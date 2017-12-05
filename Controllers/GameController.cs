@@ -31,7 +31,7 @@ public class GameController : MonoBehaviour
 
     [SerializeField] private GameObject audioManagerPrefab; //DELETE. This is to be able to load INJECTED scenes, otherwise audioManager gets instantiates from StartupController
     public GameObject audioManagerObject;           //This is where the audioManager gets instantiated into (to have reference to it to get reference to Announcer and actual AudioManager component)
-    public GameUI gameUI;                       //COMM
+    public GameUI gameUI;                       //GameUI object that gets instantiated in StartupController
 
     public static AudioManager audioManager;        //Static reference for AudioManager component to produce sound from various sources in scripts
 
@@ -70,10 +70,10 @@ public class GameController : MonoBehaviour
             GameTime = PeriodTime;
             CurrentPeriod = 1;
             scoreBoard.NextPeriod();
-            StartCoroutine(PeriodCountdown());
+            StartCoroutine(nameof(PeriodCountdown));
         }
 
-        Pause();    //When everything in the arena finishes loading, game gets paused while start-game-countdown screen still runs TODO still tho
+        Pause();    //When everything in the arena finishes loading, game gets paused while start-game-countdown screen still runs
 
         StartCoroutine(Countdown());    //TEST
     }
@@ -91,33 +91,27 @@ public class GameController : MonoBehaviour
             yield return second;    //Wait a second
             GameTime--;             //Decrease game time by one second
             scoreBoard.UpdateTime();//Update time on scoreBoard           
-        }
-        //print("PERIOD ENDED");
+        }      
         gameUI.EndPeriod();
-        //TODO END PERIOD
-
-
+        
     }
 
-    IEnumerator Countdown()
+    IEnumerator Countdown() //Initial countdown when starting the game
     {
-        int count = 3;
+        int count = 3;  //How many seconds to count
          
         for (int i = count; i >= 0; i--)
         {           
-            gameUI.Countdown.text = $"GAME STARTING IN {i}";
-            //yield return countdownSecond;
-            yield return new WaitForSecondsRealtime(1);
+            gameUI.Countdown.text = $"GAME STARTING IN {i}";            
+            yield return new WaitForSecondsRealtime(1);         //Since the game is paused at that point, use unscaled time
         }
-        gameUI.GameFader.color = Color.clear;        
-        Destroy(gameUI.CountdownPanel); //TEST for hiccups
-        gameUI.gameObject.SetActive(false);
-        GC.Collect();   //IDK
-        Pause();
+        gameUI.GameFader.color = Color.clear;        //In the end of countdown, instantly make GameFader transparent (show the game)
+        Destroy(gameUI.CountdownPanel);             //We don't need countdown panel anymore, so destroy it
+        gameUI.gameObject.SetActive(false);         //Disable game UI
+        GC.Collect();   //Collect all garbage before starting the game
+        Pause();        //Unpause the game and players proceed to play
     }
-
     
-
     public bool paused = false;    //Flag to know if the game is paused (for other scripts to know maybe)
 
     public void Pause()             //Function that pauses and unpauses the game
@@ -137,7 +131,70 @@ public class GameController : MonoBehaviour
 
     }
 
+    //void LateUpdate()
+    //{
+    //    if (Input.GetKeyDown(KeyCode.Joystick1Button2))
+    //    {
+    //        StopCoroutine(nameof(PeriodCountdown));
+    //        gameUI.EndPeriod();
 
+    //    }
+
+    //}
+
+
+    public void SetEverythingBack() //Function that is implemented in all scripts that needs resetting when new period starts
+    {
+
+        PlayerOne.transform.position = PlayerOneSpawn.position;
+        PlayerOne.transform.rotation = PlayerOneSpawn.rotation;
+        PlayerTwo.transform.position = PlayerTwoSpawn.position; //Reset players/ball position and rotation to where they got spawned initially
+        PlayerTwo.transform.rotation = PlayerTwoSpawn.rotation;
+        ball.transform.position = BallSpawn.position;
+        ball.transform.rotation = BallSpawn.rotation;
+
+        PlayerOne.SetEverythingBack();
+        PlayerTwo.SetEverythingBack();  //Launch specific functions like this on all of them and goal
+        ball.SetEverythingBack();
+        goal.SetEverythingBack();
+
+        PlayerOne.GetComponent<PlayerShooting>().SetEverythingBack();   //Launch it on PlayerShooting as well
+        PlayerTwo.GetComponent<PlayerShooting>().SetEverythingBack();
+
+        GameTime = PeriodTime;        //Set period time back
+        scoreBoard.NextPeriod();      //Set period circles on scoreboard
+        StartCoroutine(PeriodCountdown());  //Start period countdown
+
+        audioManager.music.Stop();      //Stop the music
+        audioManager.music.Play();      //Play and pause it for starting playing in the moment of period starting
+        audioManager.music.Pause();
+
+        //SET EVERYTHING BACK
+        //!!Set Players to their positions
+        //!!Zero players velocity
+        //!!Clear messages
+        //!!Set their health back
+        //!!Set Ball to its position
+        //!!Zero its velocity, angularVelocity, reset possession stuff (check possession UI)
+        //!!Disable all rockets and lasers
+        //TODO Check what happens with powerups, if they remain in the same place or start spawning from none. Also check if effects persist on players
+        //!!Set goal to original position
+        //Set period time back, launch it again
+        //Set scoreboard time back, set periods on it
+        //!!Check what happens to PossessionTime of player if he possesses when period ends, if it doesnt increase because of timeScale = 0
+        //!!Check what happens if you are dead during period end (consider camera animation)
+        //!!Check what happens if just-scored-ui is going, if ball is transparent
+        //!!Check what happens if either tank is flashing, or goal is flashing
+        //!!Check what happens if explosion of rocker/laser is going on
+
+        //Play the game normally and see what else can be going during period end
+
+
+        //And finally unpause the game
+
+
+
+    }
 
 
     //void Awake()

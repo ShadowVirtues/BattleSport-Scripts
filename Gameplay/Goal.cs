@@ -29,6 +29,7 @@ public class Goal : MonoBehaviour
         goalMaterial = ballCollider.GetComponent<Renderer>().material;  //(Parent goal object has only the script component attached)
     }
 
+    
     public void FlashGoalOnScore()
     {
         goalMaterial.EnableKeyword(emissionKeyword);    //We enable and disable emission in hopes that it actually improves performance
@@ -44,11 +45,18 @@ public class Goal : MonoBehaviour
 
     //==================================
 
-    public bool teleporting = false;    //Script component has a bool variable in the inspector if the goal is teleporting on the arena
+    private Vector3 initPos;
+    public bool teleporting = false;    //Script component has a bool variable in the inspector if the goal is teleporting on the arena    
 
     void Start()
     {
-        if (teleporting) StartCoroutine(Teleporting()); //So when it's ticked when the round starts, the goal starts teleporting
+        if (teleporting)
+        {
+            StartCoroutine(nameof(Teleporting)); //So when it's ticked when the round starts, the goal starts teleporting
+            initPos = transform.position;
+        }
+
+            
     }
 
     private readonly WaitForSeconds teleportDelay = new WaitForSeconds(9);  //Goal teleports every 10 seconds, 9 seconds nothing happens, then over 1 second it fades out and appears somewhere else
@@ -109,7 +117,24 @@ public class Goal : MonoBehaviour
         }
     }
 
+    
+    public void SetEverythingBack()
+    {
+        goalMaterial.DisableKeyword(emissionKeyword);
+        goalMaterial.color = Color.white;
 
+        if (teleporting)
+        {
+            StopCoroutine(nameof(Teleporting));
+            transform.position = initPos;
+            StartCoroutine(nameof(Teleporting));
+        }
+
+        Animator goalAnim = GetComponentInChildren<Animator>();
+        if (goalAnim != null) goalAnim.Rebind();
+       
+
+    }
 
 
 }

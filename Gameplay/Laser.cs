@@ -73,5 +73,12 @@ public class Laser : MonoBehaviour
 
     }
 
-	
+
+    public void SetEverythingBack()
+    {
+        explosion.SetActive(false);     //Disable explosion
+        laserModel.SetActive(true);    //Enable laser (for future reusage)
+        gameObject.SetActive(false);    //Disable the laser so it can be used as another laser
+    }
+
 }

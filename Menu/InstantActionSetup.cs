@@ -129,8 +129,6 @@ public class InstantActionSetup : MonoBehaviour
     {
         SavePreviousSettings(); //Save the state of Instant Action Setup menu
 
-        Destroy(GameObject.Find(nameof(StartupController)));    //Destroy StartupController of this scene (cuz it gets DontDestroyOnLoad in its Awake)
-
         SceneManager.LoadScene("MainMenu"); //Load Main Menu scene
         
     }

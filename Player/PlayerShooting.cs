@@ -189,4 +189,19 @@ public class PlayerShooting : MonoBehaviour
     }
 
 
+    public void SetEverythingBack()     //For all pooled lasers and rockets, launch their own function once again :D
+    {
+        for (int i = 0; i < laserCount; i++)
+        {
+            laser[i].SetEverythingBack();
+        }
+
+        for (int i = 0; i < playerRocketCount; i++)
+        {
+            rocket[i].SetEverythingBack();
+        }
+
+    }
+
+
 }

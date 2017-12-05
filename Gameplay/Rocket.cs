@@ -98,4 +98,12 @@ public class Rocket : MonoBehaviour
 
     }
 
+    public void SetEverythingBack()
+    {
+        explosion.SetActive(false);     //Disable explosion
+        rocketModel.SetActive(true);    //Enable rocket (for future reusage)
+        gameObject.SetActive(false);    //Disable the rocket so it can be used as another rocket
+
+    }
+
 }

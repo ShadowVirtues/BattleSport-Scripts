@@ -349,5 +349,28 @@ public class Ball : MonoBehaviour
 
     }
 
+
+    public void SetEverythingBack()
+    {
+        rigidbody.velocity = Vector3.zero;          //Reset velocity
+        rigidbody.angularVelocity = Vector3.zero;
+
+        gameObject.SetActive(false);    //That's a simple way to stop all active coroutines on a ball (it's too much pain disabling them individually, and we need to disable literally all of them anyway)
+        gameObject.SetActive(true);
+
+        losePossession(true);       //Obviously reset all possible possession flags
+
+        triggering = false;     //Make sure triggering is also set to false
+
+        ballMaterial.color = new Color(ballMaterial.color.r, ballMaterial.color.g, ballMaterial.color.b, originalAlpha);    //Set ball alpha back in case the ball was just scored
+
+        ballTrigger.enabled = true;    //Enable ball trigger
+        goal.ballSolidCollider.enabled = true;    //Enable goal ball collider      
+
+
+
+    }
+
+
     
 }
