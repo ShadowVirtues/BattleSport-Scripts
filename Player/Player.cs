@@ -103,6 +103,9 @@ public static class Message //Just a class container for all on-screen messages 
     public const string EnemyDestroyed = "ENEMY DESTROYED";
     public const string Miss = "MISS";
     public const string Violation = "VIOLATION";
+
+    public const string Overtime = "OVERTIME";
+    public const string ScoreToWin = "SCORE TO WIN";
     //TODO Add powerup messages
 }
 

@@ -27,6 +27,7 @@ public class GameUI : MonoBehaviour
     [SerializeField] private AudioClip finalHorn;          //Final Horn when the game ends
     [SerializeField] private AudioClip[] periodSound;       //Sounds during periods UI how many periods left, sound is different if the score is tied
     [SerializeField] private AudioClip[] periodSoundTied;
+    [SerializeField] private AudioClip overtimeSound;            //Sound "This game is going into overtime"
 
     private AudioSource audioSource;
     
@@ -43,7 +44,7 @@ public class GameUI : MonoBehaviour
     {
         number = GameController.Controller.NumberOfPeriods; //Shorter reference
 
-        if (number < 2) return;     //We don't have period UI if the game is score-based (periods = 0), or there is only one period
+        if (number == 0) return;     //We don't have period UI if the game is score-based (periods = 0) (if there is one period, there is still a chance for overtime)
 
         PlayerOneName.text = GameController.Controller.PlayerOne.PlayerName;    //Set player names in Period UI
         PlayerTwoName.text = GameController.Controller.PlayerTwo.PlayerName;
@@ -79,15 +80,33 @@ public class GameUI : MonoBehaviour
         }
         else
         {
-            //TODO IF IT IS TIED
-            StartCoroutine(EndGameSequence());
+            int P1Score = GameController.Controller.PlayerOne.playerStats.Score;    //Shorter references
+            int P2Score = GameController.Controller.PlayerTwo.playerStats.Score;
+
+            if (P1Score == P2Score) //If the game is tied, set the overtime
+            {
+                GameController.Controller.isPlayToScore = true; //Make is so we now play to score
+                GameController.Controller.PeriodTime = P1Score + 1; //Of the one above player's current scores
+                
+                StartCoroutine(EndPeriodSequence(true));    //Start the sequence with "overtime = true"
+            }
+            else if (P1Score > P2Score) //Means if player 1 won
+            {                           //Start the sequence with the message on GameStats that this player won
+                StartCoroutine(EndGameSequence($"{GameController.Controller.PlayerOne.PlayerName} VANQUISHED {GameController.Controller.PlayerTwo.PlayerName}!"));
+            }
+            else if (P2Score > P1Score) //Means if player 2 won
+            {                           //Do similar stuff but for player 2
+                StartCoroutine(EndGameSequence($"{GameController.Controller.PlayerTwo.PlayerName} VANQUISHED {GameController.Controller.PlayerOne.PlayerName}!"));
+            }
+
+            
         }
         
     }
 
     private float time = 1.5f;  //Fade time of everything in period UI and also in end game UI
 
-    IEnumerator EndPeriodSequence()
+    IEnumerator EndPeriodSequence(bool overtime = false)    //If parameter is "true", means we are setting the next period to be overtime
     {
         GameController.Controller.Pause();      //Pause the game
        
@@ -109,29 +128,41 @@ public class GameUI : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(time);      //Wait until it fades in
 
-        GameController.Controller.SetEverythingBack();      //Run a big function to reset the whole scene to initial state
+        GameController.Controller.SetEverythingBack(overtime);      //Run a big function to reset the whole scene to initial state (and set the overtime if it is the case)
 
-        if (P1Score == P2Score) //If scores are tied, play the sound "Tie game, [number of periods]"
+        if (overtime == false)  //If there is no overtime in next period
         {
-            audioSource.PlayOneShot(periodSoundTied[period - number + 3]);  //That's how you get corresponding audioClip from the array depending on current period
+            if (P1Score == P2Score) //But if player scores are tied, play the sound "Tie game, [number of periods]"
+            {
+                audioSource.PlayOneShot(periodSoundTied[period - number + 3]);  //That's how you get corresponding audioClip from the array depending on current period
+            }
         }
+        else    //If there is overtime
+        {
+            audioSource.PlayOneShot(overtimeSound); //Play "This game is going into overtime
+        }
+        
         while (InputManager.GetButtonDown("Start", PlayerID.One) == false && InputManager.GetButtonDown("Start", PlayerID.Two) == false)    //Until some user presses 'Start', wait
         {                                               
             yield return null;
         }
-        if (P1Score != P2Score) //If players are not tied, say "Next period" after player presses the button
-        {
-            if (number == 4 && period == 4)                         //My numbering system of End Period lines worked perfectly except for this case, so hack it here
-                audioSource.PlayOneShot(periodSound[period - 1]);
-            else
-                audioSource.PlayOneShot(periodSound[period - 2]);
-        }
 
-        for (int i = 0; i < period; i++)    //After pressing the button activate next red circle
+        if (overtime == false)  //Only if there is no overtime
         {
-            periodCircles[i].SetActive(true);
-        }
+            if (P1Score != P2Score) //If players are not tied, say "Next period" after player presses the button
+            {
+                if (number == 4 && period == 4)                         //My numbering system of End Period lines worked perfectly except for this case, so hack it here
+                    audioSource.PlayOneShot(periodSound[period - 1]);
+                else
+                    audioSource.PlayOneShot(periodSound[period - 2]);
+            }
 
+            for (int i = 0; i < period; i++)    //After pressing the button activate next red circle
+            {
+                periodCircles[i].SetActive(true);
+            }
+        }
+    
         UIFader.DOFade(1, time).SetUpdate(UpdateType.Normal, true); //Fade in UIFader so Periods UI fades out
 
         yield return new WaitForSecondsRealtime(time);  //Wait until it fades
@@ -148,7 +179,7 @@ public class GameUI : MonoBehaviour
     [SerializeField] private GameObject gameStatsPrefab;    //Prefab GameStats panel that gets intstantiated when the game ends, filling all its fields
     private GameObject statsPanel;                          //Object where instantiate the prefab into
 
-    IEnumerator EndGameSequence()
+    IEnumerator EndGameSequence(string cause)   //Parameter means what caused the game to end (some player winning, or exiting from menu)
     {
         //We use 'custom' pausing the game here, without pausing the music
         Time.timeScale = 0;     //Set timescale to 0
@@ -166,6 +197,7 @@ public class GameUI : MonoBehaviour
 
         statsPanel = Instantiate(gameStatsPrefab, transform);   //Instantiate GameStats panel into this GameUI object
         statsPanel.transform.SetSiblingIndex(1);                //Set so it's not in front of UIFader (it spawns in the end of hierarchy by default)
+        statsPanel.GetComponent<GameStats>().gameResultString = cause;  //Sets the string in GameStats to output it to GameStats field
         UIFader.DOFade(0, time).SetUpdate(UpdateType.Normal, true); //Fade out UIFader so GameStats UI fades in
 
         yield return new WaitForSecondsRealtime(time);      //Wait until it fades

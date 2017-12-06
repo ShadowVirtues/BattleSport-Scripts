@@ -45,6 +45,8 @@ public class GameStats : MonoBehaviour
     private PlayerStats P1Stats;    //Shorter reference
     private PlayerStats P2Stats;
 
+    public string gameResultString;
+
     void Awake()
     {
         P1Stats = GameController.Controller.PlayerOne.playerStats;
@@ -55,8 +57,8 @@ public class GameStats : MonoBehaviour
     }
 
     void Start()
-    {
-        //TODO GAME RESULT
+    {       
+        gameResult.text = gameResultString;
 
         //Filling all fields mostly from PlayerStats
 
@@ -93,7 +95,10 @@ public class GameStats : MonoBehaviour
 
     }
 
-
+    //public void SetGameResult(string cause)
+    //{
+    //    gameResultString
+    //}
 
 
 

@@ -114,7 +114,7 @@ public class GameController : MonoBehaviour
             scoreBoard.UpdateTime(); //Update time on scoreBoard           
         }      
         gameUI.EndPeriod();     //When the whole period time goes to 0, launch the sequence of showing Periods UI and preparing for the next period
-        
+
     }
 
     IEnumerator Countdown() //Initial countdown when starting the game
@@ -166,9 +166,8 @@ public class GameController : MonoBehaviour
     //}
 
 
-    public void SetEverythingBack() //Function that is implemented in all scripts that needs resetting when new period starts
+    public void SetEverythingBack(bool overtime = false) //Function that is implemented in all scripts that needs resetting when new period starts. If parameter is "true", means we are setting it for overtime
     {
-
         PlayerOne.transform.position = PlayerOneSpawn.position;
         PlayerOne.transform.rotation = PlayerOneSpawn.rotation;
         PlayerTwo.transform.position = PlayerTwoSpawn.position; //Reset players/ball position and rotation to where they got spawned initially
@@ -185,9 +184,21 @@ public class GameController : MonoBehaviour
         PlayerTwo.GetComponent<PlayerShooting>().SetEverythingBack();
 
         PeriodEnding = false;         //Set so period isn't ending
-        GameTime = PeriodTime;        //Set period time back
-        scoreBoard.NextPeriod();      //Set period circles on scoreboard
-        StartCoroutine(PeriodCountdown());  //Start period countdown
+
+        if (overtime == false)  //If it's no overtime
+        {            
+            GameTime = PeriodTime;        //Set period time back
+            scoreBoard.NextPeriod();      //Set period circles on scoreboard
+            StartCoroutine(PeriodCountdown());  //Start period countdown
+        }
+        else    //If it is overtime
+        {
+            scoreBoard.SetPeriods();    //Launch a function on scoreboard to shut down period timers and set caption "Play to XX" (because before that we switch "isPlayToScore=true" in GameUI)
+            PlayerOne.ShowMessage(Message.Overtime);
+            PlayerOne.ShowMessage(Message.ScoreToWin);  //Show messages for players when the game starts
+            PlayerTwo.ShowMessage(Message.Overtime);
+            PlayerTwo.ShowMessage(Message.ScoreToWin);
+        }
 
         audioManager.music.Stop();      //Stop the music
         audioManager.music.Play();      //Play and pause it for starting playing in the moment of period starting
