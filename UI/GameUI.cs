@@ -24,6 +24,7 @@ public class GameUI : MonoBehaviour
     [SerializeField] private Text PlayerTwoScore;   //Player scores in Periods UI
 
     [SerializeField] private AudioClip periodHorn;          //Period Horn when it ends
+    [SerializeField] private AudioClip finalHorn;          //Final Horn when the game ends
     [SerializeField] private AudioClip[] periodSound;       //Sounds during periods UI how many periods left, sound is different if the score is tied
     [SerializeField] private AudioClip[] periodSoundTied;
 
@@ -77,7 +78,7 @@ public class GameUI : MonoBehaviour
             StartCoroutine(EndPeriodSequence());    //Start Period sequence
         }
         else
-        {          
+        {
             //TODO IF IT IS TIED
             StartCoroutine(EndGameSequence());
         }
@@ -120,7 +121,7 @@ public class GameUI : MonoBehaviour
         }
         if (P1Score != P2Score) //If players are not tied, say "Next period" after player presses the button
         {
-            if (number == 4 && period == 4)
+            if (number == 4 && period == 4)                         //My numbering system of End Period lines worked perfectly except for this case, so hack it here
                 audioSource.PlayOneShot(periodSound[period - 1]);
             else
                 audioSource.PlayOneShot(periodSound[period - 2]);
@@ -144,9 +145,44 @@ public class GameUI : MonoBehaviour
         GameController.Controller.Pause();  //Unpause the game and players proceed to play
     }
 
+    [SerializeField] private GameObject gameStatsPrefab;    //Prefab GameStats panel that gets intstantiated when the game ends, filling all its fields
+    private GameObject statsPanel;                          //Object where instantiate the prefab into
+
     IEnumerator EndGameSequence()
     {
-        yield return null;
+        //We use 'custom' pausing the game here, without pausing the music
+        Time.timeScale = 0;     //Set timescale to 0
+        GameController.Controller.paused = true;          //Set the flag    //CHECK if we will use it to unpause when pressed "Replay Game"
+
+        audioSource.PlayOneShot(finalHorn);    //Play end game horn
+        UIFader.color = Color.clear;            //Make sure UIFader is transparent (so we don't get black screen)
+        GameFader.DOFade(1, time).SetUpdate(UpdateType.Normal, true);   //Fade out the game (SetUpdate makes tween use unscaled time, since the game is paused with Time.timeScale = 0)
+        
+        yield return new WaitForSecondsRealtime(time);      //We have timeScale set to 0, so need to use unscaled time to wait
+
+        UIFader.color = Color.black;        //Set UIFader to black to fade in GameStats UI
+
+        yield return new WaitForSecondsRealtime(time * 2);  //Wait for some more time
+
+        statsPanel = Instantiate(gameStatsPrefab, transform);   //Instantiate GameStats panel into this GameUI object
+        statsPanel.transform.SetSiblingIndex(1);                //Set so it's not in front of UIFader (it spawns in the end of hierarchy by default)
+        UIFader.DOFade(0, time).SetUpdate(UpdateType.Normal, true); //Fade out UIFader so GameStats UI fades in
+
+        yield return new WaitForSecondsRealtime(time);      //Wait until it fades
+
+        while (InputManager.GetButtonDown("Start", PlayerID.One) == false && InputManager.GetButtonDown("Start", PlayerID.Two) == false)    //Until some user presses 'Start', wait
+        {
+            yield return null;
+        }
+
+        UIFader.DOFade(1, time).SetUpdate(UpdateType.Normal, true); //Fade in UIFader so GameStats UI fades out
+
+        yield return new WaitForSecondsRealtime(time);  //Wait until it fades
+
+        Destroy(statsPanel);    //Destroy stats panel, if we replay the game, we will make a new one
+        
+        //TODO Get menu
+
         SceneManager.LoadScene("MainMenu"); //Load Main Menu scene
         //TODO
         

@@ -74,18 +74,29 @@ public class GameController : MonoBehaviour
         }
 
         Pause();    //When everything in the arena finishes loading, game gets paused while start-game-countdown screen still runs
-
-        StartCoroutine(Countdown());    //TEST
+        
+        StartCoroutine(nameof(GameTimeCounter));    //Launch corouting to count overall game time for the stats (we could get it from period lengths, but there are no periods in case of score-based game)
+        StartCoroutine(Countdown());    //TODO Start the countdown before the game starts
     }
    
     public int GameTime;        //Variable indicating current time left until end of the period, counts down in Coroutine
+    public int TotalGameTime;   //Indicates total game time for end-game stats
     public int CurrentPeriod;   //Number of current period
 
     private readonly WaitForSeconds second = new WaitForSeconds(1); //One second of period time
 
-    public bool PeriodEnding;   //COMM
+    public bool PeriodEnding;   //Bool to get player scripts to know its <20 seconds of period time, so UI shows the countdown
 
-    IEnumerator PeriodCountdown()   //Gets started on the scene load TODO or in the start of every period
+    IEnumerator GameTimeCounter()   //Corouting counting total game time
+    {
+        while (true)        //Always execute it, until we stop it in the very end of the game
+        {
+            yield return second;    //Wait a second
+            TotalGameTime++;        //Add a second to counter
+        }        
+    }
+
+    IEnumerator PeriodCountdown()   //Gets started on the scene load or in the start of every period
     {
         scoreBoard.UpdateTime();    //Set initial timer on scoreboard (so it's correct in the first second of the game)
         while (GameTime > 0)        //While we didn't reach 0 seconds in the period timer
@@ -93,21 +104,23 @@ public class GameController : MonoBehaviour
             yield return second;    //Wait a second
             GameTime--;             //Decrease game time by one second
 
-            if (GameTime <= 20 && PeriodEnding == false)
+            if (GameTime <= 20 && PeriodEnding == false)    //When period has 20 seconds left, show the scoreboard view for players to see the countdown, launch functions on players only once when below 20 seconds
             {
-                PeriodEnding = true;    //COMM
-                PlayerOne.PeriodEnding();
+                PeriodEnding = true;    //Set the flags player script uses to correlate between shotclock
+                PlayerOne.PeriodEnding();   //Launch function on players to show the UI
                 PlayerTwo.PeriodEnding();
             }
                 
-            scoreBoard.UpdateTime();//Update time on scoreBoard           
+            scoreBoard.UpdateTime(); //Update time on scoreBoard           
         }      
-        gameUI.EndPeriod();
+        gameUI.EndPeriod();     //When the whole period time goes to 0, launch the sequence of showing Periods UI and preparing for the next period
         
     }
 
     IEnumerator Countdown() //Initial countdown when starting the game
     {
+        gameUI.GameFader.color = Color.black;   //Setting gameFader to have black color just in case
+        gameUI.CountdownPanel.SetActive(true);  //Enabling countdown panel if it was disabled
         int count = 3;  //How many seconds to count
          
         for (int i = count; i >= 0; i--)
@@ -122,7 +135,7 @@ public class GameController : MonoBehaviour
         Pause();        //Unpause the game and players proceed to play
     }
     
-    public bool paused = false;    //Flag to know if the game is paused (for other scripts to know maybe)
+    public bool paused = false;    //Flag to know if the game is paused (for other scripts to know) 
 
     public void Pause()             //Function that pauses and unpauses the game
     {
@@ -134,7 +147,7 @@ public class GameController : MonoBehaviour
         }
         else
         {
-            Time.timeScale = 1;     //Set everything back if game is paused
+            Time.timeScale = 1;     //Set those things back if game is paused
             paused = false;
             audioManager.music.UnPause();
         }
@@ -207,6 +220,15 @@ public class GameController : MonoBehaviour
 
     }
 
+
+    public void ReplayGame()    //Function that resets all the stuff when pressed "Replay Game" after finishing the game //TODO
+    {
+        StopCoroutine(nameof(GameTimeCounter));
+        TotalGameTime = 0;
+        StartCoroutine(nameof(GameTimeCounter));
+
+
+    }
 
     //void Awake()
     //{

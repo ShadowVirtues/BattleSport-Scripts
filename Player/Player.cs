@@ -20,25 +20,26 @@ using Random = UnityEngine.Random;
 
     
     DO NEXT:       
-    Period ending player UI, correlation with ShotClock
+    
 
 
 
    
-    Maybe recover balls position after scoring to get rid of that jitter, using bounds stuff?
     
+    
+    
+
     
 
     
-
-
 
 
     GENERAL THINGS TO DO:
 
-        Periods
+        
         Game End
         Game Stats
+        Controls in menus
         Sound in Menus
         10 Levels > Props, Skyboxes
         Arena Preview (TUGUSH-TUGUSH)
@@ -47,10 +48,11 @@ using Random = UnityEngine.Random;
         Options > KeyBindings
         Design Main Menu       
         2 Player Exhibition (Maybe make an arena screenshot showing, rotating video or whatever)
-        Mouse/Stick controls
+        Smooth mouse/Stick controls
 
 
     ADDITIONAL IDEAS:
+    Maybe recover balls position after scoring to get rid of that jitter, using bounds stuff?
     When hit, slider slowly going down with red trail like in LOL
     When picked powerup, there should be a tooltip with circular “slider” going representing the time left for it.
 
@@ -166,7 +168,7 @@ public class Player : MonoBehaviour
 
     [SerializeField] private GameObject ballClock;      //Reference to Shot Clock UI Image to disable/enable it when have or don't have the ball
     [SerializeField] private Text ballClockText;        //Reference to text timer on the Shot Clock UI
-    [SerializeField] private GameObject endPeriodTimer; //COMM
+    [SerializeField] private GameObject endPeriodTimer; //Render texture with the camera view on the scoreBoard to see the period countdown before it ends 
 
     [SerializeField] private GameObject scoreImage;     //Reference to score panel-like image where you write score text that you enable when scoring
     [SerializeField] private Text scoreText;            //Reference to score text to change it when you score                                                 
@@ -336,28 +338,23 @@ public class Player : MonoBehaviour
         material.DOColor(final, emissionColor, 0.05f).SetLoops(6, LoopType.Yoyo).OnComplete(() => { material.SetColor(emissionColor, Color.black); });       //Flash 3 times (6 times back and fourth) and set the color back in the end
         //====================================================
 
-        if (GameController.Controller.ShotClock != 0)   //If in the game settings shot clock is not set to 0, then show the shot clock on screen
-        {
-            // && GameController.Controller.ShotClock < GameController.Controller.GameTime
-            if (GameController.Controller.PeriodEnding == false)
+        if (GameController.Controller.ShotClock != 0)   //If in the game settings shot clock is not set to 0, then show the shot clock on screen (otherwise when the period is ending the period countdown will be always shown)
+        {            
+            if (GameController.Controller.PeriodEnding == false)    //If the period is not ending (so its more than 20 seconds on the clock)
             {               
-                ballClock.SetActive(true);  //Enable UI element
+                ballClock.SetActive(true);  //Enable ShotClock UI element
             }
-            else
+            else    //Or if the period is ending
             {
-                if (GameController.Controller.ShotClock < GameController.Controller.GameTime)
-                {
-                    endPeriodTimer.SetActive(false);
-                    ballClock.SetActive(true);
+                if (GameController.Controller.ShotClock < GameController.Controller.GameTime)   //If shotclock is less than remaining period time (means shot clock will manage to fully run out before period ends)
+                {                    
+                    ballClock.SetActive(true);          //Show shot clock and disable end period timer
+                    endPeriodTimer.SetActive(false);    
                 }
-                else
-                {
-                    //endPeriodTimer.SetActive(true);
-                }
-                
+                //else the period timer will be enabled from other functions anyway
             }
             
-            StartCoroutine(nameof(ballClockTimer)); //Start the countdown
+            StartCoroutine(nameof(ballClockTimer)); //Start the shot clock countdown
         }
         else
         {
@@ -366,15 +363,14 @@ public class Player : MonoBehaviour
         
     }
 
-    public void PeriodEnding()
+    public void PeriodEnding()  //Function that gets launched from GameController when <20 seconds of period
     {
+        //If there is no shot clock, show period timer, OR if there IS shot clock, but current player doesn't have a ball, OR if player has a ball, but shot clock is bigger than remaining period time (means period will end sooner than shot clock run out)
         if (GameController.Controller.ShotClock == 0 || (GameController.Controller.ShotClock != 0 && possession == false) || (possession == true && GameController.Controller.ShotClock > GameController.Controller.GameTime))
         {
-            endPeriodTimer.SetActive(true);
-            ballClock.SetActive(false);
+            endPeriodTimer.SetActive(true); //Show period countdown
+            ballClock.SetActive(false);     //And hide ball clock if it was active
         }
-        
-
     }
 
     private IEnumerator ballClockTimer()    //Coroutine counting down the shot clock timer
@@ -468,9 +464,9 @@ public class Player : MonoBehaviour
         PlayerRadar.ballPossession = false;     //Start calculating position of ball icon on the UI now that no one possesses the ball
         PlayerRadar.HideBallFromRadars(false);  //Reveal the ball on the radar
 
-        if (GameController.Controller.ShotClock != 0)   //If the ShotClock is not 0 (not shot clock violations, gets set in game settings)
+        if (GameController.Controller.ShotClock != 0)   //If there is shot clock
         {
-            if (GameController.Controller.PeriodEnding)
+            if (GameController.Controller.PeriodEnding) //If the period is ending, show period timer (it gets disabled if shot clock get shown)
             {
                 endPeriodTimer.SetActive(true);
             }           

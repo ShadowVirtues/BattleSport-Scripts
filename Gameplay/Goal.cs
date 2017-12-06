@@ -45,7 +45,7 @@ public class Goal : MonoBehaviour
 
     //==================================
 
-    private Vector3 initPos;
+    private Vector3 initPos;    //Initial position of the goal to set it back when the period ends (only for teleporting, moving one would get back to animation initial state)
     public bool teleporting = false;    //Script component has a bool variable in the inspector if the goal is teleporting on the arena    
 
     void Start()
@@ -53,7 +53,7 @@ public class Goal : MonoBehaviour
         if (teleporting)
         {
             StartCoroutine(nameof(Teleporting)); //So when it's ticked when the round starts, the goal starts teleporting
-            initPos = transform.position;
+            initPos = transform.position;           //Only remember goal initial position if the goal is teleporting
         }
 
             
@@ -118,20 +118,20 @@ public class Goal : MonoBehaviour
     }
 
     
-    public void SetEverythingBack()
+    public void SetEverythingBack() //Another one of those for goal
     {
-        goalMaterial.DisableKeyword(emissionKeyword);
-        goalMaterial.color = Color.white;
+        goalMaterial.DisableKeyword(emissionKeyword);   //If the goal was flashing from scoring, disable it
+        goalMaterial.color = Color.white;               //If the goal for some reason was teleporting when period ended, set its color to opaque
 
-        if (teleporting)
+        if (teleporting)    //If the goal is set to be teleporting
         {
-            StopCoroutine(nameof(Teleporting));
-            transform.position = initPos;
-            StartCoroutine(nameof(Teleporting));
+            StopCoroutine(nameof(Teleporting)); //Stop teleporting coroutine
+            transform.position = initPos;       //Get the goal back to where it started in the start of the level
+            StartCoroutine(nameof(Teleporting));    //Launch coroutine (it will not execute until the game gets unpaused)
         }
 
-        Animator goalAnim = GetComponentInChildren<Animator>();
-        if (goalAnim != null) goalAnim.Rebind();
+        Animator goalAnim = GetComponentInChildren<Animator>(); //Get goal animator (it's on the child object)
+        if (goalAnim != null) goalAnim.Rebind();                //If there is animation for the goal in this arena, launch this mysterious function that will set animator to its initial state
        
 
     }

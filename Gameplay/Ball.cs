@@ -345,6 +345,16 @@ public class Ball : MonoBehaviour
         GameController.Controller.PlayerTwo.Score();
         GameController.Controller.scoreBoard.UpdateScore(); //Update the score on the scoreboard
 
+        if (GameController.Controller.isPlayToScore)
+        {
+            if (GameController.Controller.PlayerOne.playerStats.Score == GameController.Controller.PeriodTime || GameController.Controller.PlayerTwo.playerStats.Score == GameController.Controller.PeriodTime)
+            {
+                GameController.Controller.gameUI.EndPeriod();
+            }
+        }
+
+        //TODO if score-based game
+
         StartCoroutine(BallScore());        //Coroutine for disabling-enabling ball and score colliders in 5 sec delay after scoring
 
     }

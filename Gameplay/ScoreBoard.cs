@@ -44,7 +44,7 @@ public class ScoreBoard : MonoBehaviour
             }
             for (int i = 0; i < 4; i++)     //There are 4 period timers on scoreboard
             {
-                PeriodTime[i].gameObject.SetActive(false);  //Also disable period all timers, since the game is not time-based
+                PeriodTime[i].gameObject.SetActive(false);  //Also disable all period timers, since the game is not time-based
             }
         }
         else        //If its actually time-based game
