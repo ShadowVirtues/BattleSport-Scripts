@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design.Serialization;
 using TeamUtility.IO;
@@ -32,40 +32,94 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
     }
 
     private bool isAxisInUse = false;     //Variable needed for processing GetAxis presses like ButtonDown
+    private bool quickSwitching = false;   
+
+    private float repeatDelay = 0.5f;
+    private float switchDelay = 0.1f;
+    private float prevActionTime;
+    private float pressDownTime;
 
     void Update()
     {        
         if (EventSystem.current.currentSelectedGameObject == gameObject)    //If this selector is the active one, this is the selector we choose options for with Left-Right buttons on keyboard or controller
         {
-            float axis = InputManager.GetAxisRaw(turningAxisName, PlayerID.One);    //TODO manage multiple players controlling
-
+            //Mergning both players input into one, so input is always either -1, 0, 1, even it both players are pressing buttons simultaneously
+            float axis = Math.Sign(InputManager.GetAxisRaw(turningAxisName, PlayerID.One) + InputManager.GetAxisRaw(turningAxisName, PlayerID.Two));    //Using Math, not Mathf, so when value is 0, Sign returns 0
+            
+            //Following code handles player holding down a button, so option switches once, waits 0.5 seconds, and then starts quickly switching further
             if (axis != 0)  //If axis is actually pressed
             {
-                if (isAxisInUse == false) //Only if axis wasn't previously pressed and held down    //TODO manage holding down a button
+                if (isAxisInUse == false) //Here be manage the initial button press (so we can still quick tap the button to switch)
                 {
-                    if (axis == -1) //If axis is negative (Pressed Left)
-                    {
-                        //PreviousItem(); //Switch to previous item
-                        Left.onClick.Invoke();
-                    }
-                    else if (axis == 1) //If axis is positive (Pressed Right)
-                    {
-                        //NextItem();     //Switch to next item
-                        Right.onClick.Invoke();
-                    }
+                    Press(axis);    //Press the corresponding button
+
+                    pressDownTime = Time.unscaledTime;  //Remember the time button got held down
 
                     isAxisInUse = true; //Until we release the axis button, this will remain true
+                }
+                else if (quickSwitching)    //If quick switching got activated in the next section
+                {
+                    if (Time.unscaledTime > prevActionTime + switchDelay)   //Delay switching by 0.1 sec
+                    {
+                        Press(axis);    //Press the button
+
+                        prevActionTime = Time.unscaledTime; //Remember previous time quick switch happened
+                    }
+                }
+                else    //This section waits for 0.5 second after pressing down a button and before starting quick switching
+                {
+                    if (Time.unscaledTime > pressDownTime + repeatDelay)    //When the time reaches 0.5 sec after pressing down a button
+                    {
+                        quickSwitching = true;  //Set this to true so on the next frame we enter quick switching
+                    }
                 }
             }
             if (axis == 0)  //And if the button is not pressed, or when it gets released
             {
+                quickSwitching = false; //Disable quick switching, cuz we released the button
                 isAxisInUse = false;    //Set the flag so the next press will switch the item
             }
+
+            //PREVIOUS IMPLEMENTATION, JUST IN CASE FOR NOW
+            //if (axis != 0)  //If axis is actually pressed
+            //{
+            //    if (isAxisInUse == false) //Only if axis wasn't previously pressed and held down    
+            //    {
+            //        if (axis == -1) //If axis is negative (Pressed Left)
+            //        {
+            //            //PreviousItem(); //Switch to previous item
+            //            Left.onClick.Invoke();
+            //        }
+            //        else if (axis == 1) //If axis is positive (Pressed Right)
+            //        {
+            //            //NextItem();     //Switch to next item
+            //            Right.onClick.Invoke();
+            //        }
+
+            //        isAxisInUse = true; //Until we release the axis button, this will remain true
+            //    }
+            //}
+            //if (axis == 0)  //And if the button is not pressed, or when it gets released
+            //{
+            //    isAxisInUse = false;    //Set the flag so the next press will switch the item
+            //}
+
 
         }
 
     }
 
+    private void Press(float axis)  //Function to press the corresponding button depending on if "left" or "right" button was pressed
+    {
+        if (axis == -1) //If axis is negative (Pressed Left)
+        {            
+            Left.onClick.Invoke();  //We simulate selector button press, so it is the same action to press a button on keyboard, or actual button on the screen with mouse
+        }
+        else if (axis == 1) //If axis is positive (Pressed Right)
+        {
+            Right.onClick.Invoke();
+        }
+    }
 
     public void NextItem()      //Public funciton that gets called from pressing controller buttons in Update here, and is set on Button Event
     {
@@ -96,7 +150,10 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
         OptionName.color = Color.white;
         OptionValue.color = Color.blue;     //Set back all the colors and disable the arrows
         Left.gameObject.SetActive(false);
-        Right.gameObject.SetActive(false);       
+        Right.gameObject.SetActive(false);
+
+        quickSwitching = false;
+        isAxisInUse = false;    
     }
 
 
