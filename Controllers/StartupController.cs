@@ -16,7 +16,7 @@ public class StartupController : MonoBehaviour
     public GameObject PlayerPrefab; //And PlayerPrefab that also gets injected
 
     [SerializeField] private GameObject audioManagerPrefab;     //AudioManagerPrefab that also gets loaded into arena from here (to not have it referenced on each arena GameController
-    [SerializeField] private GameObject GameUIPrefab;                 //COMM
+    [SerializeField] private GameObject GameUIPrefab;                 //Prefab of GameUI having all stuff like starting countdown, options menu, periods UI, GameStats
 
 
     [Header("Not getting set into Inspector")]  //TODO [HideInInspector]. For now they are visible for testing purposes
@@ -80,7 +80,7 @@ public class StartupController : MonoBehaviour
         gameController.PlayerTwo.PlayerName = PlayerTwoName;
 
         gameController.audioManagerObject = Instantiate(audioManagerPrefab);        //Instantiate AudioManager
-        gameController.gameUI = Instantiate(GameUIPrefab).GetComponent<GameUI>();                      //COMM
+        gameController.gameUI = Instantiate(GameUIPrefab).GetComponent<GameUI>();                      //Instantiate GameUI and get reference to its script component
     }
 
     

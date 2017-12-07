@@ -59,7 +59,7 @@ public class InstantActionSetup : MonoBehaviour
     [SerializeField] private ValueSelector periodTimeSelector;
     [SerializeField] private ValueSelector shotClockSelector;
     
-    public void GAMEButtonPress()   //This function is linked to the button "GAME" when pressing it //TODO Make pressing this button from some keyboard keys
+    public void GAMEButtonPress()   //This function is linked to the button "GAME" when pressing it
     {
         //Find StartupController in our scene (In some menus it can be transfered over from previous scene, so we can't have a set reference to it in all cases)
         StartupController startup = GameObject.Find(nameof(StartupController)).GetComponent<StartupController>();   

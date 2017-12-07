@@ -22,7 +22,7 @@ using Random = UnityEngine.Random;
     DO NEXT:       
     
 
-
+    Manage EventSystem in all scenes
 
    
     
@@ -41,14 +41,15 @@ using Random = UnityEngine.Random;
         Game Stats
         Controls in menus
         Sound in Menus
-        10 Levels > Props, Skyboxes
         Arena Preview (TUGUSH-TUGUSH)
         Powerups      
         Pause the game
         Options > KeyBindings
+        Smooth mouse/Stick controls
+        10 Levels > Props, Skyboxes
         Design Main Menu       
         2 Player Exhibition (Maybe make an arena screenshot showing, rotating video or whatever)
-        Smooth mouse/Stick controls
+        
 
 
     ADDITIONAL IDEAS:

@@ -345,16 +345,15 @@ public class Ball : MonoBehaviour
         GameController.Controller.PlayerTwo.Score();
         GameController.Controller.scoreBoard.UpdateScore(); //Update the score on the scoreboard
 
-        if (GameController.Controller.isPlayToScore)
+        if (GameController.Controller.isPlayToScore)    //If the game is set to be score-based, process here during scoring if we should end the game
         {
-            if (GameController.Controller.PlayerOne.playerStats.Score == GameController.Controller.PeriodTime || GameController.Controller.PlayerTwo.playerStats.Score == GameController.Controller.PeriodTime)
+            //If either of the players have a score value equal to the needed amound of scores, launch EndPeriod function that would end the game (remember that needed score is stored in PeriodTime)
+            if (GameController.Controller.PlayerOne.playerStats.Score == GameController.Controller.PeriodTime || GameController.Controller.PlayerTwo.playerStats.Score == GameController.Controller.PeriodTime) 
             {
                 GameController.Controller.gameUI.EndPeriod();
             }
         }
-
-        //TODO if score-based game
-
+        
         StartCoroutine(BallScore());        //Coroutine for disabling-enabling ball and score colliders in 5 sec delay after scoring
 
     }

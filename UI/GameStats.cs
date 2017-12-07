@@ -10,7 +10,7 @@ public class GameStats : MonoBehaviour
 
     [SerializeField] private Text playerOneName;
     [SerializeField] private Text playerTwoName;   
-    [SerializeField] private Text gameResult;       //TODO
+    [SerializeField] private Text gameResult;       
 
     //Player One Fields
 
