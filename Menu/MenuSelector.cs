@@ -14,7 +14,7 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
     [SerializeField] protected Text OptionValue;    //The value we change, we use it in derived classes as well, to set default values on menu load for it
     [SerializeField] private Button Left;           //Button for the Previous Item for mouse clicks
     [SerializeField] private Button Right;          //Button for the Next Item for mouse clicks
-
+    
     protected int index;                            //Index of currently selected item, used in derived classes
 
     public int GetIndex => index;                   //'Get' roperty to get the index, SetIndex is implemented in each selector as a method
@@ -110,7 +110,7 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
     }
 
     private void Press(float axis)  //Function to press the corresponding button depending on if "left" or "right" button was pressed
-    {
+    {        
         if (axis == -1) //If axis is negative (Pressed Left)
         {            
             Left.onClick.Invoke();  //We simulate selector button press, so it is the same action to press a button on keyboard, or actual button on the screen with mouse

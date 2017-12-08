@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using TeamUtility.IO;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -27,12 +29,35 @@ public class InstantActionSetup : MonoBehaviour
 
     private bool isPlayToScore = false;     //Bool indicating if PlayToScore is on screen right now, instead of Period(Minutes)
 
+    //===================================================
+    [Header("Sound")]
+    [SerializeField] private AudioSource music;
+    [SerializeField] private AudioSource sfx;
+    [SerializeField] private AudioSource announcer;
+    [SerializeField] private AudioClip select;
+    [SerializeField] private GameObject blockInputPanel;    //"Panel" over the whole screen to block mouse input when needed
+
     void Start()
     {
+        blockInputPanel.SetActive(false);   //Disable it in case if was active for some reason
+
         LoadPreviousSettings(); //Load previous set settings from PlayerPrefs
 
         periodTime.text = isPlayToScore ? playToScoreString : periodMinutesString;  //Set the label to respective value (isPlayToScore gets set in LoadPreviousSettings)
+
+        //TODO IF not 0 volume
+        music.PlayDelayed(0.1f);
+        announcer.Play();
     }
+
+    //void Update()
+    //{
+    //    if (Input.GetKeyDown(KeyCode.T))
+    //    {
+    //        announcer.Play();
+
+    //    }
+    //}
     
     public void ScoreBased()    //This function is linked to Left and Right buttons on "Number Of Periods" selector and gets called whenever user presses them (or corresponding left-right keys)
     {
@@ -52,6 +77,7 @@ public class InstantActionSetup : MonoBehaviour
         }       
     }
 
+    [Header("Selectors")]
     [SerializeField] private ArenaSelector arenaSelector;
     [SerializeField] private TankSelector  playerOneSelector;
     [SerializeField] private TankSelector  playerTwoSelector;           //All different selector references to get values from them when pressing GAME button, or when pressing BACK to save all the values
@@ -61,8 +87,17 @@ public class InstantActionSetup : MonoBehaviour
     
     public void GAMEButtonPress()   //This function is linked to the button "GAME" when pressing it
     {
+        StartCoroutine(Game());        
+    }
+
+    private IEnumerator Game()
+    {
+        music.Stop();
+        //yield return new WaitForSecondsRealtime(0.5f);
+        sfx.PlayOneShot(select);
+        disableInput();
         //Find StartupController in our scene (In some menus it can be transfered over from previous scene, so we can't have a set reference to it in all cases)
-        StartupController startup = GameObject.Find(nameof(StartupController)).GetComponent<StartupController>();   
+        StartupController startup = GameObject.Find(nameof(StartupController)).GetComponent<StartupController>();
 
         startup.arena = arenaSelector.Option;
         startup.PlayerOneTank = playerOneSelector.Option;
@@ -76,8 +111,9 @@ public class InstantActionSetup : MonoBehaviour
 
         SavePreviousSettings();                             //Save the selectors states to PlayerPrefs
 
+        yield return new WaitForSecondsRealtime(0.5f);
+
         startup.GAMEButtonPress();                          //Launch the Startup Function on the side of GameController
-        
     }
 
     void LoadPreviousSettings()     //Function loading previous state of the menu from PlayerPrefs
@@ -127,15 +163,29 @@ public class InstantActionSetup : MonoBehaviour
 
     public void BACKButtonPress()       //Going back to the main menu button
     {
-        SavePreviousSettings(); //Save the state of Instant Action Setup menu
-
-        SceneManager.LoadScene("MainMenu"); //Load Main Menu scene
-        
+        StartCoroutine(Back());
     }
 
+    private IEnumerator Back()
+    {
+        music.Stop();
+        announcer.Stop();
+        //yield return new WaitForSecondsRealtime(0.5f);
+        sfx.PlayOneShot(select);
+        disableInput();
+        SavePreviousSettings(); //Save the state of Instant Action Setup menu
 
+        yield return new WaitForSecondsRealtime(0.5f);
 
+        SceneManager.LoadScene("MainMenu"); //Load Main Menu scene
+    }
 
+    private void disableInput() //Function to disable player input after he clicked some button to go to next menu (since we have a small delay after pressing this button, when we don't want player to select something else)
+    {
+        EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerOne = false; //Disable both player controls in EventSystem
+        EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerTwo = false;
+        blockInputPanel.SetActive(true);                                            //Enable the panel in front of everything that blocks mouse input
+    }
 
 
 

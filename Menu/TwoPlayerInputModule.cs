@@ -38,6 +38,11 @@ namespace TeamUtility.IO
 	{
 		public const string VERSION = "5.5";
 
+	    public bool PlayerOne;
+	    public bool PlayerTwo;  //Changed
+	    [SerializeField] private AudioSource click;
+
+
 		private float m_PrevActionTime;
 		private Vector2 m_LastMoveVector;
 		private int m_ConsecutiveMoveCount = 0;
@@ -159,14 +164,21 @@ namespace TeamUtility.IO
 				return false;
 
 			var shouldActivate = m_ForceModuleActive;
-			shouldActivate |= InputManager.GetButtonDown(m_SubmitButton, PlayerID.One);     //Changed
-		    shouldActivate |= InputManager.GetButtonDown(m_SubmitButton, PlayerID.Two);     //Changed
-            shouldActivate |= InputManager.GetButtonDown(m_CancelButton, PlayerID.One);     //Changed
-		    shouldActivate |= InputManager.GetButtonDown(m_CancelButton, PlayerID.Two);     //Changed
-            shouldActivate |= !Mathf.Approximately(InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.One), 0.0f);  //Changed
-		    shouldActivate |= !Mathf.Approximately(InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.Two), 0.0f);  //Changed
-            shouldActivate |= !Mathf.Approximately(InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.One), 0.0f);    //Changed
-            shouldActivate |= !Mathf.Approximately(InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.Two), 0.0f);    //Changed
+		    if (PlayerOne)  //Changed
+		    {
+		        shouldActivate |= InputManager.GetButtonDown(m_SubmitButton, PlayerID.One);     //Changed
+		        shouldActivate |= InputManager.GetButtonDown(m_CancelButton, PlayerID.One);     //Changed
+		        //shouldActivate |= !Mathf.Approximately(InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.One), 0.0f);  //Changed
+		        shouldActivate |= !Mathf.Approximately(InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.One), 0.0f);    //Changed
+            }
+		    if (PlayerTwo)  //Changed
+            {
+		        shouldActivate |= InputManager.GetButtonDown(m_SubmitButton, PlayerID.Two);     //Changed           
+		        shouldActivate |= InputManager.GetButtonDown(m_CancelButton, PlayerID.Two);     //Changed            
+		        //shouldActivate |= !Mathf.Approximately(InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.Two), 0.0f);  //Changed           
+		        shouldActivate |= !Mathf.Approximately(InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.Two), 0.0f);    //Changed
+            }			
+		    
             shouldActivate |= (m_MousePosition - m_LastMousePosition).sqrMagnitude > 0.0f;
 			shouldActivate |= InputManager.GetMouseButtonDown(0);
 
@@ -363,9 +375,18 @@ namespace TeamUtility.IO
 
 		private Vector2 GetRawMoveVector()  //VERY Changed
 		{
-            Vector2 P1Vector = new Vector2(InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.One), InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.One));
-            Vector2 P2Vector = new Vector2(InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.Two), InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.Two));
-            
+		    Vector2 P1Vector = Vector2.zero;
+		    Vector2 P2Vector = Vector2.zero;
+
+            if (PlayerOne)
+		    {
+		        P1Vector = new Vector2(0, InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.One));   //InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.One)
+            }
+		    if (PlayerTwo)
+		    {
+		        P2Vector = new Vector2(0, InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.Two));   //InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.Two)
+            }
+                        
             return (P1Vector + P2Vector).normalized;           
         }
 
@@ -384,8 +405,19 @@ namespace TeamUtility.IO
 			}
 
 			// If user pressed key again, always allow event
-			bool allow = InputManager.GetButtonDown(m_HorizontalAxis, PlayerID.One) || InputManager.GetButtonDown(m_VerticalAxis, PlayerID.One) || InputManager.GetButtonDown(m_HorizontalAxis, PlayerID.Two) || InputManager.GetButtonDown(m_VerticalAxis, PlayerID.Two);
-			bool similarDir = (Vector2.Dot(movement, m_LastMoveVector) > 0);
+		    bool allow = false;
+		    if (PlayerOne)      //Changed
+		    {
+		        //allow |= InputManager.GetButtonDown(m_HorizontalAxis, PlayerID.One);      //Changed
+                allow |= InputManager.GetButtonDown(m_VerticalAxis, PlayerID.One);      //Changed
+            }
+		    if (PlayerTwo)      //Changed
+            {
+		        //allow |= InputManager.GetButtonDown(m_HorizontalAxis, PlayerID.Two);      //Changed
+                allow |= InputManager.GetButtonDown(m_VerticalAxis, PlayerID.Two);      //Changed
+            }
+           
+            bool similarDir = (Vector2.Dot(movement, m_LastMoveVector) > 0);
 			if(!allow)
 			{
 				// Otherwise, user held down key or axis.
@@ -396,7 +428,10 @@ namespace TeamUtility.IO
 				else
 					allow = (time > m_PrevActionTime + 1f / m_InputActionsPerSecond);
 			}
-			if(!allow)
+
+		    if (allow) click.Play();
+            
+            if (!allow)
 				return false;
 
 			// Debug.Log(m_ProcessingEvent.rawType + " axis:" + m_AllowAxisEvents + " value:" + "(" + x + "," + y + ")");
@@ -404,8 +439,8 @@ namespace TeamUtility.IO
 
 			if(axisEventData.moveDir != MoveDirection.None)
 			{
-				ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, axisEventData, ExecuteEvents.moveHandler);
-				if(!similarDir)
+				ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, axisEventData, ExecuteEvents.moveHandler);			    
+                if (!similarDir)
 					m_ConsecutiveMoveCount = 0;
 				m_ConsecutiveMoveCount++;
 				m_PrevActionTime = time;

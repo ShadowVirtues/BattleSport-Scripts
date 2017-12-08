@@ -38,11 +38,10 @@ using Random = UnityEngine.Random;
 
         
         Game End
-        Game Stats
-        Controls in menus
-        Sound in Menus
+        
+        
+        Powerups  
         Arena Preview (TUGUSH-TUGUSH)
-        Powerups      
         Pause the game
         Options > KeyBindings
         Smooth mouse/Stick controls
