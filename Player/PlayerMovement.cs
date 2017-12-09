@@ -48,7 +48,7 @@ public class PlayerMovement : MonoBehaviour
         if (Time.deltaTime == 0) return;    //After unpausing, for one frame Time.deltaTime is still 0, which results in division by it in the next line, so don't run the function if that the case as well
 
         float rotationY = InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed * Time.deltaTime * (0.005f / Time.deltaTime + 0.75f); //To rotate depending on input axis (rotation around Y axis)
-        float tankRotation = transform.localEulerAngles.y + rotationY;      //Add the rotation to current rotation of the tank
+        float tankRotation = transform.localEulerAngles.y + rotationY;      //Add the rotation to current rotation of the tank  //TODO If you press the axis diagonally, you will have 0.707 value on GetAxisRaw
                 
         rigidbody.MoveRotation(Quaternion.Euler(0, tankRotation, 0));   //Apply this rotation (X=0, Z=0 constraint the tank to not tilt when hitting objects)     
         //Rotating with rigidbody.MoveRotation in Update, because this was the only was I could make rotating and moving the tank not have jitter (because of 50fps FixedUpdate and 144- fps Update)

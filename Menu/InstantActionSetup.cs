@@ -50,15 +50,11 @@ public class InstantActionSetup : MonoBehaviour
         announcer.Play();
     }
 
-    //void Update()
-    //{
-    //    if (Input.GetKeyDown(KeyCode.T))
-    //    {
-    //        announcer.Play();
+    void Update()
+    {
+        print(InputManager.GetAxis("Turning", PlayerID.Two));
+    }
 
-    //    }
-    //}
-    
     public void ScoreBased()    //This function is linked to Left and Right buttons on "Number Of Periods" selector and gets called whenever user presses them (or corresponding left-right keys)
     {
         if (numberOfPeriodsSelector.GetIndex == 0)              //If set number of periods is 0

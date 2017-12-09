@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TankSelector : MenuSelector
 {
-
+    [Header("Options")]
     public List<GameObject> Options;        //For tank selector the options are actual tank prefabs (the tank collection specifically for UI tho, without thrusters and colliders)
     
     public string Option => Options[index].name;  //This gets called when confirming game settings, for transfering the selected tank to the loading scene (we compare the name of Tank UI prefabs with "playable" Tank prefabs

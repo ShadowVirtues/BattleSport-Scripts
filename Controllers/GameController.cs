@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using TeamUtility.IO;
 using UnityEngine;
 
 public class GameController : MonoBehaviour
@@ -76,7 +77,17 @@ public class GameController : MonoBehaviour
         Pause();    //When everything in the arena finishes loading, game gets paused while start-game-countdown screen still runs
         
         StartCoroutine(nameof(GameTimeCounter));    //Launch corouting to count overall game time for the stats (we could get it from period lengths, but there are no periods in case of score-based game)
-        StartCoroutine(Countdown());    //TODO Start the countdown before the game starts
+
+        if (StartupController.Controller != null)   //DELETE. For testing in INJECTED arenas when StartupController doesn't exist
+        {
+            StartCoroutine(Countdown());    //TODO Start the countdown before the game starts
+        }
+        else     //DELETE. For testing in INJECTED arenas when StartupController doesn't exist
+        {
+            gameUI.gameObject.SetActive(false);
+            Pause();
+        }
+            
     }
    
     public int GameTime;        //Variable indicating current time left until end of the period, counts down in Coroutine
@@ -151,6 +162,14 @@ public class GameController : MonoBehaviour
             paused = false;
             audioManager.music.UnPause();
         }
+
+    }
+
+    public void PauseMenu(PlayerID player)  //COMM
+    {
+        Pause();
+        gameUI.gameObject.SetActive(true);
+        gameUI.PauseMenu(player);
 
     }
 

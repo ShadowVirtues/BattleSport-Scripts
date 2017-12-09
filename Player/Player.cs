@@ -24,13 +24,17 @@ using Random = UnityEngine.Random;
 
     Manage EventSystem in all scenes
 
-   
+   Maybe hard code control buttons in the menu
     
-    
-    
+    Menu options:
+    IU Scale
+    Map Scale
+    Map Icons Scale
+    Map Transparency
 
-    
-
+    Music
+    SFX
+    Announcer
     
 
 
@@ -388,14 +392,15 @@ public class Player : MonoBehaviour
     }
     
     void Update()
-    {        
-        if (InputManager.GetButtonDown("Pause", PlayerNumber))
-        {
-            GameController.Controller.Pause();  //COMM
-        }
-
+    {
         if (Time.timeScale == 0) return;    //COMM
 
+        if (InputManager.GetButtonDown("Pause", PlayerNumber))
+        {
+            //GameController.Controller.Pause();  //COMM
+            GameController.Controller.PauseMenu(PlayerNumber);
+        }
+        
         if (possession && InputManager.GetButtonDown(ballButtonName, PlayerNumber)) //If player has a ball and presses Shoot Ball button
         {
             LoseBall(FumbleCause.Shot); //"LOSE" ball due to shooting it

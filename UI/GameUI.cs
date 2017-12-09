@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using DG.Tweening;
 using TeamUtility.IO;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -28,6 +29,8 @@ public class GameUI : MonoBehaviour
     [SerializeField] private AudioClip[] periodSound;       //Sounds during periods UI how many periods left, sound is different if the score is tied
     [SerializeField] private AudioClip[] periodSoundTied;
     [SerializeField] private AudioClip overtimeSound;            //Sound "This game is going into overtime"
+
+    [SerializeField] private RectTransform pauseMenu;   //COMM
 
     private AudioSource audioSource;
     
@@ -64,7 +67,35 @@ public class GameUI : MonoBehaviour
 
         periodCircles[0].SetActive(true);   //Set active first red period circle
     }
-    
+
+    public void PauseMenu(PlayerID player)
+    {
+        if (player == PlayerID.One)
+        {
+            pauseMenu.anchoredPosition = new Vector2(-480, 0);
+            EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerOne = true;
+            EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerTwo = false;
+        }
+        else if (player == PlayerID.Two)
+        {
+            pauseMenu.anchoredPosition = new Vector2(480, 0);
+            EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerOne = false;
+            EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerTwo = true;
+        }
+        periodPanel.SetActive(false);
+        GameFader.color = Color.clear;
+        UIFader.color = Color.clear;
+        pauseMenu.gameObject.SetActive(true);
+
+    }
+
+
+
+
+
+
+
+
     private int period;     //Current period number (when Periods UI gets shown, this is the number of 'next' period //Shorter references from GameController
     private int number;     //Number of periods
 

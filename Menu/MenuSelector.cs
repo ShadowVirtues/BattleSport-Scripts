@@ -10,6 +10,7 @@ using UnityEngine.EventSystems;
 
 public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDeselectHandler, ISelectHandler          //UI Interfaces
 {
+    [Header("Controls")]
     [SerializeField] private Text OptionName;     //Name of the option like "Arena", "PlayerOne"
     [SerializeField] protected Text OptionValue;    //The value we change, we use it in derived classes as well, to set default values on menu load for it
     [SerializeField] private Button Left;           //Button for the Previous Item for mouse clicks
@@ -25,10 +26,19 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
 
     private const string turningAxisName = "Turning";   //"Turning" buttons will switch between options for keyboard and controller input
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource click;
+
     void Start()
     {
         Left.gameObject.SetActive(false);   //For all the selectors, disable their arrows, they get enabled only for currently "selected" object that has focus
         Right.gameObject.SetActive(false);       
+
+
+        Left.onClick.AddListener(PreviousItem);
+        Right.onClick.AddListener(NextItem);
+        Left.onClick.AddListener(click.Play);
+        Right.onClick.AddListener(click.Play);
     }
 
     private bool isAxisInUse = false;     //Variable needed for processing GetAxis presses like ButtonDown
@@ -137,18 +147,24 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
             EventSystem.current.SetSelectedGameObject(gameObject);  //Set this selectable as current selected item (EventSystem automatically deselects previously selected selectable)
     }
 
+    [Header("Colors")]
+    [SerializeField] private Color optionSelected = Color.green;
+    [SerializeField] private Color optionDeselected = Color.white;  //COMM
+    [SerializeField] private Color valueSelected = Color.white;
+    [SerializeField] private Color valueDeselected = Color.blue;
+
     public void OnSelect(BaseEventData eventData)           //When this selectable gets selected
     {
-        OptionName.color = Color.green;         //Set OptionName color to green when it's selected
-        OptionValue.color = Color.white;        //OptionValue color to white
+        OptionName.color = optionSelected;         //Set OptionName color to green when it's selected
+        OptionValue.color = valueSelected;        //OptionValue color to white
         Left.gameObject.SetActive(true);        //SetActive arrows for mouse selection
         Right.gameObject.SetActive(true);
     }
 
     public void OnDeselect(BaseEventData eventData)     //WHen the selectable gets deselected
     {
-        OptionName.color = Color.white;
-        OptionValue.color = Color.blue;     //Set back all the colors and disable the arrows
+        OptionName.color = optionDeselected;
+        OptionValue.color = valueDeselected;     //Set back all the colors and disable the arrows
         Left.gameObject.SetActive(false);
         Right.gameObject.SetActive(false);
 

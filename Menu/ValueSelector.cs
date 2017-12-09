@@ -4,9 +4,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class ValueSelector : MenuSelector   //This selector selects only numeric values like "Period Time", "Period Number"
-{
+{    
     private int[] Options;      //Array that fills in with and contains all the available numeric options for selection
 
+    [Header("Options")]
     [SerializeField] private int min;
     [SerializeField] private int max;   //Variables to define the numeric range and step for selection
     [SerializeField] private int step;

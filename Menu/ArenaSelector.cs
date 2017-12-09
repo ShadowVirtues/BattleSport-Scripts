@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class ArenaSelector : MenuSelector
 {
+    [Header("Options")]
     [SerializeField] private List<Arena> Options;     //The list of Arena ScriptableObjects to shoose from, gets filled in the inspector
 
     //void Awake()            //Stuff to do when the menu loads
