@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
         
 [System.Serializable]
@@ -29,6 +31,7 @@ public class Tank : MonoBehaviour
     public Transform[] LaserSpawnPoints;
 }
 
+#if UNITY_EDITOR
 [CustomPropertyDrawer(typeof(TankProperty))]
 public class TankPropertyDrawer : PropertyDrawer    
 {   
@@ -54,7 +57,7 @@ public class TankPropertyDrawer : PropertyDrawer
         
     }
 }
-
+#endif
 
 
 

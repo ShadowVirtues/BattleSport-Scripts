@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using TeamUtility.IO;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -24,7 +23,25 @@ public class MainMenu : MonoBehaviour
 
         //EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerOne = true;     
     }
-    
+
+    void Update()
+    {
+        //if (Input.GetKeyDown(KeyCode.Alpha0))
+        //{
+
+        //    string[] asdf = Input.GetJoystickNames();
+        //    for (int i = 0; i < asdf.Length; i++)
+        //    {
+        //        Debug.LogError(i + ". " + asdf[i]);
+        //    }
+
+
+        //}
+
+        //print(Input.GetAxisRaw("joy_0_axis_4"));
+
+    }
+
     public void InstantActionSetup()    //When pressed "Instant Action Setup"
     {      
         StartCoroutine(MenuSelect());
@@ -44,9 +61,8 @@ public class MainMenu : MonoBehaviour
     }
 
     private void disableInput() //Function to disable player input after he clicked some button to go to next menu (since we have a small delay after pressing this button, when we don't want player to select something else)
-    {
-        EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerOne = false; //Disable both player controls in EventSystem
-        EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerTwo = false;
+    {       
+        EventSystem.current.GetComponent<MenuInputModule>().Enabled = false;        //Block key input with EventSystem
         blockInputPanel.SetActive(true);                                            //Enable the panel in front of everything that blocks mouse input
     }
 

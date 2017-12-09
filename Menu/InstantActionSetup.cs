@@ -50,10 +50,10 @@ public class InstantActionSetup : MonoBehaviour
         announcer.Play();
     }
 
-    void Update()
-    {
-        print(InputManager.GetAxis("Turning", PlayerID.Two));
-    }
+    //void Update()
+    //{
+    //    print(InputManager.GetAxis("Turning", PlayerID.Two));
+    //}
 
     public void ScoreBased()    //This function is linked to Left and Right buttons on "Number Of Periods" selector and gets called whenever user presses them (or corresponding left-right keys)
     {
@@ -88,10 +88,11 @@ public class InstantActionSetup : MonoBehaviour
 
     private IEnumerator Game()
     {
-        music.Stop();
+        music.Stop();       //Stop the music and announcer from playing
+        announcer.Stop();
         //yield return new WaitForSecondsRealtime(0.5f);
-        sfx.PlayOneShot(select);
-        disableInput();
+        sfx.PlayOneShot(select);    //Play 'select' sound
+        disableInput();             //Disable input
         //Find StartupController in our scene (In some menus it can be transfered over from previous scene, so we can't have a set reference to it in all cases)
         StartupController startup = GameObject.Find(nameof(StartupController)).GetComponent<StartupController>();
 
@@ -107,7 +108,7 @@ public class InstantActionSetup : MonoBehaviour
 
         SavePreviousSettings();                             //Save the selectors states to PlayerPrefs
 
-        yield return new WaitForSecondsRealtime(0.5f);
+        yield return new WaitForSecondsRealtime(0.5f);      //0.5 sec delay before scene switching
 
         startup.GAMEButtonPress();                          //Launch the Startup Function on the side of GameController
     }
@@ -164,22 +165,21 @@ public class InstantActionSetup : MonoBehaviour
 
     private IEnumerator Back()
     {
-        music.Stop();
+        music.Stop();           //Stop music and announcer if they were playing
         announcer.Stop();
         //yield return new WaitForSecondsRealtime(0.5f);
-        sfx.PlayOneShot(select);
-        disableInput();
+        sfx.PlayOneShot(select);    //Play 'select' sound
+        disableInput();         //Disable input
         SavePreviousSettings(); //Save the state of Instant Action Setup menu
 
-        yield return new WaitForSecondsRealtime(0.5f);
+        yield return new WaitForSecondsRealtime(0.5f);  //Delay 0.5 sec
 
         SceneManager.LoadScene("MainMenu"); //Load Main Menu scene
     }
 
-    private void disableInput() //Function to disable player input after he clicked some button to go to next menu (since we have a small delay after pressing this button, when we don't want player to select something else)
+    private void disableInput() //Function to disable player input after he clicked some button to go to next menu (since we have a small delay after pressing this button, when we don't want player to be able to select something else)
     {
-        EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerOne = false; //Disable both player controls in EventSystem
-        EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerTwo = false;
+        EventSystem.current.GetComponent<MenuInputModule>().Enabled = false;        //MenuInputModule has variable that
         blockInputPanel.SetActive(true);                                            //Enable the panel in front of everything that blocks mouse input
     }
 

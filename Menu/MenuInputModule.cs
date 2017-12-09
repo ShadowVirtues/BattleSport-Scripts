@@ -27,18 +27,24 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using System;
+
+//This is custom edited by me StandaloneInputModule that we use in menus to accept all default hardcoded input for navigation. Like "Submit" buttons are Enter, Space, and a start button on all joysticks. 
+//Directional keys are WASD, arrows on keyboard and left arrow pad and left stick on joysticks
+//It is made to have default navigation in menus, regardless of what players set up in key bindings.
 
 namespace TeamUtility.IO
 {	
-	public class TwoPlayerInputModule : PointerInputModule
+	public class MenuInputModule : PointerInputModule
 	{
 		public const string VERSION = "5.5";
+        
+	    [SerializeField] private AudioSource click;     //Click sound whenever user presses any vertical buttons (in allowed time-intervals), basically whenever vertical move actually executes
 
-	    public bool PlayerOne;
-	    public bool PlayerTwo;  //Changed
-	    [SerializeField] private AudioSource click;
-
+	    public bool Enabled = true;                 //Flag to disable input (made it only for any button input that I was actually altering in the default input system, mouse inputs are blocked by a panel over everything)
 
 		private float m_PrevActionTime;
 		private Vector2 m_LastMoveVector;
@@ -47,7 +53,7 @@ namespace TeamUtility.IO
 		private Vector2 m_LastMousePosition;
 		private Vector2 m_MousePosition;
 
-		protected TwoPlayerInputModule()
+		protected MenuInputModule()
 		{
 		}
 
@@ -63,24 +69,7 @@ namespace TeamUtility.IO
 		{
 			get { return InputMode.Mouse; }
 		}
-
-		[SerializeField] private string m_HorizontalAxis = "Turning";
-
-		/// <summary>
-		/// Name of the vertical axis for movement (if axis events are used).
-		/// </summary>
-		[SerializeField] private string m_VerticalAxis = "Throttle";
-
-		/// <summary>
-		/// Name of the submit button.
-		/// </summary>
-		[SerializeField] private string m_SubmitButton = "Laser";
-
-		/// <summary>
-		/// Name of the submit button.
-		/// </summary>
-		[SerializeField] private string m_CancelButton = "Rocket";
-
+		
 		[SerializeField] private float m_InputActionsPerSecond = 10;
 
 		[SerializeField]
@@ -114,36 +103,7 @@ namespace TeamUtility.IO
 			set { m_RepeatDelay = value; }
 		}
 
-		/// <summary>
-		/// Name of the horizontal axis for movement (if axis events are used).
-		/// </summary>
-		public string horizontalAxis
-		{
-			get { return m_HorizontalAxis; }
-			set { m_HorizontalAxis = value; }
-		}
-
-		/// <summary>
-		/// Name of the vertical axis for movement (if axis events are used).
-		/// </summary>
-		public string verticalAxis
-		{
-			get { return m_VerticalAxis; }
-			set { m_VerticalAxis = value; }
-		}
-
-		public string submitButton
-		{
-			get { return m_SubmitButton; }
-			set { m_SubmitButton = value; }
-		}
-
-		public string cancelButton
-		{
-			get { return m_CancelButton; }
-			set { m_CancelButton = value; }
-		}
-
+		
 		public override void UpdateModule()
 		{
 			m_LastMousePosition = m_MousePosition;
@@ -155,27 +115,76 @@ namespace TeamUtility.IO
 			return m_ForceModuleActive || InputManager.mousePresent || InputManager.touchSupported;
 		}
 
-		public override bool ShouldActivateModule()
-		{
+	    public static int joyNum;   //Static variable to hold the number of conneceted joysticks (we also need it in MenuSelectors)
+
+	    public static readonly string[,] joyAxisNamesHor = new string[4, 2] //Array of allowed horizontal joystick axis names (for joysticks 1-4, because no way someone will have more than that connected)
+	    {                                                                   //Static because we also need it in MenuSelectors
+	        {"joy_0_axis_0", "joy_0_axis_5"},
+	        {"joy_1_axis_0", "joy_1_axis_5"},
+	        {"joy_2_axis_0", "joy_2_axis_5"},
+	        {"joy_3_axis_0", "joy_3_axis_5"}
+	    };
+
+        private readonly string[,] joyAxisNames = new string[4, 2]  //Vertical ones, only need them here
+	    {
+	        {"joy_0_axis_1", "joy_0_axis_6"}, 
+            {"joy_1_axis_1", "joy_1_axis_6"}, 
+            {"joy_2_axis_1", "joy_2_axis_6"},
+	        {"joy_3_axis_1", "joy_3_axis_6"}
+	    };
+        protected override void Awake()
+	    {
+	        joyNum = Input.GetJoystickNames().Length;   //Get the number of joysticks when the event system awakes at the scene load (that means after connecting a joystick, for it to work in the menu, you have to move to some other menu)
+	        if (joyNum > 4) joyNum = 4;                 //So shit doesn't break if there IS ACTUALLY SOME INSANE PERSON HAVING 5+ JOYSTICKS CONNECTED
+	    }
+
+	    public const float dead = 0.6f;         //Dead zone of joystick sticks when to accept menu input
+
+        public override bool ShouldActivateModule()
+        {
+            if (Enabled == false) return false; //This is put everywhere where I brought my hands to in this script
+
 			if(!base.ShouldActivateModule())
 				return false;
 
 			var shouldActivate = m_ForceModuleActive;
-		    if (PlayerOne)  //Changed
+
+            //SUBMIT
+		    shouldActivate |= InputManager.GetKeyDown(KeyCode.Return);     
+		    shouldActivate |= InputManager.GetKeyDown(KeyCode.Space);               //I am not exactly sure what "shouldActivate" is for, but we put here all default hardcoded buttons that you can control menu with
+            shouldActivate |= InputManager.GetKeyDown(KeyCode.Joystick1Button7);    //Also not sure why default Unity script didn't have it written like "if (someButtonWasPressed) return true;" for all buttons. Much more efficient, IMO. We don't bottleneck from this implementation, so 'who cares'
+		    //shouldActivate |= InputManager.GetKeyDown(KeyCode.Joystick2Button7);  
+		    //shouldActivate |= InputManager.GetKeyDown(KeyCode.Joystick3Button7);
+		    //shouldActivate |= InputManager.GetKeyDown(KeyCode.Joystick4Button7);
+
+		    ////CANCEL
+		    //shouldActivate |= InputManager.GetKeyDown(KeyCode.Return);
+		    //shouldActivate |= InputManager.GetKeyDown(KeyCode.Space);
+		    //shouldActivate |= InputManager.GetKeyDown(KeyCode.Joystick1Button7);
+		    //shouldActivate |= InputManager.GetKeyDown(KeyCode.Joystick2Button7);
+		    //shouldActivate |= InputManager.GetKeyDown(KeyCode.Joystick3Button7);
+		    //shouldActivate |= InputManager.GetKeyDown(KeyCode.Joystick4Button7);
+
+            //VERTICAL AXIS		   
+		    shouldActivate |= Mathf.Abs(Input.GetAxisRaw(joyAxisNames[0, 0])) > dead; //Joystick1 Y Axis
+		    shouldActivate |= Mathf.Abs(Input.GetAxisRaw(joyAxisNames[0, 1])) > dead; //Joystick1 7 Axis
+		    shouldActivate |= InputManager.GetKeyDown(KeyCode.W);                //This all initially had only "InputManager" class here, but it has all "GetAxis" tied to player number, so we are using default Input class when we need Axis
+		    shouldActivate |= InputManager.GetKeyDown(KeyCode.S);
+		    shouldActivate |= InputManager.GetKeyDown(KeyCode.UpArrow);
+		    shouldActivate |= InputManager.GetKeyDown(KeyCode.DownArrow);
+
+            if (joyNum > 1) //If there is more than 1 joystick connected, evaluate buttons for all additional ones
 		    {
-		        shouldActivate |= InputManager.GetButtonDown(m_SubmitButton, PlayerID.One);     //Changed
-		        shouldActivate |= InputManager.GetButtonDown(m_CancelButton, PlayerID.One);     //Changed
-		        //shouldActivate |= !Mathf.Approximately(InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.One), 0.0f);  //Changed
-		        shouldActivate |= !Mathf.Approximately(InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.One), 0.0f);    //Changed
+		        for (int i = 1; i < joyNum; i++)
+		        {
+		            shouldActivate |= Mathf.Abs(Input.GetAxisRaw(joyAxisNames[i, 0])) > dead; //Joystick[i] Y Axis
+		            shouldActivate |= Mathf.Abs(Input.GetAxisRaw(joyAxisNames[i, 1])) > dead; //Joystick[i] 7 Axis
+		            shouldActivate |= InputManager.GetKeyDown((KeyCode)(357 + i * 20)); //Submit button numbers in the KeyCode enum
+                }
             }
-		    if (PlayerTwo)  //Changed
-            {
-		        shouldActivate |= InputManager.GetButtonDown(m_SubmitButton, PlayerID.Two);     //Changed           
-		        shouldActivate |= InputManager.GetButtonDown(m_CancelButton, PlayerID.Two);     //Changed            
-		        //shouldActivate |= !Mathf.Approximately(InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.Two), 0.0f);  //Changed           
-		        shouldActivate |= !Mathf.Approximately(InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.Two), 0.0f);    //Changed
-            }			
-		    
+            
+            //MAYBE HORIZONTAL IF NEEDED
+            
             shouldActivate |= (m_MousePosition - m_LastMousePosition).sqrMagnitude > 0.0f;
 			shouldActivate |= InputManager.GetMouseButtonDown(0);
 
@@ -353,48 +362,84 @@ namespace TeamUtility.IO
 			}
 		}
 
+
 		/// <summary>
 		/// Process submit keys.
 		/// </summary>
 		protected bool SendSubmitEventToSelectedObject()
 		{
-			if(eventSystem.currentSelectedGameObject == null)
+		    if (Enabled == false) return false;
+
+            if (eventSystem.currentSelectedGameObject == null)
 				return false;
 
 			var data = GetBaseEventData();
-			if(InputManager.GetButtonDown(m_SubmitButton, PlayerID.One) || InputManager.GetButtonDown(m_SubmitButton, PlayerID.Two))    //Changed
+
+		    bool pressed = false;
+
+		    pressed |= InputManager.GetKeyDown(KeyCode.Return); //Evaluating all Submit buttons
+		    pressed |= InputManager.GetKeyDown(KeyCode.Space);
+		    pressed |= InputManager.GetKeyDown(KeyCode.Joystick1Button7);
+		    if (joyNum > 1)
+		    {
+		        for (int i = 1; i < joyNum; i++)
+		        {
+		            pressed |= InputManager.GetKeyDown((KeyCode)(357 + i * 20));
+		        }
+		    }
+
+            if (pressed)    //Changed
 				ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, data, ExecuteEvents.submitHandler);
 
-			if(InputManager.GetButtonDown(m_CancelButton, PlayerID.One) || InputManager.GetButtonDown(m_CancelButton, PlayerID.Two))    //Changed
-				ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, data, ExecuteEvents.cancelHandler);
+			
 			return data.used;
 		}
 
-		private Vector2 GetRawMoveVector()  //VERY Changed
+		private Vector2 GetRawMoveVector()  //If for whatever reason players press directional buttons together, we add all of them and return "-1,0,1" value out of all their input. Otherwise, just whatever button got pressed will output "-1,1"
 		{
-		    Vector2 P1Vector = Vector2.zero;
-		    Vector2 P2Vector = Vector2.zero;
+		    if (Enabled == false) return Vector2.zero;
 
-            if (PlayerOne)
+            Vector2 vector = Vector2.zero;
+		    
+            if (InputManager.GetKey(KeyCode.W)) vector.y += 1;
+		    if (InputManager.GetKey(KeyCode.S)) vector.y += -1;
+		    if (InputManager.GetKey(KeyCode.UpArrow)) vector.y += 1;
+		    if (InputManager.GetKey(KeyCode.DownArrow)) vector.y += -1;
+
+            if (Input.GetAxisRaw(joyAxisNames[0, 0]) > dead) vector.y += -1;
+		    if (Input.GetAxisRaw(joyAxisNames[0, 0]) < -dead) vector.y += 1;
+		    if (Input.GetAxisRaw(joyAxisNames[0, 1]) > dead) vector.y += 1;
+		    if (Input.GetAxisRaw(joyAxisNames[0, 1]) < -dead) vector.y += -1;
+            
+		    if (joyNum > 1)
 		    {
-		        P1Vector = new Vector2(0, InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.One));   //InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.One)
+		        for (int i = 1; i < joyNum; i++)
+		        {
+		            if (Input.GetAxisRaw(joyAxisNames[i, 0]) > dead) vector.y += -1;
+		            if (Input.GetAxisRaw(joyAxisNames[i, 0]) < -dead) vector.y += 1;
+		            if (Input.GetAxisRaw(joyAxisNames[i, 1]) > dead) vector.y += 1;
+		            if (Input.GetAxisRaw(joyAxisNames[i, 1]) < -dead) vector.y += -1;
+                }
             }
-		    if (PlayerTwo)
-		    {
-		        P2Vector = new Vector2(0, InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.Two));   //InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.Two)
-            }
-                        
-            return (P1Vector + P2Vector).normalized;           
+            
+            return vector.normalized;      //If players pressed 10000 "Up" buttons, we convert it to a value of "1"     
         }
-
-		/// <summary>
-		/// Process keyboard events.
-		/// </summary>
-		protected bool SendMoveEventToSelectedObject()
+        
+	    
+        /// <summary>
+        /// Process keyboard events.
+        /// </summary>
+        protected bool SendMoveEventToSelectedObject()
 		{
-			float time = Time.unscaledTime;
+		    if (Enabled == false) return false;
+
+            float time = Time.unscaledTime;
 
 			Vector2 movement = GetRawMoveVector();
+
+            //if (movement.magnitude > 0.01)
+            //{ }
+
 			if(Mathf.Approximately(movement.x, 0f) && Mathf.Approximately(movement.y, 0f))
 			{
 				m_ConsecutiveMoveCount = 0;
@@ -403,17 +448,23 @@ namespace TeamUtility.IO
 
 			// If user pressed key again, always allow event
 		    bool allow = false;
-		    if (PlayerOne)      //Changed
+            
+		    allow |= Input.GetButtonDown(joyAxisNames[0, 0]); //Joystick1 Y Axis
+		    allow |= Input.GetButtonDown(joyAxisNames[0, 1]); //Joystick1 7 Axis
+		    allow |= InputManager.GetKeyDown(KeyCode.W);
+		    allow |= InputManager.GetKeyDown(KeyCode.S);                            //Evaluating all vertical buttons
+		    allow |= InputManager.GetKeyDown(KeyCode.UpArrow);                      
+            allow |= InputManager.GetKeyDown(KeyCode.DownArrow);
+
+		    if (joyNum > 1)
 		    {
-		        //allow |= InputManager.GetButtonDown(m_HorizontalAxis, PlayerID.One);      //Changed
-                allow |= InputManager.GetButtonDown(m_VerticalAxis, PlayerID.One);      //Changed
-            }
-		    if (PlayerTwo)      //Changed
-            {
-		        //allow |= InputManager.GetButtonDown(m_HorizontalAxis, PlayerID.Two);      //Changed
-                allow |= InputManager.GetButtonDown(m_VerticalAxis, PlayerID.Two);      //Changed
-            }
-           
+		        for (int i = 1; i < joyNum; i++)
+		        {
+		            allow |= Input.GetButtonDown(joyAxisNames[i, 0]); //Joystick[i] Y Axis
+                    allow |= Input.GetButtonDown(joyAxisNames[i, 1]); //Joystick[i] 7 Axis		            
+		        }
+		    }
+
             bool similarDir = (Vector2.Dot(movement, m_LastMoveVector) > 0);
 			if(!allow)
 			{

@@ -42,10 +42,10 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
     }
 
     private bool isAxisInUse = false;     //Variable needed for processing GetAxis presses like ButtonDown
-    private bool quickSwitching = false;   
 
+    private bool quickSwitching = false;  
     private float repeatDelay = 0.5f;
-    private float switchDelay = 0.1f;
+    private float switchDelay = 0.1f;       //Five variables to set up the system of holding down the button, which performs the 'press' once, and then starts quickly pressing it after some delay
     private float prevActionTime;
     private float pressDownTime;
 
@@ -53,8 +53,37 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
     {        
         if (EventSystem.current.currentSelectedGameObject == gameObject)    //If this selector is the active one, this is the selector we choose options for with Left-Right buttons on keyboard or controller
         {
-            //Mergning both players input into one, so input is always either -1, 0, 1, even it both players are pressing buttons simultaneously
-            float axis = Math.Sign(InputManager.GetAxisRaw(turningAxisName, PlayerID.One) + InputManager.GetAxisRaw(turningAxisName, PlayerID.Two));    //Using Math, not Mathf, so when value is 0, Sign returns 0
+            float axis = 0; //Initial variable to output a move direction in the end(values -1,0,1)
+            if (GameController.Controller == null)  //Means we are in menu and all input is universal
+            {                
+                if (InputManager.GetKey(KeyCode.D)) axis += 1;
+                if (InputManager.GetKey(KeyCode.A)) axis += -1;             //Process keyboard keys
+                if (InputManager.GetKey(KeyCode.RightArrow)) axis += 1;
+                if (InputManager.GetKey(KeyCode.LeftArrow)) axis += -1;
+
+                if (Input.GetAxisRaw(MenuInputModule.joyAxisNamesHor[0, 0]) > MenuInputModule.dead) axis += 1;
+                if (Input.GetAxisRaw(MenuInputModule.joyAxisNamesHor[0, 0]) < -MenuInputModule.dead) axis += -1;    //Process joystick 1 input from which always gets processed
+                if (Input.GetAxisRaw(MenuInputModule.joyAxisNamesHor[0, 1]) > MenuInputModule.dead) axis += 1;      //Get the axis names and deadzone from MenuInputModule
+                if (Input.GetAxisRaw(MenuInputModule.joyAxisNamesHor[0, 1]) < -MenuInputModule.dead) axis += -1;
+
+                if (MenuInputModule.joyNum > 1)     //In case more than one joystick is connected, process their input as well
+                {
+                    for (int i = 1; i < MenuInputModule.joyNum; i++)
+                    {
+                        if (Input.GetAxisRaw(MenuInputModule.joyAxisNamesHor[i, 0]) > MenuInputModule.dead) axis += 1;
+                        if (Input.GetAxisRaw(MenuInputModule.joyAxisNamesHor[i, 0]) < -MenuInputModule.dead) axis += -1;
+                        if (Input.GetAxisRaw(MenuInputModule.joyAxisNamesHor[i, 1]) > MenuInputModule.dead) axis += 1;
+                        if (Input.GetAxisRaw(MenuInputModule.joyAxisNamesHor[i, 1]) < -MenuInputModule.dead) axis += -1;
+                    }
+                }
+
+                axis = Math.Sign(axis); //In the end if 20000000 buttons are pressed resulting value of 20000000, make it a value of 1
+
+            }
+            else    //Otherwise we are in game, where we only process input from the player which paused the game (Selectors are only in pause menu during the game)
+            {                
+                axis = Math.Sign(InputManager.GetAxisRaw(turningAxisName, GameController.Controller.PausedPlayer));    //Using Math, not Mathf, so when value is 0, Sign returns 0
+            }
             
             //Following code handles player holding down a button, so option switches once, waits 0.5 seconds, and then starts quickly switching further
             if (axis != 0)  //If axis is actually pressed
@@ -89,32 +118,7 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
                 quickSwitching = false; //Disable quick switching, cuz we released the button
                 isAxisInUse = false;    //Set the flag so the next press will switch the item
             }
-
-            //PREVIOUS IMPLEMENTATION, JUST IN CASE FOR NOW
-            //if (axis != 0)  //If axis is actually pressed
-            //{
-            //    if (isAxisInUse == false) //Only if axis wasn't previously pressed and held down    
-            //    {
-            //        if (axis == -1) //If axis is negative (Pressed Left)
-            //        {
-            //            //PreviousItem(); //Switch to previous item
-            //            Left.onClick.Invoke();
-            //        }
-            //        else if (axis == 1) //If axis is positive (Pressed Right)
-            //        {
-            //            //NextItem();     //Switch to next item
-            //            Right.onClick.Invoke();
-            //        }
-
-            //        isAxisInUse = true; //Until we release the axis button, this will remain true
-            //    }
-            //}
-            //if (axis == 0)  //And if the button is not pressed, or when it gets released
-            //{
-            //    isAxisInUse = false;    //Set the flag so the next press will switch the item
-            //}
-
-
+            
         }
 
     }
@@ -168,7 +172,7 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
         Left.gameObject.SetActive(false);
         Right.gameObject.SetActive(false);
 
-        quickSwitching = false;
+        quickSwitching = false;             //If we switch selector during holding left/right button, refresh the flags
         isAxisInUse = false;    
     }
 

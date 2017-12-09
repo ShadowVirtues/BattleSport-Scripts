@@ -30,9 +30,9 @@ public class GameUI : MonoBehaviour
     [SerializeField] private AudioClip[] periodSoundTied;
     [SerializeField] private AudioClip overtimeSound;            //Sound "This game is going into overtime"
 
-    [SerializeField] private RectTransform pauseMenu;   //COMM
+    [SerializeField] private RectTransform pauseMenu;   //Pause menu panel. RectTransform, because we change the position of the menu, depending on which player paused the game
 
-    private AudioSource audioSource;
+    private AudioSource audioSource;        //AudioSource for outputting all UI-related sounds
     
     private GameObject[] periodCircles;     //Red period circles reference array to enable them each period
 
@@ -68,24 +68,24 @@ public class GameUI : MonoBehaviour
         periodCircles[0].SetActive(true);   //Set active first red period circle
     }
 
-    public void PauseMenu(PlayerID player)
+    public void PauseMenu(PlayerID player)  //Function invoked from GameController passing player that paused the game
     {
-        if (player == PlayerID.One)
+        if (player == PlayerID.One) //If it was player one
         {
-            pauseMenu.anchoredPosition = new Vector2(-480, 0);
-            EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerOne = true;
+            pauseMenu.anchoredPosition = new Vector2(-480, 0);  //Place the pause menu on his side of the screen
+            EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerOne = true;  //Disable player2 input and enable player1 input through EventSystem
             EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerTwo = false;
         }
-        else if (player == PlayerID.Two)
+        else if (player == PlayerID.Two)    //Same, but opposite
         {
             pauseMenu.anchoredPosition = new Vector2(480, 0);
             EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerOne = false;
             EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerTwo = true;
         }
-        periodPanel.SetActive(false);
+        periodPanel.SetActive(false);   //Disable all the stuff that could be enabled for some reason
         GameFader.color = Color.clear;
         UIFader.color = Color.clear;
-        pauseMenu.gameObject.SetActive(true);
+        pauseMenu.gameObject.SetActive(true);   //Enable pause menu panel
 
     }
 

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Xml;
 using DG.Tweening;
 using TeamUtility.IO;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
@@ -20,11 +19,11 @@ using Random = UnityEngine.Random;
 
     
     DO NEXT:       
-    
+    Small lag when you first score??
 
     Manage EventSystem in all scenes
 
-   Maybe hard code control buttons in the menu
+   
     
     Menu options:
     IU Scale

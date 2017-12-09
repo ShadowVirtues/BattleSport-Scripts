@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using DG.Tweening;
 using TeamUtility.IO;
-using UnityEditor;
 using UnityEngine;
 
 public class Ball : MonoBehaviour

@@ -165,11 +165,14 @@ public class GameController : MonoBehaviour
 
     }
 
-    public void PauseMenu(PlayerID player)  //COMM
+    public PlayerID PausedPlayer;   //Player number that paused the game (so MenuSelectors can use it to only process a single player input)
+
+    public void PauseMenu(PlayerID player)  //Function that gets called from Player.cs when pressing "Pause" button
     {
-        Pause();
-        gameUI.gameObject.SetActive(true);
-        gameUI.PauseMenu(player);
+        Pause();        //Pause the game
+        PausedPlayer = player;      //Set the player who paused the game
+        gameUI.gameObject.SetActive(true);      //Enable UI Canvas with all non-player UI
+        gameUI.PauseMenu(player);               //Run a function on the side of GameUI
 
     }
 
