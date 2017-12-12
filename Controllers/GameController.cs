@@ -85,7 +85,7 @@ public class GameController : MonoBehaviour
         else     //DELETE. For testing in INJECTED arenas when StartupController doesn't exist
         {
             gameUI.gameObject.SetActive(false);
-            Pause();
+            UnPause();
         }
             
     }
@@ -143,26 +143,21 @@ public class GameController : MonoBehaviour
         Destroy(gameUI.CountdownPanel);             //We don't need countdown panel anymore, so destroy it
         gameUI.gameObject.SetActive(false);         //Disable game UI
         GC.Collect();   //Collect all garbage before starting the game
-        Pause();        //Unpause the game and players proceed to play
+        UnPause();        //Unpause the game and players proceed to play
     }
     
-    public bool paused = false;    //Flag to know if the game is paused (for other scripts to know) 
+    //public bool paused = false;    //Flag to know if the game is paused (for other scripts to know) 
 
     public void Pause()             //Function that pauses and unpauses the game
     {
-        if (paused == false)        //If the game is not paused
-        {
-            Time.timeScale = 0;     //Set timescale to 0
-            paused = true;          //Set the flag
-            audioManager.music.Pause(); //Stop the music (when setting timeScale to 0, all sounds will actually still continue playing, which is what we want, except for music)
-        }
-        else
-        {
-            Time.timeScale = 1;     //Set those things back if game is paused
-            paused = false;
-            audioManager.music.UnPause();
-        }
+        Time.timeScale = 0;     //Set timescale to 0        
+        audioManager.music.Pause(); //Stop the music (when setting timeScale to 0, all sounds will actually still continue playing, which is what we want, except for music)
+    }
 
+    public void UnPause()
+    {
+        Time.timeScale = 1;     //Set those things back if game is paused        
+        audioManager.music.UnPause();
     }
 
     public PlayerID PausedPlayer;   //Player number that paused the game (so MenuSelectors can use it to only process a single player input)
@@ -172,8 +167,7 @@ public class GameController : MonoBehaviour
         Pause();        //Pause the game
         PausedPlayer = player;      //Set the player who paused the game
         gameUI.gameObject.SetActive(true);      //Enable UI Canvas with all non-player UI
-        gameUI.PauseMenu(player);               //Run a function on the side of GameUI
-
+        gameUI.PauseMenu();               //Run a function on the side of GameUI to hide all panels and shot pause menu panel
     }
 
     //void LateUpdate()

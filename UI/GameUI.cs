@@ -32,7 +32,7 @@ public class GameUI : MonoBehaviour
 
     [SerializeField] private RectTransform pauseMenu;   //Pause menu panel. RectTransform, because we change the position of the menu, depending on which player paused the game
 
-    private AudioSource audioSource;        //AudioSource for outputting all UI-related sounds
+    [HideInInspector] public AudioSource audioSource;        //AudioSource for outputting all UI-related sounds. EventSystem gets the reference to this source, for playing its 'click' sound through it, that's why public
     
     private GameObject[] periodCircles;     //Red period circles reference array to enable them each period
 
@@ -68,28 +68,18 @@ public class GameUI : MonoBehaviour
         periodCircles[0].SetActive(true);   //Set active first red period circle
     }
 
-    public void PauseMenu(PlayerID player)  //Function invoked from GameController passing player that paused the game
-    {
-        if (player == PlayerID.One) //If it was player one
-        {
-            pauseMenu.anchoredPosition = new Vector2(-480, 0);  //Place the pause menu on his side of the screen
-            EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerOne = true;  //Disable player2 input and enable player1 input through EventSystem
-            EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerTwo = false;
-        }
-        else if (player == PlayerID.Two)    //Same, but opposite
-        {
-            pauseMenu.anchoredPosition = new Vector2(480, 0);
-            EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerOne = false;
-            EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerTwo = true;
-        }
+    public void PauseMenu()  //Function invoked from GameController passing player that paused the game
+    {        
         periodPanel.SetActive(false);   //Disable all the stuff that could be enabled for some reason
         GameFader.color = Color.clear;
         UIFader.color = Color.clear;
         pauseMenu.gameObject.SetActive(true);   //Enable pause menu panel
-
     }
 
-
+    public void QuitMatch()
+    {
+        StartCoroutine(EndGameSequence("THIS GAME WAS ENDED PREMATURELY"));
+    }
 
 
 
@@ -204,7 +194,7 @@ public class GameUI : MonoBehaviour
         periodPanel.SetActive(false);   //Disable periods panel
         gameObject.SetActive(false);    //And disable the whole UI
        
-        GameController.Controller.Pause();  //Unpause the game and players proceed to play
+        GameController.Controller.UnPause();  //Unpause the game and players proceed to play
     }
 
     [SerializeField] private GameObject gameStatsPrefab;    //Prefab GameStats panel that gets intstantiated when the game ends, filling all its fields
@@ -212,9 +202,10 @@ public class GameUI : MonoBehaviour
 
     IEnumerator EndGameSequence(string cause)   //Parameter means what caused the game to end (some player winning, or exiting from menu)
     {
+        if (GameController.audioManager.music.isPlaying == false) GameController.audioManager.music.UnPause();  //COMM
+
         //We use 'custom' pausing the game here, without pausing the music
-        Time.timeScale = 0;     //Set timescale to 0
-        GameController.Controller.paused = true;          //Set the flag    //CHECK if we will use it to unpause when pressed "Replay Game"
+        Time.timeScale = 0;     //Set timescale to 0       
 
         audioSource.PlayOneShot(finalHorn);    //Play end game horn
         UIFader.color = Color.clear;            //Make sure UIFader is transparent (so we don't get black screen)
@@ -227,7 +218,7 @@ public class GameUI : MonoBehaviour
         yield return new WaitForSecondsRealtime(time * 2);  //Wait for some more time
 
         statsPanel = Instantiate(gameStatsPrefab, transform);   //Instantiate GameStats panel into this GameUI object
-        statsPanel.transform.SetSiblingIndex(1);                //Set so it's not in front of UIFader (it spawns in the end of hierarchy by default)
+        statsPanel.transform.SetSiblingIndex(transform.childCount - 2);                //Set so it's not in front of UIFader (object spawn in the end of hierarchy by default)
         statsPanel.GetComponent<GameStats>().gameResultString = cause;  //Sets the string in GameStats to output it to GameStats field
         UIFader.DOFade(0, time).SetUpdate(UpdateType.Normal, true); //Fade out UIFader so GameStats UI fades in
 

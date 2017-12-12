@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TeamUtility.IO;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
 //StartupController is present in menu scenes where you start setting up the game, then persists until the actual game scene. During setting up the game, different menu controllers 'Find" StartupController object, and fill their settings in it
@@ -17,7 +18,7 @@ public class StartupController : MonoBehaviour
 
     [SerializeField] private GameObject audioManagerPrefab;     //AudioManagerPrefab that also gets loaded into arena from here (to not have it referenced on each arena GameController
     [SerializeField] private GameObject GameUIPrefab;                 //Prefab of GameUI having all stuff like starting countdown, options menu, periods UI, GameStats
-
+    [SerializeField] private GameObject ballCameraPrefab;       //COMM
 
     [Header("Not getting set into Inspector")]  //TODO [HideInInspector]. For now they are visible for testing purposes
     public Arena arena;
@@ -79,8 +80,15 @@ public class StartupController : MonoBehaviour
         gameController.PlayerOne.PlayerName = PlayerOneName;        //Set player names
         gameController.PlayerTwo.PlayerName = PlayerTwoName;
 
+        GameObject ballCamera = Instantiate(ballCameraPrefab);      //Spawning ball camera under the map (for showing rotating ball on player UI). BallCamera also has EventSystem attached to it (just so we spawn one object instead of two)
+        if (arena.ballType == Ball.BallType.Electric) ballCamera.GetComponent<Camera>().backgroundColor = new Color(49f / 256, 77f / 256, 121f / 256, 0);   //TODO WHAT?? For electric ball, set the camera color, so it shows with proper colors on UI (render texture absence of proper particle shader workaround)
+        
         gameController.audioManagerObject = Instantiate(audioManagerPrefab);        //Instantiate AudioManager
-        gameController.gameUI = Instantiate(GameUIPrefab).GetComponent<GameUI>();                      //Instantiate GameUI and get reference to its script component
+        gameController.gameUI = Instantiate(GameUIPrefab).GetComponent<GameUI>();   //Instantiate GameUI and get reference to its script component
+
+        ballCamera.GetComponentInChildren<TwoPlayerInputModule>().click = gameController.gameUI.audioSource;    //Set the click sound of EventSystem to GameUI audioSource (this AudioSource outputs all UI sounds)
+
+
     }
 
     

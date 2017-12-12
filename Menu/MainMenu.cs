@@ -19,9 +19,7 @@ public class MainMenu : MonoBehaviour
         blockInputPanel.SetActive(false);   //Disable it in case if was active for some reason
         Destroy(GameObject.Find(nameof(StartupController)));    //Destroy StartupController of this scene (cuz it gets DontDestroyOnLoad in its Awake)
        
-        music.Play();           //Play the music TODO if it's not disabled in options
-
-        //EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerOne = true;     
+        music.Play();           //Play the music TODO if it's not disabled in options       
     }
 
     void Update()

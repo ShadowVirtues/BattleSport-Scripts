@@ -37,7 +37,7 @@ namespace TeamUtility.IO
 
 	    public bool PlayerOne;
 	    public bool PlayerTwo;  //Changed
-	    [SerializeField] private AudioSource click;
+	    public AudioSource click;
 
 
 		private float m_PrevActionTime;

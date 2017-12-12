@@ -21,7 +21,9 @@ using Random = UnityEngine.Random;
     DO NEXT:       
     Small lag when you first score??
 
-    Manage EventSystem in all scenes
+    Manage EventSystem in all scenes. Probably spawn it.
+    Also spawn BallCamera, and there set the camera color
+    Delete BallCamera and EventSystem from all arena scenes
 
    
     
