@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Design.Serialization;
 using TeamUtility.IO;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
@@ -27,18 +28,21 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
     private const string turningAxisName = "Turning";   //"Turning" buttons will switch between options for keyboard and controller input
 
     [Header("Audio")]
-    [SerializeField] private AudioSource click;
+    [SerializeField] private AudioSource click;         //AudioSource to play click sound when switching options in the selector
+
+    [SerializeField] private UnityEvent unityEvent;     //Some Event that you invoke when you press any button (like applying some option instantly with changing it in settings). Will execute for the new value on the selector (to which it switches) 
 
     protected virtual void Awake()  //We need to call Awake from the base class, and derived ones. That's why it is virtual, so we can then override it in derived class and call base.Awake()
     {
         Left.gameObject.SetActive(false);   //For all the selectors, disable their arrows, they get enabled only for currently "selected" object that has focus
         Right.gameObject.SetActive(false);       
 
-
-        Left.onClick.AddListener(PreviousItem);
+        Left.onClick.AddListener(PreviousItem);     //Add listener to switch the items
         Right.onClick.AddListener(NextItem);
-        Left.onClick.AddListener(click.Play);
+        Left.onClick.AddListener(click.Play);       //Add listener to play click sound
         Right.onClick.AddListener(click.Play);
+        Left.onClick.AddListener(unityEvent.Invoke);//Add listener to execute custom event for the selector (like applying some option in the settings)
+        Right.onClick.AddListener(unityEvent.Invoke);
     }
 
     private bool isAxisInUse = false;     //Variable needed for processing GetAxis presses like ButtonDown

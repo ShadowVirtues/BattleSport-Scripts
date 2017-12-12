@@ -199,13 +199,18 @@ public class Player : MonoBehaviour
     private const string ballButtonName = "ShootBall";    //Caching button name for shooting the ball
 
     //=============================================
-    
+
+    void Awake()
+    {
+        playerRadar = GetComponent<PlayerRadar>();      //We need playerRadar reference in Awake, since that's when UI scale settings are getting applied
+    }
+
     void Start() //Since when loading the scene, we first spawn PlayerPrefab (which would INSTANTLY run Awake here) and only after that we get the Tank in, we have to get all references in Start, when the Tank has already been put in
     {
         ball = GameController.Controller.ball;
 
         tank = GetComponentInChildren<Tank>();              //Getting dose references
-        playerRadar = GetComponent<PlayerRadar>();
+        
         material = tank.GetComponent<Renderer>().material;
          
         playerRigidbody = GetComponent<Rigidbody>();

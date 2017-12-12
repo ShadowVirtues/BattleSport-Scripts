@@ -2,12 +2,25 @@
 using System.Collections.Generic;
 using TeamUtility.IO;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerRadar : MonoBehaviour
 {
     [SerializeField] private RectTransform ballRadar;
     [SerializeField] private RectTransform goalRadar;   //References to icons on the radar
-    [SerializeField] private RectTransform enemyRadar;   
+    [SerializeField] private RectTransform enemyRadar;
+
+    public RectTransform radarBackground;   //Background image of radar, gets set directly from PauseMenu.cs, that's why public
+    public CanvasScaler canvasScaler;       //Canvas Scaler component of Player HUD Canvas, for easy UI scaling
+
+    //========Stuff for scaling radar=================
+    private float radarScale = 1;  //Radar Scale coefficient to multiply icons position by (their position does not depend on radar scale directly via Rect Transform)
+    private float iconsScale = 1;  //Icons Scale to multiply icons scale along with radar scale
+    private Vector2 initialRadarScale;  //Initial radar scales to have a starting point of what to multiply
+    private Vector2 initialBallScale;
+    private Vector2 initialGoalScale;
+    private Vector2 initialEnamyScale;
+    //===========================================
 
     private Transform player;       //Current player transform
 
@@ -38,7 +51,15 @@ public class PlayerRadar : MonoBehaviour
         }
 
     }
-    
+
+    void Awake()
+    {
+        initialRadarScale = radarBackground.sizeDelta;  
+        initialBallScale  = ballRadar .sizeDelta;       //Getting dose initial scales (in Awake, cuz that's when the settings are getting applied)
+        initialGoalScale  = goalRadar .sizeDelta;       
+        initialEnamyScale = enemyRadar.sizeDelta;        
+    }
+
     void Start()    //No Awake, cuz no references after the scene load
     {
         Player playerPlayer = GetComponent<Player>();   //Get the Player reference to figure out which player number it is
@@ -68,8 +89,34 @@ public class PlayerRadar : MonoBehaviour
         float itemZ = (item.position.z - player.position.z) / arenaSize * radarDimension;
 
         Vector3 relative = player.TransformDirection(itemX, 0, -itemZ); //Transform direction of the item to be relative to players rotation
-        return new Vector2(relative.x, -relative.z);    //Return the coordinates where to put the icon on the radar
+        return new Vector2(relative.x * radarScale, -relative.z * radarScale);    //Return the coordinates where to put the icon on the radar, counting radar scale
         //I was kinda randomly putting '-'s during those transformations until I got the radar to show the relative position accordingly, not sure why you need to put those '-'s there
+    }
+
+    public void ApplyRadarScale(float value)    //Function that gets run in the start of the game to apply settings and when players change the value in settings
+    {
+        radarBackground.sizeDelta = initialRadarScale * value;          //No icons scales for radar scale
+        ballRadar.sizeDelta = initialBallScale * iconsScale * value;    //Set the scales counting both setting value and icons scale
+        goalRadar.sizeDelta = initialGoalScale * iconsScale * value;
+        enemyRadar.sizeDelta = initialEnamyScale * iconsScale * value;
+
+        radarScale = value;     //Set the coefficient to count during icon scale setting and in radar position calculation
+        try
+        {
+            Update();   //This is to apply the position when scaling the radar. Will not have all references when applying the scale in the start of the game, that's why simply not executing it if it can't. It will get executed during setting the value in settings
+        }
+        catch {}
+
+
+    }
+
+    public void ApplyIconsScale(float value)    //The same, but only for icons
+    {
+        ballRadar.sizeDelta = initialBallScale * radarScale * value;
+        goalRadar.sizeDelta = initialGoalScale * radarScale * value;
+        enemyRadar.sizeDelta = initialEnamyScale * radarScale * value;
+
+        iconsScale = value;
     }
 
 	void Update ()
