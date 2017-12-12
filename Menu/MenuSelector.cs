@@ -29,7 +29,7 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
     [Header("Audio")]
     [SerializeField] private AudioSource click;
 
-    void Start()
+    protected virtual void Awake()  //We need to call Awake from the base class, and derived ones. That's why it is virtual, so we can then override it in derived class and call base.Awake()
     {
         Left.gameObject.SetActive(false);   //For all the selectors, disable their arrows, they get enabled only for currently "selected" object that has focus
         Right.gameObject.SetActive(false);       

@@ -215,11 +215,12 @@ public class GameUI : MonoBehaviour
 
         UIFader.color = Color.black;        //Set UIFader to black to fade in GameStats UI
 
-        yield return new WaitForSecondsRealtime(time * 2);  //Wait for some more time
-
         statsPanel = Instantiate(gameStatsPrefab, transform);   //Instantiate GameStats panel into this GameUI object
-        statsPanel.transform.SetSiblingIndex(transform.childCount - 2);                //Set so it's not in front of UIFader (object spawn in the end of hierarchy by default)
+        statsPanel.transform.SetSiblingIndex(transform.childCount - 3);                //Set so it's not in front of UIFader (object spawn in the end of hierarchy by default)
         statsPanel.GetComponent<GameStats>().gameResultString = cause;  //Sets the string in GameStats to output it to GameStats field
+
+        yield return new WaitForSecondsRealtime(time * 2);  //Wait for some more time
+      
         UIFader.DOFade(0, time).SetUpdate(UpdateType.Normal, true); //Fade out UIFader so GameStats UI fades in
 
         yield return new WaitForSecondsRealtime(time);      //Wait until it fades

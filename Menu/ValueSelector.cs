@@ -12,8 +12,10 @@ public class ValueSelector : MenuSelector   //This selector selects only numeric
     [SerializeField] private int max;   //Variables to define the numeric range and step for selection
     [SerializeField] private int step;
 
-    void Awake()        //Stuff to do when the menu loads
+    protected override void Awake()        //Stuff to do when the menu loads
     {
+        base.Awake();   //Call base class' Awake
+
         int length = (max - min) / step + 1;    //Calculate the number of items for selection to
         Options = new int[length];              //initialize the array with
         int value = min;                        //This value will get increased as the array fills
