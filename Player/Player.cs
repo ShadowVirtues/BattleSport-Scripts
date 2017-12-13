@@ -20,17 +20,18 @@ using Random = UnityEngine.Random;
     
     DO NEXT:       
     Small lag when you first score??
-    
+    Rebake lights in Arena 42
+
     Make general navigating in menu, like pressing Escape or Cancel button on controller to go to previous menu
-    
+    Test run in background bs again
     
     Video settings:
     Resolution
     Windowed
-    FOV
+    Anti-Aliasing
     Vsync?
     Active in Background
-
+    FOV
 
 
 
@@ -138,7 +139,7 @@ public class Player : MonoBehaviour
 
     [Header("Health")]          //All the stuff about health
     [SerializeField] private Slider healthSlider;   //Reference to slider to change its value depending on the player health
-    [SerializeField] private new Camera camera;     //Reference to player's camera to shake it on rocket hit
+    public new Camera camera;     //Reference to player's camera to shake it on rocket hit. Also to set its FOV
     private float Health = 100;  //Tank Health variable, changes when taking damage
 
     [Header("Explosion")]                   //All the stuff about explosion

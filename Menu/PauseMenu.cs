@@ -28,6 +28,14 @@ public class PauseMenu : MonoBehaviour
     [SerializeField] private ValueSelector SFXVol;
     [SerializeField] private ValueSelector announcerVol;
 
+    [Header("Video Settings Selectors")]
+    [SerializeField] private ResolutionSelector resolution;     //Reference to selectors in the Sound Settings Menu
+    [SerializeField] private StringSelector windowed;
+    [SerializeField] private StringSelector vSync;
+    [SerializeField] private StringSelector aa;
+    [SerializeField] private StringSelector runInBackground;
+    [SerializeField] private ValueSelector fov;
+
     [Header("Audio")]
     [SerializeField] private AudioSource UISource;      //AudioSource to play when clicking through or selecting menus
     [SerializeField] private AudioClip select;          //'Select' menu sound to PlayOneShot it
@@ -64,6 +72,9 @@ public class PauseMenu : MonoBehaviour
         ApplyMusicVolume();             //NOTE: sounds settings don't get applied when starting injected scenes (when settings are supposed to be applied right at the moment of pressing Play in Editor)
         ApplySFXVolume();
         ApplyAnnouncerVolume();
+
+        LoadFOVValue();                 //COMM
+        ApplyFOV();
         
         gameObject.SetActive(false);                   //Pause menu instantiates in GameUI in enabled state to run this Awake, we need to disable it in the end of it so its OnEnable doesn't run 
     }
@@ -187,7 +198,7 @@ public class PauseMenu : MonoBehaviour
         GameController.audioManager.music.Pause();     //Pause back the music
     }
 
-    private const string SoundSettings_Master = "SoundSettings_Master";
+    public const string SoundSettings_Master = "SoundSettings_Master";
     private const string SoundSettings_Game_Music = "SoundSettings_Game_Music";     //PlayerPrefs keys and AudioMixer exposed parameters (I made so they have same names)
     private const string SoundSettings_Game_SFX = "SoundSettings_Game_SFX";
     private const string SoundSettings_Game_Announcer = "SoundSettings_Game_Announcer";
@@ -250,13 +261,49 @@ public class PauseMenu : MonoBehaviour
 
     //===================VIDEO SETTINGS=====================
 
+    public const string VideoSettings_VSync = "VideoSettings_VSync";
+    public const string VideoSettings_AntiAliasing = "VideoSettings_AntiAliasing";     //PlayerPrefs keys and AudioMixer exposed parameters (I made so they have same names)
+    public const string VideoSettings_RunInBackground = "VideoSettings_RunInBackground";
+    public const string VideoSettings_FOV = "VideoSettings_FOV";
+    
+    public void LoadVideoSettings()
+    {
+        resolution.SetSelectorValue();
+        windowed.SetIndex(Screen.fullScreen ? 1 : 0);
 
+        vSync.SetIndex(PlayerPrefs.GetInt(VideoSettings_VSync, 1));     //0 - no vsync, 1 - vsync
+        aa.SetIndex(PlayerPrefs.GetInt(VideoSettings_AntiAliasing, 1));
+        runInBackground.SetIndex(PlayerPrefs.GetInt(VideoSettings_RunInBackground, 0)); //0 - not run, 1 - run        
+    }
 
+    public void ApplyVideoSettings()
+    {
+        bool fullscreen = windowed.GetIndex != 0;
+        Screen.SetResolution(resolution.Option.width, resolution.Option.height, fullscreen);
+        QualitySettings.vSyncCount = vSync.GetIndex;    
+        QualitySettings.antiAliasing = (int)Mathf.Pow(2, aa.GetIndex);    
+        Application.runInBackground = runInBackground.GetIndex != 0;    
 
+        PlayerPrefs.SetInt(VideoSettings_VSync, vSync.GetIndex);
+        PlayerPrefs.SetInt(VideoSettings_AntiAliasing, aa.GetIndex);
+        PlayerPrefs.SetInt(VideoSettings_RunInBackground, runInBackground.GetIndex);       
+    }
 
+    public void ApplyFOV()
+    {
+        GameController.Controller.PlayerOne.camera.fieldOfView = fov.Option;
+        GameController.Controller.PlayerTwo.camera.fieldOfView = fov.Option;
+    }
 
+    public void LoadFOVValue()
+    {
+        fov.SetValue(PlayerPrefs.GetInt(VideoSettings_FOV, 60));       
+    }
 
-
+    public void SaveFOVValue()
+    {
+        PlayerPrefs.SetInt(VideoSettings_FOV, fov.Option);
+    }
 
 
 
