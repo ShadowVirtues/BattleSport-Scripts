@@ -20,23 +20,19 @@ using Random = UnityEngine.Random;
     
     DO NEXT:       
     Small lag when you first score??
-
-    Manage EventSystem in all scenes. Probably spawn it.
-    Also spawn BallCamera, and there set the camera color
-    Delete BallCamera and EventSystem from all arena scenes
-
-   
     
-    Menu options:
-    IU Scale
-    Map Scale
-    Map Icons Scale
-    Map Transparency
-
-    Music
-    SFX
-    Announcer
+    Make general navigating in menu, like pressing Escape or Cancel button on controller to go to previous menu
     
+    
+    Video settings:
+    Resolution
+    Windowed
+    FOV
+    Vsync?
+    Active in Background
+
+
+
 
 
     GENERAL THINGS TO DO:
@@ -47,7 +43,7 @@ using Random = UnityEngine.Random;
         
         Powerups  
         Arena Preview (TUGUSH-TUGUSH)
-        Pause the game
+        
         Options > KeyBindings
         Smooth mouse/Stick controls
         10 Levels > Props, Skyboxes

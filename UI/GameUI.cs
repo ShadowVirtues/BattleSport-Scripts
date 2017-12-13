@@ -25,10 +25,7 @@ public class GameUI : MonoBehaviour
     [SerializeField] private Text PlayerTwoScore;   //Player scores in Periods UI
 
     [SerializeField] private AudioClip periodHorn;          //Period Horn when it ends
-    [SerializeField] private AudioClip finalHorn;          //Final Horn when the game ends
-    [SerializeField] private AudioClip[] periodSound;       //Sounds during periods UI how many periods left, sound is different if the score is tied
-    [SerializeField] private AudioClip[] periodSoundTied;
-    [SerializeField] private AudioClip overtimeSound;            //Sound "This game is going into overtime"
+    [SerializeField] private AudioClip finalHorn;          //Final Horn when the game ends   
 
     [SerializeField] private RectTransform pauseMenu;   //Pause menu panel. RectTransform, because we change the position of the menu, depending on which player paused the game
 
@@ -153,14 +150,14 @@ public class GameUI : MonoBehaviour
 
         if (overtime == false)  //If there is no overtime in next period
         {
-            if (P1Score == P2Score) //But if player scores are tied, play the sound "Tie game, [number of periods]"
-            {
-                audioSource.PlayOneShot(periodSoundTied[period - number + 3]);  //That's how you get corresponding audioClip from the array depending on current period
+            if (P1Score == P2Score) //But if player scores are tied, play the sound "Tie game, [number of periods]", specific to current period number
+            {                  
+                GameController.announcer.PeriodSoundTied(period - number + 3);      //The function parameter is how you get corresponding audioClip from the array depending on current period
             }
         }
         else    //If there is overtime
-        {
-            audioSource.PlayOneShot(overtimeSound); //Play "This game is going into overtime
+        {            
+            GameController.announcer.OvertimeSound();
         }
         
         while (InputManager.GetButtonDown("Start", PlayerID.One) == false && InputManager.GetButtonDown("Start", PlayerID.Two) == false)    //Until some user presses 'Start', wait
@@ -172,10 +169,10 @@ public class GameUI : MonoBehaviour
         {
             if (P1Score != P2Score) //If players are not tied, say "Next period" after player presses the button
             {
-                if (number == 4 && period == 4)                         //My numbering system of End Period lines worked perfectly except for this case, so hack it here
-                    audioSource.PlayOneShot(periodSound[period - 1]);
+                if (number == 4 && period == 4)                         //My numbering system of End Period lines worked perfectly except for this case, so hack it here                    
+                    GameController.announcer.PeriodSound(period - 1);
                 else
-                    audioSource.PlayOneShot(periodSound[period - 2]);
+                    GameController.announcer.PeriodSound(period - 2);                    
             }
 
             for (int i = 0; i < period; i++)    //After pressing the button activate next red circle

@@ -7,6 +7,7 @@ public class Announcer : MonoBehaviour
 {
     //Announcer script component is attached to AudioManager object 
 
+    [Header("Game Sounds")]
     [SerializeField] private AudioClip possession;
     [SerializeField] private AudioClip[] interception;
     [SerializeField] private AudioClip[] missClose;
@@ -18,6 +19,7 @@ public class Announcer : MonoBehaviour
     [SerializeField] private AudioClip[] kill;
     [SerializeField] private AudioClip violation;
  
+    [Header("Audio Sources")]
     [SerializeField] private AudioSource announcerSource;       //Interruptible announcer source
     [SerializeField] private AudioSource announcerSourceScore;  //Non-interruptible announcer source
     
@@ -84,10 +86,30 @@ public class Announcer : MonoBehaviour
         announcerSource.Play();
     }
 
-    
+
+    [Header("Period Sounds")]
+    [SerializeField] private AudioClip[] periodSound;       //Sounds during periods UI how many periods left, sound is different if the score is tied
+    [SerializeField] private AudioClip[] periodSoundTied;
+    [SerializeField] private AudioClip overtimeSound;            //Sound "This game is going into overtime"
+
+    public void PeriodSound(int index)  //Play period sound with specific index depending on the current period
+    {
+        announcerSourceScore.PlayOneShot(periodSound[index]);
+    }
+
+    public void PeriodSoundTied(int index)  //Same for tied case
+    {
+        announcerSourceScore.PlayOneShot(periodSoundTied[index]);
+    }
+
+    public void OvertimeSound()
+    {
+        announcerSourceScore.PlayOneShot(overtimeSound);
+    }
 
 
-    
+
+
 
 
 
@@ -107,8 +129,8 @@ public class Announcer : MonoBehaviour
 
     //Announcer has two AudioSources. They both get decided if which plays together with the second on or intrerrupts already playing one.
     //Launching announcer sound from outer code is all the same, just function like Score() are gonna be "Score() => PlayAnnouncer(0)", where 0 is the index of respective announcer clip from "respection" array
-    //Then this number gets compared with "interruptionMatrix" knowing what sound number is already playing in existing sources, if there is true, we interrupt playing soun
-    //and if there is "true", we interrup
+    //Then this number gets compared with "interruptionMatrix" knowing what sound number is already playing in existing sources, if there is true, we interrupt playing sound
+    //and if there is "true", we interrup...
 
 
 

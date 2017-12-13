@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using TeamUtility.IO;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -9,8 +10,9 @@ public class PauseMenu : MonoBehaviour
 {
     [Header("Panels/Menus")]
     [SerializeField] private GameObject mainPanel;          //Reference specifically to Main panel to enable it when invoking pause menu
-    [SerializeField] private GameObject[] allPanels;        //Reference to all menu panels to disable all of them every time switching some menu (for 'general implementation' of menu switching)
-
+    [SerializeField] private GameObject[] settingsPanels;       //Reference to settings panels specifically to enable-disable them in Awake here, so MenuSelector's Awakes also run
+    [SerializeField] private GameObject[] allOtherPanels;        //Reference to all other menu panels to disable all of them every time switching some menu (for 'general implementation' of menu switching)
+ 
     [Header("Other")]
     [SerializeField] private GameObject resume; //Reference specifically to "Resume Game" button to select it when invoking pause menu (all other ones are getting selecting from 'general implementation' - see further)   
 
@@ -20,9 +22,16 @@ public class PauseMenu : MonoBehaviour
     [SerializeField] private ValueSelector iconsScale;
     [SerializeField] private ValueSelector opacity;
 
+    [Header("Sound Settings Selectors")]
+    [SerializeField] private ValueSelector masterVol;     //Reference to selectors in the Sound Settings Menu
+    [SerializeField] private ValueSelector musicVol;
+    [SerializeField] private ValueSelector SFXVol;
+    [SerializeField] private ValueSelector announcerVol;
+
     [Header("Audio")]
     [SerializeField] private AudioSource UISource;      //AudioSource to play when clicking through or selecting menus
     [SerializeField] private AudioClip select;          //'Select' menu sound to PlayOneShot it
+    [SerializeField] private AudioMixer mixer;          //AudioMixer to set volumes for it
 
     private RectTransform rectTransform;                //Rect transform of pause menu is used to position pause menu on specific player screen side when we show it
 
@@ -37,16 +46,28 @@ public class PauseMenu : MonoBehaviour
         eventSystem = EventSystem.current;                  //EventSystem gets instantiated in enabled state, and that's how we get a reference to it
         inputModule = eventSystem.GetComponent<TwoPlayerInputModule>();     //Get a reference to input Module
         eventSystem.enabled = false;                                        //We got all the references, now disable event system, it gets enabled when some player pauses the game
-        
+
+        foreach (GameObject panel in settingsPanels)   //Unity has no good feature to run 'Awake' on disabled objects so we are going for this
+        {
+            panel.SetActive(true);
+            panel.SetActive(false);
+        }
+
         LoadGameSettingsValues();       //Load all game settings values from PlayerPrefs
         ApplyUIScale();                 //And apply them
         ApplyRadarScale();
         ApplyRadarIconsScale();
         ApplyRadarOpacity();
 
+        LoadSoundSettingsValues();      //Load all sound settings values from PlayerPrefs
+        ApplyMasterVolume();            //And apply this
+        ApplyMusicVolume();             //NOTE: sounds settings don't get applied when starting injected scenes (when settings are supposed to be applied right at the moment of pressing Play in Editor)
+        ApplySFXVolume();
+        ApplyAnnouncerVolume();
+        
         gameObject.SetActive(false);                   //Pause menu instantiates in GameUI in enabled state to run this Awake, we need to disable it in the end of it so its OnEnable doesn't run 
     }
-
+    
     void OnEnable()     //Runs when some player pauses the game and the menu shows
     {
         if (GameController.Controller.PausedPlayer == PlayerID.One) //If it was player one who paused the game
@@ -82,10 +103,16 @@ public class PauseMenu : MonoBehaviour
     
     public void DisableAllPanelsAndEnableOne(GameObject toEnable)   //This is 'general implementation' of menu switching, this function and the next one are applied to every menu-switching button, having the respective parameter 
     {                                                               //In this case it is the menu panel that gets shown (enabled) after selecting this menu
-        foreach (GameObject panel in allPanels)              //We disable all possible panels of Pause Menu
+        mainPanel.SetActive(false);                               //Disabling main panel
+        foreach (GameObject panel in settingsPanels)              //Disabling all settings panels
         {
             panel.SetActive(false);
         }
+        foreach (GameObject panel in allOtherPanels)              //Disabling all other possible panels of Pause Menu
+        {
+            panel.SetActive(false);
+        }
+
         if (toEnable != null) toEnable.SetActive(true);     //And enable the panel that we navigate to (function accepts no menu to enable, so don't enable anything if nothing was passed into function)
     }
 
@@ -101,10 +128,10 @@ public class PauseMenu : MonoBehaviour
         GameController.Controller.gameUI.QuitMatch();   //Run a function on the side of Game UI to fade the screen and all the rest
     }
 
-    //==============SETTINGS====================
+    //==============GAME SETTINGS====================
 
     private const string GameSettings_UIScale = "GameSettings_UIScale";
-    private const string GameSettings_RadarScale = "GameSettings_RadarScale";   //PlayerPrefs keys
+    private const string GameSettings_RadarScale = "GameSettings_RadarScale";   //PlayerPrefs keys for game settings
     private const string GameSettings_IconsScale = "GameSettings_IconsScale";
     private const string GameSettings_Opacity = "GameSettings_Opacity";     
     
@@ -148,8 +175,80 @@ public class PauseMenu : MonoBehaviour
         GameController.Controller.PlayerTwo.playerRadar.radarBackground.GetComponent<Image>().color = new Color(1, 1, 1, opacity.Option / 100f);
     }
 
+    //===================SOUND SETTINGS====================
 
-    //TODO Make general navigating in menu, like pressing Escape or Cancel button on controller to go to previous menu
+    public void SoundSettings()     //Function to call when entering sound settings menu
+    {
+        GameController.audioManager.music.UnPause();    //Playing the music so the user can hear volume corellations
+    }
+
+    public void BackFromSoundSettings()     //Function to call when exiting sound settings menu
+    {
+        GameController.audioManager.music.Pause();     //Pause back the music
+    }
+
+    private const string SoundSettings_Master = "SoundSettings_Master";
+    private const string SoundSettings_Game_Music = "SoundSettings_Game_Music";     //PlayerPrefs keys and AudioMixer exposed parameters (I made so they have same names)
+    private const string SoundSettings_Game_SFX = "SoundSettings_Game_SFX";
+    private const string SoundSettings_Game_Announcer = "SoundSettings_Game_Announcer";
+
+    public void LoadSoundSettingsValues()    //Load settings from PlayerPrefs and set selector values to them
+    {
+        masterVol.SetValue(PlayerPrefs.GetInt(SoundSettings_Master, 100));
+        musicVol.SetValue(PlayerPrefs.GetInt(SoundSettings_Game_Music, 100));
+        SFXVol.SetValue(PlayerPrefs.GetInt(SoundSettings_Game_SFX, 100));
+        announcerVol.SetValue(PlayerPrefs.GetInt(SoundSettings_Game_Announcer, 100));
+    }
+
+    public void SaveSoundSettings()      //Saving to PlayerPrefs, tied to "Back" button in Sound Settings
+    {
+        PlayerPrefs.SetInt(SoundSettings_Master, masterVol.Option);
+        PlayerPrefs.SetInt(SoundSettings_Game_Music, musicVol.Option);
+        PlayerPrefs.SetInt(SoundSettings_Game_SFX, SFXVol.Option);
+        PlayerPrefs.SetInt(SoundSettings_Game_Announcer, announcerVol.Option);
+    }
+    
+    public void ApplyMasterVolume() //Apply volume when starting the scene, or switched the selector in the settings
+    {
+        float db = percentToDB(masterVol.Option);
+        mixer.SetFloat(SoundSettings_Master, db);
+    }
+
+    public void ApplyMusicVolume()
+    {
+        float db = percentToDB(musicVol.Option);
+        mixer.SetFloat(SoundSettings_Game_Music, db);
+    }
+
+    public void ApplySFXVolume()
+    {
+        float db = percentToDB(SFXVol.Option);
+        mixer.SetFloat(SoundSettings_Game_SFX, db);       
+    }
+
+    public void ApplyAnnouncerVolume()
+    {
+        float db = percentToDB(announcerVol.Option);
+        mixer.SetFloat(SoundSettings_Game_Announcer, db);        
+    }
+
+    private float percentToDB(int percent)  //Function to convert Percents (0 - 100) to dB (-80 - 0)
+    {
+        int y = percent;
+        return y == 0 ? -80 : 30 * Mathf.Log10(y / 100f);
+    }
+
+    public void SFXSample()     //Additional function to tie when changing SFX volume (to hear the sound corellation between other selectors)
+    {
+        GameController.audioManager.Explosion();    //Play explosion sound to corellate between other options
+    }
+
+    public void AnnouncerSample()   //Same for announcer selector changing
+    {
+        GameController.announcer.Interception();    //I chose to play interception sound here, as these are the coolest
+    }
+
+    //===================VIDEO SETTINGS=====================
 
 
 
@@ -157,6 +256,15 @@ public class PauseMenu : MonoBehaviour
 
 
 
+
+
+
+
+
+
+
+
+    //==========================================================
 
     public void ExitGame()
     {       

@@ -62,10 +62,7 @@ public class GameController : MonoBehaviour
     }
 
     void Start()    //Stuff we need to do when all Awakes has executed
-    {
-        if (ball.gameObject.name == "ElectricBall") //KLUUUUUUUUUUUUUUDGEEEEEEEEEEEEEEEEEEEEE (DELETE this shit tho, probably should spawn ballCamera and set the color depending on a ball)
-            GameObject.Find("BallCamera").GetComponent<Camera>().backgroundColor = new Color(49f / 256, 77f / 256, 121f / 256, 0);
-        
+    {       
         if (isPlayToScore == false)   //After ScoreBoard's Awake has executed initializing it, fill all its stuff
         {
             GameTime = PeriodTime;
