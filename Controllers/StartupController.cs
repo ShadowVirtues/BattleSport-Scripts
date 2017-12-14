@@ -18,7 +18,7 @@ public class StartupController : MonoBehaviour
 
     [SerializeField] private GameObject audioManagerPrefab;     //AudioManagerPrefab that also gets loaded into arena from here (to not have it referenced on each arena GameController
     [SerializeField] private GameObject GameUIPrefab;                 //Prefab of GameUI having all stuff like starting countdown, options menu, periods UI, GameStats
-    [SerializeField] private GameObject ballCameraPrefab;       //COMM
+    [SerializeField] private GameObject ballCameraPrefab;       //Prefab with camera for Ball Possession, that also has EventSystem on it
 
     [Header("Not getting set into Inspector")]  //TODO [HideInInspector]. For now they are visible for testing purposes
     public Arena arena;
@@ -81,7 +81,7 @@ public class StartupController : MonoBehaviour
         gameController.PlayerTwo.PlayerName = PlayerTwoName;
 
         GameObject ballCamera = Instantiate(ballCameraPrefab);      //Spawning ball camera under the map (for showing rotating ball on player UI). BallCamera also has EventSystem attached to it (just so we spawn one object instead of two)
-        if (arena.ballType == Ball.BallType.Electric) ballCamera.GetComponent<Camera>().backgroundColor = new Color(49f / 256, 77f / 256, 121f / 256, 0);   //TODO WHAT?? For electric ball, set the camera color, so it shows with proper colors on UI (render texture absence of proper particle shader workaround)
+        if (arena.ballType == Ball.BallType.Electric) ballCamera.GetComponent<Camera>().backgroundColor = new Color(49f / 256, 77f / 256, 121f / 256, 0);   //For electric ball, set the camera color, so it shows with proper colors on UI (render texture absence of proper particle shader workaround)
         
         gameController.audioManagerObject = Instantiate(audioManagerPrefab);        //Instantiate AudioManager
         gameController.gameUI = Instantiate(GameUIPrefab).GetComponent<GameUI>();   //Instantiate GameUI and get reference to its script component

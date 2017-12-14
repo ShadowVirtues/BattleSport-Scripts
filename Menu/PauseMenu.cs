@@ -4,6 +4,7 @@ using TeamUtility.IO;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class PauseMenu : MonoBehaviour
@@ -29,7 +30,7 @@ public class PauseMenu : MonoBehaviour
     [SerializeField] private ValueSelector announcerVol;
 
     [Header("Video Settings Selectors")]
-    [SerializeField] private ResolutionSelector resolution;     //Reference to selectors in the Sound Settings Menu
+    [SerializeField] private ResolutionSelector resolution;     //Reference to selectors in the Video Settings Menu
     [SerializeField] private StringSelector windowed;
     [SerializeField] private StringSelector vSync;
     [SerializeField] private StringSelector aa;
@@ -73,7 +74,7 @@ public class PauseMenu : MonoBehaviour
         ApplySFXVolume();
         ApplyAnnouncerVolume();
 
-        LoadFOVValue();                 //COMM
+        LoadFOVValue();                 //From video settings, only FOV value gets set "on the fly"
         ApplyFOV();
         
         gameObject.SetActive(false);                   //Pause menu instantiates in GameUI in enabled state to run this Awake, we need to disable it in the end of it so its OnEnable doesn't run 
@@ -102,6 +103,8 @@ public class PauseMenu : MonoBehaviour
 
         eventSystem.SetSelectedGameObject(null);    //Without this, when invoking pause menu, the "Resume" button wouldn't highlight for some reason (but it still would be selected for navigation)
         eventSystem.SetSelectedGameObject(resume);  //Yeah, select "Resume" button
+
+        System.GC.Collect();        //Collect garbage when pressed pause
     }
 
     public void ResumeGame()
@@ -266,52 +269,65 @@ public class PauseMenu : MonoBehaviour
     public const string VideoSettings_RunInBackground = "VideoSettings_RunInBackground";
     public const string VideoSettings_FOV = "VideoSettings_FOV";
     
-    public void LoadVideoSettings()
+    public void LoadVideoSettings()     //Load video settings when entering respective settings menu
     {
-        resolution.SetSelectorValue();
-        windowed.SetIndex(Screen.fullScreen ? 1 : 0);
+        resolution.SetSelectorValue();      //Set selector to current resolution if it is one of the common ones, set to highest if its some random one (from manually resizing the window)
+        windowed.SetIndex(Screen.fullScreen ? 1 : 0);   //Set selector to "Windowed" or "Borderless" (which Unity deems as fullscreen), depending on the window actual state
 
         vSync.SetIndex(PlayerPrefs.GetInt(VideoSettings_VSync, 1));     //0 - no vsync, 1 - vsync
-        aa.SetIndex(PlayerPrefs.GetInt(VideoSettings_AntiAliasing, 1));
+        aa.SetIndex(PlayerPrefs.GetInt(VideoSettings_AntiAliasing, 1)); //Anti-Aliasing
         runInBackground.SetIndex(PlayerPrefs.GetInt(VideoSettings_RunInBackground, 0)); //0 - not run, 1 - run        
     }
 
-    public void ApplyVideoSettings()
+    public void ApplyVideoSettings()        //When pressed "Apply" button in Video Settings
     {
-        bool fullscreen = windowed.GetIndex != 0;
-        Screen.SetResolution(resolution.Option.width, resolution.Option.height, fullscreen);
+        bool fullscreen = windowed.GetIndex != 0;   //Get the windowed option from windowed selector (it gets set with SetResolution). GetIndex = 0 when the options is windowed, 1 - when borderless
+        Screen.SetResolution(resolution.Option.width, resolution.Option.height, fullscreen);    //Set resolution and windowed mode depending on resolution and windowed selectors
         QualitySettings.vSyncCount = vSync.GetIndex;    
-        QualitySettings.antiAliasing = (int)Mathf.Pow(2, aa.GetIndex);    
-        Application.runInBackground = runInBackground.GetIndex != 0;    
+        QualitySettings.antiAliasing = (int)Mathf.Pow(2, aa.GetIndex);    //x2 = 2, x4 = 4, x8 = 8, but indexes are 0,1,2,3, that's why convert them by powering of 2
+        Application.runInBackground = runInBackground.GetIndex != 0;    //0 - not run, 1 - run 
 
         PlayerPrefs.SetInt(VideoSettings_VSync, vSync.GetIndex);
-        PlayerPrefs.SetInt(VideoSettings_AntiAliasing, aa.GetIndex);
+        PlayerPrefs.SetInt(VideoSettings_AntiAliasing, aa.GetIndex);    //Save PlayerPrefs of only those, because resolution and windowed states are saved by Unity automatically
         PlayerPrefs.SetInt(VideoSettings_RunInBackground, runInBackground.GetIndex);       
     }
 
-    public void ApplyFOV()
+    public void ApplyFOV()  //Function that runs when user changes FOV selector value
     {
-        GameController.Controller.PlayerOne.camera.fieldOfView = fov.Option;
+        GameController.Controller.PlayerOne.camera.fieldOfView = fov.Option;    //Set FOVs for both players
         GameController.Controller.PlayerTwo.camera.fieldOfView = fov.Option;
     }
 
     public void LoadFOVValue()
     {
-        fov.SetValue(PlayerPrefs.GetInt(VideoSettings_FOV, 60));       
+        fov.SetValue(PlayerPrefs.GetInt(VideoSettings_FOV, 60));       //Loads selector value from PlayerPrefs, 60 is default FOV
     }
 
     public void SaveFOVValue()
     {
-        PlayerPrefs.SetInt(VideoSettings_FOV, fov.Option);
+        PlayerPrefs.SetInt(VideoSettings_FOV, fov.Option);  //Saves FOV Value when backing from settings
     }
 
 
-
-
-
-
-
     //==========================================================
+
+
+
+
+
+
+
+    //========================================================
+
+
+    
+
+
+
+
+
+
+
 
     public void ExitGame()
     {       

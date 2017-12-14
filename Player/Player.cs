@@ -10,13 +10,7 @@ using Random = UnityEngine.Random;
 
 
 /*
-    ===================GLOBAL CONCEPTS========================
     
-
-
-    ==========================================================
-
-
     
     DO NEXT:       
     Small lag when you first score??
@@ -25,23 +19,17 @@ using Random = UnityEngine.Random;
     Make general navigating in menu, like pressing Escape or Cancel button on controller to go to previous menu
     Test run in background bs again
     
-    Video settings:
-    Resolution
-    Windowed
-    Anti-Aliasing
-    Vsync?
-    Active in Background
-    FOV
 
-
+    Consider we have lowered Mixer menu volumes
 
 
     GENERAL THINGS TO DO:
 
         
         Game End
-        
-        
+        Main Menu Options
+        Keybindings
+
         Powerups  
         Arena Preview (TUGUSH-TUGUSH)
         

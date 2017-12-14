@@ -157,7 +157,7 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
 
     [Header("Colors")]
     [SerializeField] private Color optionSelected = Color.green;
-    [SerializeField] private Color optionDeselected = Color.white;  //COMM
+    [SerializeField] private Color optionDeselected = Color.white;  //Menu selector colors. Colors for option and value text when they are and are not selected
     [SerializeField] private Color valueSelected = Color.white;
     [SerializeField] private Color valueDeselected = Color.blue;
 
@@ -180,18 +180,5 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
         isAxisInUse = false;    
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
 }

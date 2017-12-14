@@ -117,8 +117,28 @@ public class ScoreBoard : MonoBehaviour
 
     }
 
+    public void ResetPeriodCircles()    //Function to call if pressed "Replay Game" in the end-panel
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            PlayToScore[i].gameObject.SetActive(false);        //In case of overtime, disable play-to-score label
+            PeriodContainer[i].gameObject.SetActive(true);     //Enable period circles container
+        }
+        for (int i = 0; i < 4; i++)     //There are 4 period timers on scoreboard
+        {
+            PeriodTime[i].gameObject.SetActive(true);  //Enable them
+        }
+        
+        int number = GameController.Controller.NumberOfPeriods;  //Shorter reference
 
-
-
-
+        for (int i = 0; i < 2; i++)
+        {
+            for (int j = 0; j < number; j++)
+            {
+                periodCircles[i, j].SetActive(false);    //Disable all red period circles
+            }
+        }
+        
+    }
+    
 }

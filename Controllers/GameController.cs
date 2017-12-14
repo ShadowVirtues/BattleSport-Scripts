@@ -179,8 +179,8 @@ public class GameController : MonoBehaviour
     //}
 
 
-    public void SetEverythingBack(bool overtime = false) //Function that is implemented in all scripts that needs resetting when new period starts. If parameter is "true", means we are setting it for overtime
-    {
+    public void SetEverythingBack(bool overtime = false, bool replay = false) //Function that is implemented in all scripts that needs resetting when new period starts. If 'overtime' is "true", means we are setting it for overtime
+    {                                                                         //if 'replay' is true, means we are getting the game completely to initial state
         PlayerOne.transform.position = PlayerOneSpawn.position;
         PlayerOne.transform.rotation = PlayerOneSpawn.rotation;
         PlayerTwo.transform.position = PlayerTwoSpawn.position; //Reset players/ball position and rotation to where they got spawned initially
@@ -198,58 +198,73 @@ public class GameController : MonoBehaviour
 
         PeriodEnding = false;         //Set so period isn't ending
 
-        if (overtime == false)  //If it's no overtime
-        {            
-            GameTime = PeriodTime;        //Set period time back
-            scoreBoard.NextPeriod();      //Set period circles on scoreboard
-            StartCoroutine(PeriodCountdown());  //Start period countdown
-        }
-        else    //If it is overtime
+        if (replay == false)    //If its not a replay, set all the next perios stuff for scoreboard
         {
-            scoreBoard.SetPeriods();    //Launch a function on scoreboard to shut down period timers and set caption "Play to XX" (because before that we switch "isPlayToScore=true" in GameUI)
-            PlayerOne.ShowMessage(Message.Overtime);
-            PlayerOne.ShowMessage(Message.ScoreToWin);  //Show messages for players when the game starts
-            PlayerTwo.ShowMessage(Message.Overtime);
-            PlayerTwo.ShowMessage(Message.ScoreToWin);
+            if (overtime == false)  //If it's no overtime
+            {
+                GameTime = PeriodTime;        //Set period time back
+                scoreBoard.NextPeriod();      //Set period circles on scoreboard
+                StartCoroutine(nameof(PeriodCountdown));  //Start period countdown
+            }
+            else    //If it is overtime
+            {
+                scoreBoard.SetPeriods();    //Launch a function on scoreboard to shut down period timers and set caption "Play to XX" (because before that we switch "isPlayToScore=true" in GameUI)
+                PlayerOne.ShowMessage(Message.Overtime);
+                PlayerOne.ShowMessage(Message.ScoreToWin);  //Show messages for players when the game starts
+                PlayerTwo.ShowMessage(Message.Overtime);
+                PlayerTwo.ShowMessage(Message.ScoreToWin);
+            }
+
+            audioManager.music.Stop();      //Stop the music
+            audioManager.music.Play();      //Play and pause it for starting playing in the moment of period starting
+            audioManager.music.Pause();
         }
+        
 
-        audioManager.music.Stop();      //Stop the music
-        audioManager.music.Play();      //Play and pause it for starting playing in the moment of period starting
-        audioManager.music.Pause();
-
-        //SET EVERYTHING BACK
-        //!!Set Players to their positions
-        //!!Zero players velocity
-        //!!Clear messages
-        //!!Set their health back
-        //!!Set Ball to its position
-        //!!Zero its velocity, angularVelocity, reset possession stuff (check possession UI)
-        //!!Disable all rockets and lasers
+        
         //TODO Check what happens with powerups, if they remain in the same place or start spawning from none. Also check if effects persist on players
-        //!!Set goal to original position
-        //Set period time back, launch it again
-        //Set scoreboard time back, set periods on it
-        //!!Check what happens to PossessionTime of player if he possesses when period ends, if it doesnt increase because of timeScale = 0
-        //!!Check what happens if you are dead during period end (consider camera animation)
-        //!!Check what happens if just-scored-ui is going, if ball is transparent
-        //!!Check what happens if either tank is flashing, or goal is flashing
-        //!!Check what happens if explosion of rocker/laser is going on
-
-        //Play the game normally and see what else can be going during period end
-
-
-        //And finally unpause the game
-
-
-
+        
     }
 
 
-    public void ReplayGame()    //Function that resets all the stuff when pressed "Replay Game" after finishing the game //TODO
+    public void ReplayGame()    //Function that resets all the stuff when pressed "Replay Game" after finishing the game 
     {
-        StopCoroutine(nameof(GameTimeCounter));
-        TotalGameTime = 0;
-        StartCoroutine(nameof(GameTimeCounter));
+        StopCoroutine(nameof(GameTimeCounter)); //Stop game time counter
+        TotalGameTime = 0;                      //Clear the variable that counts it
+        StartCoroutine(nameof(GameTimeCounter));//Restart it (it will start counting as soon as timeScale becomes 1
+
+        StopCoroutine(nameof(PeriodCountdown)); //Stop period countdown in case we launched replay game from pause menu in the middle of the round
+
+        PlayerOne.playerStats = new PlayerStats();    //Recreate the instance of playerStats to clear their values
+        PlayerTwo.playerStats = new PlayerStats();       
+
+        NumberOfPeriods = StartupController.Controller.NumberOfPeriods; //Get initial number of periods from StartupController (just in case)
+
+        if (NumberOfPeriods == 0)   //If number of periods is 0, means the game mode is "Play To Score"
+        {
+            isPlayToScore = true;
+            PeriodTime = StartupController.Controller.PeriodTime;     //In that case, PeriodTime holds the amount of score needed to end the game
+        }
+        else
+        {
+            isPlayToScore = false;
+            PeriodTime = StartupController.Controller.PeriodTime * 60;    //If its time-based, then multiply the amount of minutes set in StartupController to put seconds into GameController
+        }
+
+        if (isPlayToScore == false)   //If it is not play to score
+        {
+            GameTime = PeriodTime;  //Set back period time
+            CurrentPeriod = 1;      //Set first period
+            scoreBoard.ResetPeriodCircles();    //Launch a function on scoreboard to disable all red period circles
+            scoreBoard.NextPeriod();            //Enable first circle
+            
+            StartCoroutine(nameof(PeriodCountdown));    //Start period countdown
+        }
+
+        scoreBoard.UpdateScore();   //Update score on scoreboard after player stats were cleared (set 0-0 score)
+        
+        audioManager.music.Play();      //Play and pause music for starting playing in the moment of period starting
+        audioManager.music.Pause();
 
 
     }

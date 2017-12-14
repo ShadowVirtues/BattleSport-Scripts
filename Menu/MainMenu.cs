@@ -13,20 +13,20 @@ public class MainMenu : MonoBehaviour
     [SerializeField] private AudioClip select;  //Clip to play one shot when pressed some button
     [SerializeField] private GameObject blockInputPanel;    //"Panel" over the whole screen to block mouse input when needed
 
-    [SerializeField] private AudioMixer mixer;       //COMM
+    [SerializeField] private AudioMixer mixer;       //AudioMixer to set volume on startup
 
-    private static bool firstLaunch = true; //COMM
+    private static bool firstLaunch = true; //A flag so we apply settings only when firstly launched the game, not when we come back to main menu from either scene
 
     void Awake()
     {          
-        if (firstLaunch) ApplySettingsOnStartup();
+        if (firstLaunch) ApplySettingsOnStartup();  //Only if the game is initially launched, apply the settings
         
         Time.timeScale = 1;         //Just in case, set timeScale to 1, if we didn't do it while quitting the game (that gets paused)
 
         blockInputPanel.SetActive(false);   //Disable it in case if was active for some reason
         Destroy(GameObject.Find(nameof(StartupController)));    //Destroy StartupController of this scene (cuz it gets DontDestroyOnLoad in its Awake)
        
-        music.Play();           //Play the music TODO if it's not disabled in options       
+        music.Play();           //Play the music 
     }
 
     void Update()
@@ -73,14 +73,17 @@ public class MainMenu : MonoBehaviour
 
     private void ApplySettingsOnStartup()
     {
-        QualitySettings.vSyncCount = PlayerPrefs.GetInt(PauseMenu.VideoSettings_VSync, 1);    
-        QualitySettings.antiAliasing = (int)Mathf.Pow(2, PlayerPrefs.GetInt(PauseMenu.VideoSettings_AntiAliasing, 1));     
-        Application.runInBackground = PlayerPrefs.GetInt(PauseMenu.VideoSettings_RunInBackground, 0) != 0;
+        //Resolution and windowed state get saved automatically by unity
+        QualitySettings.vSyncCount = PlayerPrefs.GetInt(PauseMenu.VideoSettings_VSync, 1);                                  //Apply VSync from PlayerPrefs
+        QualitySettings.antiAliasing = (int)Mathf.Pow(2, PlayerPrefs.GetInt(PauseMenu.VideoSettings_AntiAliasing, 1));      //Anti-Aliasing
+        Application.runInBackground = PlayerPrefs.GetInt(PauseMenu.VideoSettings_RunInBackground, 0) != 0;                  //Run-in-Background option
 
-        float db = percentToDB(PlayerPrefs.GetInt(PauseMenu.SoundSettings_Master, 100));
+        float db = percentToDB(PlayerPrefs.GetInt(PauseMenu.SoundSettings_Master, 100));        //Set master volume
         mixer.SetFloat(PauseMenu.SoundSettings_Master, db);
+        
+        //TODO Menu sound options
 
-        firstLaunch = false;        
+        firstLaunch = false;        //After applying all the settings, set the flag
     }
 
     private float percentToDB(int percent)  //Function to convert Percents (0 - 100) to dB (-80 - 0)

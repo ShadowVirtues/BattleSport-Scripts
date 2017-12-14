@@ -19,6 +19,9 @@ public class GameUI : MonoBehaviour
     [SerializeField] private GameObject periodCirclePrefab; //The prefab to instantiate
     [SerializeField] private RectTransform periodContainer; //Container for period circles in PeriodsUI to instantiate period circles there when initializing the scene
 
+    [SerializeField] private GameObject endPanel;    //End game panel with "Replay Game", "Main Menu" options
+    [SerializeField] private GameObject replayButton;//Button to select when came to this menu
+
     [SerializeField] private Text PlayerOneName;
     [SerializeField] private Text PlayerTwoName;    //Player names in Periods UI
     [SerializeField] private Text PlayerOneScore;   
@@ -30,6 +33,7 @@ public class GameUI : MonoBehaviour
     [SerializeField] private RectTransform pauseMenu;   //Pause menu panel. RectTransform, because we change the position of the menu, depending on which player paused the game
 
     [HideInInspector] public AudioSource audioSource;        //AudioSource for outputting all UI-related sounds. EventSystem gets the reference to this source, for playing its 'click' sound through it, that's why public
+    [SerializeField] private AudioClip select;          //'Select' sound to play in End-menu
     
     private GameObject[] periodCircles;     //Red period circles reference array to enable them each period
 
@@ -65,24 +69,20 @@ public class GameUI : MonoBehaviour
         periodCircles[0].SetActive(true);   //Set active first red period circle
     }
 
-    public void PauseMenu()  //Function invoked from GameController passing player that paused the game
+    public void PauseMenu()  //Function invoked from GameController
     {        
         periodPanel.SetActive(false);   //Disable all the stuff that could be enabled for some reason
         GameFader.color = Color.clear;
         UIFader.color = Color.clear;
+        endPanel.SetActive(false);
         pauseMenu.gameObject.SetActive(true);   //Enable pause menu panel
     }
 
-    public void QuitMatch()
+    public void QuitMatch()     //Launch end-period sequence with the GameStats message
     {
         StartCoroutine(EndGameSequence("THIS GAME WAS ENDED PREMATURELY"));
     }
-
-
-
-
-
-
+    
     private int period;     //Current period number (when Periods UI gets shown, this is the number of 'next' period //Shorter references from GameController
     private int number;     //Number of periods
 
@@ -199,7 +199,7 @@ public class GameUI : MonoBehaviour
 
     IEnumerator EndGameSequence(string cause)   //Parameter means what caused the game to end (some player winning, or exiting from menu)
     {
-        if (GameController.audioManager.music.isPlaying == false) GameController.audioManager.music.UnPause();  //COMM
+        if (GameController.audioManager.music.isPlaying == false) GameController.audioManager.music.UnPause();  //If we are ending game from the pause, unpause the music that gets paused in pause menu
 
         //We use 'custom' pausing the game here, without pausing the music
         Time.timeScale = 0;     //Set timescale to 0       
@@ -215,6 +215,9 @@ public class GameUI : MonoBehaviour
         statsPanel = Instantiate(gameStatsPrefab, transform);   //Instantiate GameStats panel into this GameUI object
         statsPanel.transform.SetSiblingIndex(transform.childCount - 3);                //Set so it's not in front of UIFader (object spawn in the end of hierarchy by default)
         statsPanel.GetComponent<GameStats>().gameResultString = cause;  //Sets the string in GameStats to output it to GameStats field
+
+        GameController.Controller.SetEverythingBack(replay : true); //Set everything back here during big delay in case user will decide to replay the game
+        pauseMenu.gameObject.SetActive(false);   //Disable pause menu panel if it is enabled
 
         yield return new WaitForSecondsRealtime(time * 2);  //Wait for some more time
       
@@ -233,19 +236,73 @@ public class GameUI : MonoBehaviour
 
         Destroy(statsPanel);    //Destroy stats panel, if we replay the game, we will make a new one
         
-        //TODO Get menu
+        endPanel.SetActive(true);   //Enable end-panel
 
-        SceneManager.LoadScene("MainMenu"); //Load Main Menu scene
-        //TODO
+        UIFader.DOFade(0, time).SetUpdate(UpdateType.Normal, true); //Fade it in
+
+        yield return new WaitForSecondsRealtime(time);  //Wait until it fades
+
+        pauseMenu.GetComponent<PauseMenu>().eventSystem.enabled = true; //Enable EventSystem when the menu fully fades so players can control it
+        EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerOne = true;
+        EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerTwo = true;  //Set so both players can control this menu
+        EventSystem.current.SetSelectedGameObject(replayButton);                    //Select Replay button to enable button navigation
         
+        //Everything further gets handled with pressing buttons in the menu
     }
 
 
 
 
 
+    public void MainMenu()  //Function tied to "Return to main menu" button on the end-panel
+    {
+        StartCoroutine(Menu());
+    }
 
+    private IEnumerator Menu()
+    {
+        GameController.audioManager.music.Stop();           //Stop music from playing
 
+        audioSource.PlayOneShot(select);    //Play 'select' sound
+        EventSystem.current.enabled = false;        //Disable input
+
+        yield return new WaitForSecondsRealtime(0.5f);  //Delay 0.5 sec
+
+        SceneManager.LoadScene("MainMenu"); //Load Main Menu scene
+    }
+
+    public void ReplayGame()    //Function tied to "Replay game" button on the end-panel
+    {
+        StartCoroutine(ResetOnReplayGame());
+    }
+
+    private IEnumerator ResetOnReplayGame()
+    {
+        GameController.audioManager.music.Stop();           //Stop music from playing
+
+        audioSource.PlayOneShot(select);    //Play 'select' sound
+        EventSystem.current.enabled = false;        //Disable input
+
+        GameController.Controller.ReplayGame(); //Run a function on a GameController to get everything in the scene back to very initial state
+
+        yield return new WaitForSecondsRealtime(0.5f);  //Delay 0.5 sec
+        
+        if (GameController.Controller.isPlayToScore == false)   //If the game wasn't score-based
+        {
+            for (int i = 1; i < number; i++)    //Disable all period cireles on Periods UI, except first one
+            {
+                periodCircles[i].SetActive(false);
+            }
+        }
+
+        GameFader.color = Color.clear;  //Instantly make GameFader transparent
+        endPanel.SetActive(false);   //Disable end panel
+        gameObject.SetActive(false);    //And disable the whole UI
+        
+        System.GC.Collect();    //Collect all garbage before the game starts
+        GameController.Controller.UnPause();  //Unpause the game and players proceed to play
+
+    }
 
 
 

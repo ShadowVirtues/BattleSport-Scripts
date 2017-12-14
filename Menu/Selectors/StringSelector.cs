@@ -4,17 +4,9 @@ using UnityEngine;
 
 public class StringSelector : MenuSelector
 {
-    [SerializeField] private string[] Options;      //Array that fills in with and contains all the available numeric options for selection
-
-
-
-    //protected override void Awake()        //Stuff to do when the menu loads
-    //{
-    //    base.Awake();   //Call base class' Awake
-        
-    //}
-
-    public string Option => Options[index];  //This gets called when confirming game settings, for transfering the selected value to the loading scene
+    [SerializeField] private string[] Options;      //Array that gets filled from Inspector
+    
+    public string Option => Options[index];  //This gets called when confirming settings
 
     protected override string NextOption    //To get next option and increment the index
     {
@@ -51,36 +43,12 @@ public class StringSelector : MenuSelector
         }
     }
 
-    public void SetIndex(int ind)   //Set index for selector, when loading previous state of the menu, or switching between "Period (Minutes)" and "Play To Score"  (used in menus)
+    public void SetIndex(int ind)   //Set index for selector, when loading previous state of the menu
     {
-        index = ind;        //Assign actual index of the selector to passed to the function index
+        index = ind;        //Assign actual index of the selector passed to the function parameter
         OptionValue.text = Options[index];
     }
     
-    //public void SetValue(int value)   //Function to set the index and value from specifying the actual value, instead of index (used in Settings)
-    //{
-    //    index = Array.IndexOf(Options, value);  //Find the index of the value in the array
-    //    OptionValue.text = Options[index].ToString();
-    //}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
