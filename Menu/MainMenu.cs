@@ -27,21 +27,23 @@ public class MainMenu : MonoBehaviour
         Destroy(GameObject.Find(nameof(StartupController)));    //Destroy StartupController of this scene (cuz it gets DontDestroyOnLoad in its Awake)
        
         music.Play();           //Play the music 
+
+        InputManager.Save();
     }
 
     void Update()
     {
-        //if (Input.GetKeyDown(KeyCode.Alpha0))
-        //{
+        if (Input.GetKeyDown(KeyCode.Alpha0))
+        {
 
-        //    string[] asdf = Input.GetJoystickNames();
-        //    for (int i = 0; i < asdf.Length; i++)
-        //    {
-        //        Debug.LogError(i + ". " + asdf[i]);
-        //    }
+            string[] asdf = Input.GetJoystickNames();
+            for (int i = 0; i < asdf.Length; i++)
+            {
+                Debug.LogError(i + ". " + asdf[i]);
+            }
 
 
-        //}
+        }
 
         //print(Input.GetAxisRaw("joy_0_axis_4"));
 

@@ -54,7 +54,9 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
     private float pressDownTime;
 
     void Update()
-    {        
+    {
+        if (EventSystem.current == null) return;
+
         if (EventSystem.current.currentSelectedGameObject == gameObject)    //If this selector is the active one, this is the selector we choose options for with Left-Right buttons on keyboard or controller
         {
             float axis = 0; //Initial variable to output a move direction in the end(values -1,0,1)

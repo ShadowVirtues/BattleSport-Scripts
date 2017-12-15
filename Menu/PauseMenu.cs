@@ -112,6 +112,7 @@ public class PauseMenu : MonoBehaviour
         eventSystem.enabled = false;        //Disable event system during gameplay
         gameObject.SetActive(false);        //Disable pause menu
         GameController.Controller.gameUI.gameObject.SetActive(false);   //Disable the whole Game UI canvas
+        System.GC.Collect();
         GameController.Controller.UnPause();                    //And finally unpause the game
     }
     
@@ -133,6 +134,18 @@ public class PauseMenu : MonoBehaviour
     public void PlaySoundAndSelectOption(GameObject toSelect)   //Second function of 'general implementation', it plays the 'Select' sound when selecting the menu, and selects/highlights the respective menu option
     {
         UISource.PlayOneShot(select);
+        eventSystem.SetSelectedGameObject(toSelect);
+    }
+
+    public void PlaySoundAndSelectOptionDelayed(GameObject toSelect)   //Second function of 'general implementation', it plays the 'Select' sound when selecting the menu, and selects/highlights the respective menu option
+    {
+        UISource.PlayOneShot(select);
+        StartCoroutine(SelectOptionDelayed(toSelect));
+    }
+
+    IEnumerator SelectOptionDelayed(GameObject toSelect)
+    {
+        yield return null;
         eventSystem.SetSelectedGameObject(toSelect);
     }
 

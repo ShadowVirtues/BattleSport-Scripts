@@ -167,16 +167,21 @@ public class GameController : MonoBehaviour
         gameUI.PauseMenu();               //Run a function on the side of GameUI to hide all panels and shot pause menu panel
     }
 
-    //void LateUpdate()
-    //{
-    //    if (Input.GetKeyDown(KeyCode.Joystick1Button2))
-    //    {
-    //        StopCoroutine(nameof(PeriodCountdown));
-    //        gameUI.EndPeriod();
+    void LateUpdate()
+    {
+        if (Input.GetKeyDown(KeyCode.O))
+        {
+            string[] asdf = InputManager.GetJoystickNames();
+            for (int i = 0; i < asdf.Length; i++)
+            {
+                Debug.LogError(i + ". " + asdf[i]);
+            }
 
-    //    }
 
-    //}
+
+        }
+
+    }
 
 
     public void SetEverythingBack(bool overtime = false, bool replay = false) //Function that is implemented in all scripts that needs resetting when new period starts. If 'overtime' is "true", means we are setting it for overtime

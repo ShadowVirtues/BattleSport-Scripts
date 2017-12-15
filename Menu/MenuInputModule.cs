@@ -42,7 +42,7 @@ namespace TeamUtility.IO
 	{
 		public const string VERSION = "5.5";
         
-	    [SerializeField] private AudioSource click;     //Click sound whenever user presses any vertical buttons (in allowed time-intervals), basically whenever vertical move actually executes
+	    public AudioSource click;     //Click sound whenever user presses any vertical buttons (in allowed time-intervals), basically whenever vertical move actually executes. We set it in StartupController, so public
 
 	    public bool Enabled = true;                 //Flag to disable input (made it only for any button input that I was actually altering in the default input system, mouse inputs are blocked by a panel over everything)
 

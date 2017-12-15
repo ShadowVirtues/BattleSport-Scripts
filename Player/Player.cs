@@ -17,8 +17,9 @@ using Random = UnityEngine.Random;
     Rebake lights in Arena 42
 
     Make general navigating in menu, like pressing Escape or Cancel button on controller to go to previous menu
-    Test run in background bs again
-    
+    Test run in background bs again, all all video settings after changing array > list
+    DIsable mouse during gameplay, enable when navigating
+    Maybe delete selectDelayed in Pause, delete getting controllers from MainMenu and GameController
 
     Consider we have lowered Mixer menu volumes
 
@@ -26,13 +27,13 @@ using Random = UnityEngine.Random;
     GENERAL THINGS TO DO:
 
         
-        Game End
-        Main Menu Options
+        
+        
         Keybindings
 
         Powerups  
         Arena Preview (TUGUSH-TUGUSH)
-        
+        Main Menu Options
         Options > KeyBindings
         Smooth mouse/Stick controls
         10 Levels > Props, Skyboxes

@@ -87,7 +87,7 @@ public class StartupController : MonoBehaviour
         gameController.gameUI = Instantiate(GameUIPrefab).GetComponent<GameUI>();   //Instantiate GameUI and get reference to its script component
 
         ballCamera.GetComponentInChildren<TwoPlayerInputModule>().click = gameController.gameUI.audioSource;    //Set the click sound of EventSystem to GameUI audioSource (this AudioSource outputs all UI sounds)
-
+        ballCamera.GetComponentInChildren<MenuInputModule>().click = gameController.gameUI.audioSource;
 
     }
 

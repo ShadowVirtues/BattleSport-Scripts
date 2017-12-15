@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class StringSelector : MenuSelector
 {
-    [SerializeField] private string[] Options;      //Array that gets filled from Inspector
+    [SerializeField] protected List<string> Options;      //List that gets filled from Inspector
     
     public string Option => Options[index];  //This gets called when confirming settings
 
@@ -12,7 +12,7 @@ public class StringSelector : MenuSelector
     {
         get
         {
-            if (index + 1 < Options.Length)     //If we are still not exceeding the length of the array
+            if (index + 1 < Options.Count)     //If we are still not exceeding the length of the list
             {
                 index++;                        //Increment the index and show the next option
                 return Options[index];
@@ -36,7 +36,7 @@ public class StringSelector : MenuSelector
             }
             else                //If we go below 0 in array index
             {
-                index = Options.Length - 1; //Set index to the last option of the array and show it
+                index = Options.Count - 1; //Set index to the last option of the array and show it
                 return Options[index];
             }
 
