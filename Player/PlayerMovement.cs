@@ -100,7 +100,7 @@ public class PlayerMovement : MonoBehaviour
         if (grounded)    //We can jump only if we are on the ground
 	    {
 	        if (playerNumber == PlayerID.One)   //TODO probably only for now player one jumps with set button, and player two hard-coded from here by pressing LB+RB on a gamepad
-	        {
+	        {                                   //TODO if there is something in config - use it, if there is blank - LB+RB
 	            if (InputManager.GetButton(jumpButtonName, playerNumber))
 	                rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpVelocity, rigidbody.velocity.z);     //Just apply the Y velocity to jump  
             }                

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using TeamUtility.IO;
 using TeamUtility.IO.Examples;
@@ -13,15 +14,18 @@ public class KeyBindingsMenu : MonoBehaviour
 
     [Header("Panels")]
     [SerializeField] private GameObject keyboardPanel;
+    [SerializeField] private GameObject keyboardMousePanel;
     [SerializeField] private GameObject gamepadPanel;
 
     [Header("Keyboard Panel")]
     [SerializeField] private GameObject turnLeft;
-    [SerializeField] private GameObject turnRight;
-    [SerializeField] private GameObject turningMouse;
+    [SerializeField] private Selectable shootBallKeyboard;
+
+    [Header("Keyboard+Mouse Panel")]
     [SerializeField] private ValueSelector sensitivityMouse;
-    [SerializeField] private Selectable throttleUp;
-    [SerializeField] private Selectable shootBall;
+    [SerializeField] private Selectable shootBallMouse;
+    
+
 
     [Header("Gamepad Panel")]
     [SerializeField] private StringSelector turningThrottling;
@@ -31,11 +35,13 @@ public class KeyBindingsMenu : MonoBehaviour
 
     [SerializeField] private GameObject[] stickSelectors;
     
-    [Header("Back")]
+    [Header("Bottom")]  
+    [SerializeField] private Selectable defaultWASD;
+    [SerializeField] private Selectable defaultArrows;
     [SerializeField] private Selectable back;
 
 
-    //[SerializeField] private Navigation nav;
+
 
     private Selectable deviceSelectable;
 
@@ -51,24 +57,17 @@ public class KeyBindingsMenu : MonoBehaviour
 
     void OnEnable()
     {
-        //RebindInput[] rebinds = GetComponentsInChildren<RebindInput>(true);
 
-        //if (GameController.Controller.PausedPlayer == PlayerID.One)
-        //{
-        //    foreach (RebindInput rebind in rebinds)
-        //    {
-        //        rebind._inputConfigName = "PlayerOneConfiguration";   //TODO
-        //    }
-        //    playerLabel.text = "PLAYER ONE CONTROLS";
-        //}
-        //else if (GameController.Controller.PausedPlayer == PlayerID.Two)
-        //{
-        //    foreach (RebindInput rebind in rebinds)
-        //    {
-        //        rebind._inputConfigName = "PlayerTwoConfiguration";   //TODO
-        //    }
-        //    playerLabel.text = "PLAYER TWO CONTROLS";
-        //}
+        if (GameController.Controller.PausedPlayer == PlayerID.One)
+        {           
+            playerLabel.text = "PLAYER ONE CONTROLS";
+        }
+        else if (GameController.Controller.PausedPlayer == PlayerID.Two)
+        {           
+            playerLabel.text = "PLAYER TWO CONTROLS";
+        }
+
+        LoadKeyBindingsValues();
 
         inputModule.Menu = true;
 
@@ -80,13 +79,55 @@ public class KeyBindingsMenu : MonoBehaviour
     }
 
 
-    public void LoadKeyBindingsValues()
+    private void LoadKeyBindingsValues()
     {
+        device.UpdateDevices();
+
+        AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "DEVICE");
+        
+        if (playerDevice.description == "Keyboard")
+        {
+            device.SetIndex(0);
+            turningThrottling.SetIndex(0);  //So when some player with joystick sets their turning, it doesnt transfer to keyboard player when he switches to gamepad (so for keyboard player default option is "Stick", and not whatever 'joystick player' set last)
+        }
+        else if (playerDevice.description == "Keyboard+Mouse")
+        {
+            device.SetIndex(1);
+            turningThrottling.SetIndex(0);
+        }
+        else
+        {
+            int selectedGamepad = Int32.Parse(playerDevice.description.Substring(playerDevice.description.Length - 1, 1));
+            
+            if (Input.GetJoystickNames().Length < selectedGamepad + 1)
+            {
+                device.SetIndex(0);
+            }
+            else
+            {
+                device.SetIndex(2 + selectedGamepad);
+
+                AxisConfiguration turningAxis = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Turning");
+
+                if (turningAxis.axis == 5)
+                    turningThrottling.SetIndex(1);
+                else if (turningAxis.axis == 0)
+                    turningThrottling.SetIndex(0);
+
+                TurningThrottlingChange();
+            }
+        }
+
+        
+        ChangeDevice();
+        
 
 
 
+        
 
-        //device.SetIndex();
+
+
 
     }
 
@@ -96,39 +137,42 @@ public class KeyBindingsMenu : MonoBehaviour
         if (device.GetIndex == 0)   //Keyboard
         {
             keyboardPanel.SetActive(true);
+            keyboardMousePanel.SetActive(false);
             gamepadPanel.SetActive(false);
-            
-            setSelectableDown(deviceSelectable, turnLeft);            
-            setSelectableUp(throttleUp, turnRight);
-            setSelectableUp(back, shootBall);
-            
-            turnLeft.SetActive(true);
-            turnRight.SetActive(true);
-            turningMouse.SetActive(false);
-            sensitivityMouse.gameObject.SetActive(false);
-            //Switch options selectables navigation
+
+            defaultWASD.gameObject.SetActive(true);
+            defaultArrows.gameObject.SetActive(true);
+
+            setSelectableDown(deviceSelectable, turnLeft);                       
+            setSelectableUp(back, defaultArrows);
+            setSelectableUp(defaultWASD,shootBallKeyboard);
         }
         else if (device.GetIndex == 1)  //Keyboard+Mouse
         {
-            keyboardPanel.SetActive(true);
+            keyboardMousePanel.SetActive(true);
+            keyboardPanel.SetActive(false);           
             gamepadPanel.SetActive(false);
-            
-            setSelectableDown(deviceSelectable, sensitivityMouse);           
-            setSelectableUp(throttleUp, sensitivityMouse);
-            setSelectableUp(back, shootBall);
 
-            turnLeft.SetActive(false);
-            turnRight.SetActive(false);
-            turningMouse.SetActive(true);
-            sensitivityMouse.gameObject.SetActive(true);
-            //Switch options selectables navigation
+            defaultWASD.gameObject.SetActive(true);
+            defaultArrows.gameObject.SetActive(true);
+
+            setSelectableDown(deviceSelectable, sensitivityMouse);
+            setSelectableUp(back, defaultArrows);
+            setSelectableUp(defaultWASD, shootBallMouse);            
         }
-        else
+        else                            //All gamepads
         {
             keyboardPanel.SetActive(false);
+            keyboardMousePanel.SetActive(false);
             gamepadPanel.SetActive(true);
-            
+
+            defaultWASD.gameObject.SetActive(false);
+            defaultArrows.gameObject.SetActive(false);
+
             setSelectableDown(deviceSelectable, turningThrottling);
+            setSelectableUp(back, turningThrottling);
+            
+            TurningThrottlingChange();
         }
 
         
@@ -164,8 +208,8 @@ public class KeyBindingsMenu : MonoBehaviour
         
     }
 
-
-
+    //TODO Are you sure - reset WASD/Arrows
+    
 
 
 

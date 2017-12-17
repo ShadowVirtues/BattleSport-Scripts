@@ -28,7 +28,7 @@ public class MainMenu : MonoBehaviour
        
         music.Play();           //Play the music 
 
-        InputManager.Save();
+        
     }
 
     void Update()
