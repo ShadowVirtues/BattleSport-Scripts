@@ -19,7 +19,9 @@ using Random = UnityEngine.Random;
     Make general navigating in menu, like pressing Escape or Cancel button on controller to go to previous menu
     Test run in background bs again, all all video settings after changing array > list
     DIsable mouse during gameplay, enable when navigating
-    Maybe delete selectDelayed in Pause, delete getting controllers from MainMenu and GameController
+    Delete getting controllers from MainMenu and GameController in Update by button press
+    Test everything with new input module
+   
 
     Consider we have lowered Mixer menu volumes
 

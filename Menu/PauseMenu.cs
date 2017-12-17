@@ -47,13 +47,13 @@ public class PauseMenu : MonoBehaviour
     [HideInInspector] public EventSystem eventSystem;     //The event system is getting used only in pause menu, and other than that once during end-game menu "Replay Game/Return to Menu". 
                                                           //We can't use EventSystem.current, cuz we disable it during gameplay, and it returns 'EventSystem.current = null' if it is disabled
 
-    private TwoPlayerInputModule inputModule;               //Input module on event system, to swith its PlayerOne/Two flags to block specific player input
+    private CustomInputModule inputModule;               //Input module on event system, to swith its PlayerOne/Two flags to block specific player input
     
     void Awake()
     {
         rectTransform = GetComponent<RectTransform>();      //Get the reference
         eventSystem = EventSystem.current;                  //EventSystem gets instantiated in enabled state, and that's how we get a reference to it
-        inputModule = eventSystem.GetComponent<TwoPlayerInputModule>();     //Get a reference to input Module
+        inputModule = eventSystem.GetComponent<CustomInputModule>();     //Get a reference to input Module
         eventSystem.enabled = false;                                        //We got all the references, now disable event system, it gets enabled when some player pauses the game
 
         foreach (GameObject panel in settingsPanels)   //Unity has no good feature to run 'Awake' on disabled objects so we are going for this
@@ -136,19 +136,7 @@ public class PauseMenu : MonoBehaviour
         UISource.PlayOneShot(select);
         eventSystem.SetSelectedGameObject(toSelect);
     }
-
-    public void PlaySoundAndSelectOptionDelayed(GameObject toSelect)   //Second function of 'general implementation', it plays the 'Select' sound when selecting the menu, and selects/highlights the respective menu option
-    {
-        UISource.PlayOneShot(select);
-        StartCoroutine(SelectOptionDelayed(toSelect));
-    }
-
-    IEnumerator SelectOptionDelayed(GameObject toSelect)
-    {
-        yield return null;
-        eventSystem.SetSelectedGameObject(toSelect);
-    }
-
+    
     public void QuitMatch()             //Function that is tied to button "Yes" in the respective menu
     {
         eventSystem.enabled = false;    //Disable event system, so during fading out animation, player couldn't navigate the menu        

@@ -243,8 +243,8 @@ public class GameUI : MonoBehaviour
         yield return new WaitForSecondsRealtime(time);  //Wait until it fades
 
         pauseMenu.GetComponent<PauseMenu>().eventSystem.enabled = true; //Enable EventSystem when the menu fully fades so players can control it
-        EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerOne = true;
-        EventSystem.current.GetComponent<TwoPlayerInputModule>().PlayerTwo = true;  //Set so both players can control this menu
+        EventSystem.current.GetComponent<CustomInputModule>().PlayerOne = true;
+        EventSystem.current.GetComponent<CustomInputModule>().PlayerTwo = true;  //Set so both players can control this menu
         EventSystem.current.SetSelectedGameObject(replayButton);                    //Select Replay button to enable button navigation
         
         //Everything further gets handled with pressing buttons in the menu

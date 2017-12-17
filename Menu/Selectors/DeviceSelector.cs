@@ -13,6 +13,7 @@ public class DeviceSelector : StringSelector
         
         Options.AddRange(InputManager.GetJoystickNames());
 
+        InputManager.Load();
 
         for (int i = 2; i < Options.Count; i++)
         {

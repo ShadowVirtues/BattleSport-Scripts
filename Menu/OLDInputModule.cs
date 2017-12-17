@@ -31,7 +31,7 @@ using System;
 
 namespace TeamUtility.IO
 {	
-	public class TwoPlayerInputModule : PointerInputModule
+	public class OLDInputModule : PointerInputModule
 	{
 		public const string VERSION = "5.5";
 
@@ -47,7 +47,7 @@ namespace TeamUtility.IO
 		private Vector2 m_LastMousePosition;
 		private Vector2 m_MousePosition;
 
-		protected TwoPlayerInputModule()
+		protected OLDInputModule()
 		{
 		}
 
@@ -74,12 +74,12 @@ namespace TeamUtility.IO
 		/// <summary>
 		/// Name of the submit button.
 		/// </summary>
-		[SerializeField] private string m_SubmitButton = "Laser";
+		[SerializeField] private string m_SubmitButton = "Start";
 
 		/// <summary>
-		/// Name of the submit button.
+		/// Name of the cancel button.
 		/// </summary>
-		[SerializeField] private string m_CancelButton = "Rocket";
+		[SerializeField] private string m_CancelButton = "Pause";
 
 		[SerializeField] private float m_InputActionsPerSecond = 10;
 
@@ -362,11 +362,15 @@ namespace TeamUtility.IO
 				return false;
 
 			var data = GetBaseEventData();
+
+
 			if(InputManager.GetButtonDown(m_SubmitButton, PlayerID.One) || InputManager.GetButtonDown(m_SubmitButton, PlayerID.Two))    //Changed
 				ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, data, ExecuteEvents.submitHandler);
 
 			if(InputManager.GetButtonDown(m_CancelButton, PlayerID.One) || InputManager.GetButtonDown(m_CancelButton, PlayerID.Two))    //Changed
 				ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, data, ExecuteEvents.cancelHandler);
+
+
 			return data.used;
 		}
 
@@ -403,6 +407,10 @@ namespace TeamUtility.IO
 
 			// If user pressed key again, always allow event
 		    bool allow = false;
+
+
+
+
 		    if (PlayerOne)      //Changed
 		    {
 		        //allow |= InputManager.GetButtonDown(m_HorizontalAxis, PlayerID.One);      //Changed
@@ -414,6 +422,10 @@ namespace TeamUtility.IO
                 allow |= InputManager.GetButtonDown(m_VerticalAxis, PlayerID.Two);      //Changed
             }
            
+
+
+
+
             bool similarDir = (Vector2.Dot(movement, m_LastMoveVector) > 0);
 			if(!allow)
 			{

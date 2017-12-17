@@ -67,19 +67,19 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
                 if (InputManager.GetKey(KeyCode.RightArrow)) axis += 1;
                 if (InputManager.GetKey(KeyCode.LeftArrow)) axis += -1;
 
-                if (Input.GetAxisRaw(MenuInputModule.joyAxisNamesHor[0, 0]) > MenuInputModule.dead) axis += 1;
-                if (Input.GetAxisRaw(MenuInputModule.joyAxisNamesHor[0, 0]) < -MenuInputModule.dead) axis += -1;    //Process joystick 1 input from which always gets processed
-                if (Input.GetAxisRaw(MenuInputModule.joyAxisNamesHor[0, 1]) > MenuInputModule.dead) axis += 1;      //Get the axis names and deadzone from MenuInputModule
-                if (Input.GetAxisRaw(MenuInputModule.joyAxisNamesHor[0, 1]) < -MenuInputModule.dead) axis += -1;
+                if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[0, 0]) > CustomInputModule.dead) axis += 1;
+                if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[0, 0]) < -CustomInputModule.dead) axis += -1;    //Process joystick 1 input from which always gets processed
+                if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[0, 1]) > CustomInputModule.dead) axis += 1;      //Get the axis names and deadzone from CustomInputModule
+                if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[0, 1]) < -CustomInputModule.dead) axis += -1;
 
-                if (MenuInputModule.joyNum > 1)     //In case more than one joystick is connected, process their input as well
+                if (CustomInputModule.joyNum > 1)     //In case more than one joystick is connected, process their input as well
                 {
-                    for (int i = 1; i < MenuInputModule.joyNum; i++)
+                    for (int i = 1; i < CustomInputModule.joyNum; i++)
                     {
-                        if (Input.GetAxisRaw(MenuInputModule.joyAxisNamesHor[i, 0]) > MenuInputModule.dead) axis += 1;
-                        if (Input.GetAxisRaw(MenuInputModule.joyAxisNamesHor[i, 0]) < -MenuInputModule.dead) axis += -1;
-                        if (Input.GetAxisRaw(MenuInputModule.joyAxisNamesHor[i, 1]) > MenuInputModule.dead) axis += 1;
-                        if (Input.GetAxisRaw(MenuInputModule.joyAxisNamesHor[i, 1]) < -MenuInputModule.dead) axis += -1;
+                        if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[i, 0]) > CustomInputModule.dead) axis += 1;
+                        if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[i, 0]) < -CustomInputModule.dead) axis += -1;
+                        if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[i, 1]) > CustomInputModule.dead) axis += 1;
+                        if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[i, 1]) < -CustomInputModule.dead) axis += -1;
                     }
                 }
 

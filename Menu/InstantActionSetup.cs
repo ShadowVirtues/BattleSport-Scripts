@@ -179,7 +179,7 @@ public class InstantActionSetup : MonoBehaviour
 
     private void disableInput() //Function to disable player input after he clicked some button to go to next menu (since we have a small delay after pressing this button, when we don't want player to be able to select something else)
     {
-        EventSystem.current.GetComponent<MenuInputModule>().Enabled = false;        //MenuInputModule has variable that
+        EventSystem.current.GetComponent<CustomInputModule>().Enabled = false;        //MenuInputModule has variable that
         blockInputPanel.SetActive(true);                                            //Enable the panel in front of everything that blocks mouse input
     }
 

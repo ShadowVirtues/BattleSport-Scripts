@@ -16,13 +16,13 @@ public class KeyBindingsMenu : MonoBehaviour
     [SerializeField] private GameObject gamepadPanel;
     
 
-    private TwoPlayerInputModule playerModule;
-    private MenuInputModule menuModule;
+    private CustomInputModule inputModule;
+    
 
     void Awake()
     {
-        playerModule = EventSystem.current.GetComponent<TwoPlayerInputModule>();
-        menuModule = EventSystem.current.GetComponent<MenuInputModule>();
+        inputModule = EventSystem.current.GetComponent<CustomInputModule>();
+        
     }
 
     void OnEnable()
@@ -46,15 +46,13 @@ public class KeyBindingsMenu : MonoBehaviour
             playerLabel.text = "PLAYER TWO CONTROLS";
         }
 
-        menuModule.enabled = true;
-        playerModule.enabled = false;
-         
+        inputModule.Menu = true;
+
     }
 
     void OnDisable()
     {
-        playerModule.enabled = true;
-        menuModule.enabled = false;        
+        inputModule.Menu = false;
     }
     
 

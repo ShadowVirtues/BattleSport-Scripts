@@ -69,7 +69,7 @@ public class MainMenu : MonoBehaviour
 
     private void disableInput() //Function to disable player input after he clicked some button to go to next menu (since we have a small delay after pressing this button, when we don't want player to select something else)
     {       
-        EventSystem.current.GetComponent<MenuInputModule>().Enabled = false;        //Block key input with EventSystem
+        EventSystem.current.GetComponent<CustomInputModule>().Enabled = false;        //Block key input with EventSystem
         blockInputPanel.SetActive(true);                                            //Enable the panel in front of everything that blocks mouse input
     }
 
