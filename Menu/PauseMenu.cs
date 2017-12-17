@@ -37,23 +37,18 @@ public class PauseMenu : MonoBehaviour
     [SerializeField] private StringSelector runInBackground;
     [SerializeField] private ValueSelector fov;
 
-    [Header("Audio")]
-    [SerializeField] private AudioSource UISource;      //AudioSource to play when clicking through or selecting menus
-    [SerializeField] private AudioClip select;          //'Select' menu sound to PlayOneShot it
+    [Header("Audio")]    
     [SerializeField] private AudioMixer mixer;          //AudioMixer to set volumes for it
 
     private RectTransform rectTransform;                //Rect transform of pause menu is used to position pause menu on specific player screen side when we show it
 
     [HideInInspector] public EventSystem eventSystem;     //The event system is getting used only in pause menu, and other than that once during end-game menu "Replay Game/Return to Menu". 
                                                           //We can't use EventSystem.current, cuz we disable it during gameplay, and it returns 'EventSystem.current = null' if it is disabled
-
-    private CustomInputModule inputModule;               //Input module on event system, to swith its PlayerOne/Two flags to block specific player input
     
     void Awake()
     {
         rectTransform = GetComponent<RectTransform>();      //Get the reference
         eventSystem = EventSystem.current;                  //EventSystem gets instantiated in enabled state, and that's how we get a reference to it
-        inputModule = eventSystem.GetComponent<CustomInputModule>();     //Get a reference to input Module
         eventSystem.enabled = false;                                        //We got all the references, now disable event system, it gets enabled when some player pauses the game
 
         foreach (GameObject panel in settingsPanels)   //Unity has no good feature to run 'Awake' on disabled objects so we are going for this
@@ -85,19 +80,19 @@ public class PauseMenu : MonoBehaviour
         if (GameController.Controller.PausedPlayer == PlayerID.One) //If it was player one who paused the game
         {
             rectTransform.anchoredPosition = new Vector2(-480, 0);  //Place the pause menu on his side of the screen
-            inputModule.PlayerOne = true;  //Disable player2 input and enable player1 input through EventSystem
-            inputModule.PlayerTwo = false;
+            CustomInputModule.Instance.PlayerOne = true;  //Disable player2 input and enable player1 input through EventSystem
+            CustomInputModule.Instance.PlayerTwo = false;
         }
         else if (GameController.Controller.PausedPlayer == PlayerID.Two)    //Same, but opposite
         {
             rectTransform.anchoredPosition = new Vector2(480, 0);
-            inputModule.PlayerOne = false;
-            inputModule.PlayerTwo = true;
+            CustomInputModule.Instance.PlayerOne = false;
+            CustomInputModule.Instance.PlayerTwo = true;
         }
         
         eventSystem.enabled = true;     //Enable event system, so players can navigate the menu
 
-        UISource.PlayOneShot(select);       //When invoking pause menu, play 'Select' sound
+        CustomInputModule.Instance.PlaySelect();            //When invoking pause menu, play 'Select' sound
 
         DisableAllPanelsAndEnableOne(mainPanel);    //Disable all panels if the menu was saved with some random one active, and enable the main panel
 
@@ -133,7 +128,7 @@ public class PauseMenu : MonoBehaviour
 
     public void PlaySoundAndSelectOption(GameObject toSelect)   //Second function of 'general implementation', it plays the 'Select' sound when selecting the menu, and selects/highlights the respective menu option
     {
-        UISource.PlayOneShot(select);
+        CustomInputModule.Instance.PlaySelect();
         eventSystem.SetSelectedGameObject(toSelect);
     }
     

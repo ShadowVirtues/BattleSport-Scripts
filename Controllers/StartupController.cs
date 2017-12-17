@@ -79,17 +79,17 @@ public class StartupController : MonoBehaviour
 
         gameController.PlayerOne.PlayerName = PlayerOneName;        //Set player names
         gameController.PlayerTwo.PlayerName = PlayerTwoName;
-
-        GameObject ballCamera = Instantiate(ballCameraPrefab);      //Spawning ball camera under the map (for showing rotating ball on player UI). BallCamera also has EventSystem attached to it (just so we spawn one object instead of two)
-        if (arena.ballType == Ball.BallType.Electric) ballCamera.GetComponent<Camera>().backgroundColor = new Color(49f / 256, 77f / 256, 121f / 256, 0);   //For electric ball, set the camera color, so it shows with proper colors on UI (render texture absence of proper particle shader workaround)
-        
+       
         gameController.audioManagerObject = Instantiate(audioManagerPrefab);        //Instantiate AudioManager
         gameController.gameUI = Instantiate(GameUIPrefab).GetComponent<GameUI>();   //Instantiate GameUI and get reference to its script component
 
-        ballCamera.GetComponentInChildren<CustomInputModule>().click = gameController.gameUI.audioSource;    //Set the click sound of EventSystem to GameUI audioSource (this AudioSource outputs all UI sounds)       
+        GameObject ballCamera = Instantiate(ballCameraPrefab);      //Spawning ball camera under the map (for showing rotating ball on player UI)
+        if (arena.ballType == Ball.BallType.Electric) ballCamera.GetComponent<Camera>().backgroundColor = new Color(49f / 256, 77f / 256, 121f / 256, 0);   //For electric ball, set the camera color, so it shows with proper colors on UI (render texture absence of proper particle shader workaround)
 
+        CustomInputModule.Instance.Menu = false;    //Disabling universal input when in game
+        CustomInputModule.Instance.Enabled = true;  //Enabling flag so when universal input does get enabled (in controls menu), we don't have to set it
     }
 
-    
+
 
 }

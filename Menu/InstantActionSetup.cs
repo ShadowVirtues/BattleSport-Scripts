@@ -31,10 +31,9 @@ public class InstantActionSetup : MonoBehaviour
 
     //===================================================
     [Header("Sound")]
-    [SerializeField] private AudioSource music;
-    [SerializeField] private AudioSource sfx;
+    [SerializeField] private AudioSource music;     //Sources to play music and announcer sounds
     [SerializeField] private AudioSource announcer;
-    [SerializeField] private AudioClip select;
+    
     [SerializeField] private GameObject blockInputPanel;    //"Panel" over the whole screen to block mouse input when needed
 
     void Start()
@@ -44,17 +43,14 @@ public class InstantActionSetup : MonoBehaviour
         LoadPreviousSettings(); //Load previous set settings from PlayerPrefs
 
         periodTime.text = isPlayToScore ? playToScoreString : periodMinutesString;  //Set the label to respective value (isPlayToScore gets set in LoadPreviousSettings)
+       
+        music.PlayDelayed(0.1f);    //We have Duck Volume on music when announcer plays. Delay so for the split second of the scene music doesnt get full volume and then instantly down because of announcer ducking 
+        announcer.Play();           //Play announcer that will duck the volume of music //TEST for different volumes btw
 
-        //TODO IF not 0 volume
-        music.PlayDelayed(0.1f);
-        announcer.Play();
+        CustomInputModule.Instance.Enabled = true;      //Enable input from disabling it for 0.5 before switching the scene
+        EventSystem.current.SetSelectedGameObject(arenaSelector.gameObject);    //Set arena selector as first selected in the start of the scene
     }
-
-    //void Update()
-    //{
-    //    print(InputManager.GetAxis("Turning", PlayerID.Two));
-    //}
-
+    
     public void ScoreBased()    //This function is linked to Left and Right buttons on "Number Of Periods" selector and gets called whenever user presses them (or corresponding left-right keys)
     {
         if (numberOfPeriodsSelector.GetIndex == 0)              //If set number of periods is 0
@@ -90,11 +86,11 @@ public class InstantActionSetup : MonoBehaviour
     {
         music.Stop();       //Stop the music and announcer from playing
         announcer.Stop();
-        //yield return new WaitForSecondsRealtime(0.5f);
-        sfx.PlayOneShot(select);    //Play 'select' sound
+        
+        CustomInputModule.Instance.PlaySelect();           //Play 'select' sound
         disableInput();             //Disable input
-        //Find StartupController in our scene (In some menus it can be transfered over from previous scene, so we can't have a set reference to it in all cases)
-        StartupController startup = GameObject.Find(nameof(StartupController)).GetComponent<StartupController>();
+        
+        StartupController startup = FindObjectOfType<StartupController>();  //Find StartupController in our scene (In some menus it can be transfered over from previous scene, so we can't have a set reference to it in all cases)
 
         startup.arena = arenaSelector.Option;
         startup.PlayerOneTank = playerOneSelector.Option;
@@ -104,8 +100,7 @@ public class InstantActionSetup : MonoBehaviour
         startup.ShotClock = shotClockSelector.Option;
         startup.PlayerOneName = "PLAYER 1";
         startup.PlayerTwoName = "PLAYER 2"; //Instant Action is a quickest way to start the game, so no name entry and default names for players
-
-
+        
         SavePreviousSettings();                             //Save the selectors states to PlayerPrefs
 
         yield return new WaitForSecondsRealtime(0.5f);      //0.5 sec delay before scene switching
@@ -156,8 +151,7 @@ public class InstantActionSetup : MonoBehaviour
         }
 
     }
-
-
+    
     public void BACKButtonPress()       //Going back to the main menu button
     {
         StartCoroutine(Back());
@@ -167,8 +161,8 @@ public class InstantActionSetup : MonoBehaviour
     {
         music.Stop();           //Stop music and announcer if they were playing
         announcer.Stop();
-        //yield return new WaitForSecondsRealtime(0.5f);
-        sfx.PlayOneShot(select);    //Play 'select' sound
+        
+        CustomInputModule.Instance.PlaySelect();           //Play 'select' sound
         disableInput();         //Disable input
         SavePreviousSettings(); //Save the state of Instant Action Setup menu
 
@@ -179,7 +173,7 @@ public class InstantActionSetup : MonoBehaviour
 
     private void disableInput() //Function to disable player input after he clicked some button to go to next menu (since we have a small delay after pressing this button, when we don't want player to be able to select something else)
     {
-        EventSystem.current.GetComponent<CustomInputModule>().Enabled = false;        //MenuInputModule has variable that
+        CustomInputModule.Instance.Enabled = false;       //MenuInputModule has variable that
         blockInputPanel.SetActive(true);                                            //Enable the panel in front of everything that blocks mouse input
     }
 

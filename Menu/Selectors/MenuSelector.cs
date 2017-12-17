@@ -21,15 +21,11 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
 
     public int GetIndex => index;                   //'Get' roperty to get the index, SetIndex is implemented in each selector as a method
 
-    //protected abstract string Option { get; }       //TODO Delete this, if in the end we don't need general functionality for Option defined in this class somewhere   //Abstract fields that have to get implemented in derived classes, used to actually get and select data from "Options" container of derived classes
     protected abstract string NextOption { get; }       //String, because every value has at least a string value to show on screen, the other UI fields that get changed by switching options are implemented in actual derived classes
     protected abstract string PreviousOption { get; }   //The usage for those properties is all the same and is defined here, in the base class, but getting this value is different for each derived selector
 
     private const string turningAxisName = "Turning";   //"Turning" buttons will switch between options for keyboard and controller input
-
-    [Header("Audio")]
-    [SerializeField] private AudioSource click;         //AudioSource to play click sound when switching options in the selector
-
+    
     [SerializeField] private UnityEvent unityEvent;     //Some Event that you invoke when you press any button (like applying some option instantly with changing it in settings). Will execute for the new value on the selector (to which it switches) 
 
     protected virtual void Awake()  //We need to call Awake from the base class, and derived ones. That's why it is virtual, so we can then override it in derived class and call base.Awake()
@@ -39,8 +35,8 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
 
         Left.onClick.AddListener(PreviousItem);     //Add listener to switch the items
         Right.onClick.AddListener(NextItem);
-        Left.onClick.AddListener(click.Play);       //Add listener to play click sound
-        Right.onClick.AddListener(click.Play);
+        Left.onClick.AddListener(CustomInputModule.Instance.PlayClick);       //Add listener to play click sound
+        Right.onClick.AddListener(CustomInputModule.Instance.PlayClick);
         Left.onClick.AddListener(unityEvent.Invoke);//Add listener to execute custom event for the selector (like applying some option in the settings)
         Right.onClick.AddListener(unityEvent.Invoke);
     }
@@ -60,7 +56,7 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
         if (EventSystem.current.currentSelectedGameObject == gameObject)    //If this selector is the active one, this is the selector we choose options for with Left-Right buttons on keyboard or controller
         {
             float axis = 0; //Initial variable to output a move direction in the end(values -1,0,1)
-            if (GameController.Controller == null)  //Means we are in menu and all input is universal
+            if (CustomInputModule.Instance.Menu)  //Means we are in menu and all input is universal
             {                
                 if (InputManager.GetKey(KeyCode.D)) axis += 1;
                 if (InputManager.GetKey(KeyCode.A)) axis += -1;             //Process keyboard keys

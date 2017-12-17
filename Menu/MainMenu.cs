@@ -8,9 +8,10 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
+    [SerializeField] private GameObject firstSelected;  //Whatever first selected button we choose to be when the scene load
+
     [SerializeField] private AudioSource music; //Reference to music audiosource of Main Menu
-    [SerializeField] private AudioSource sfx;   //To SFX source
-    [SerializeField] private AudioClip select;  //Clip to play one shot when pressed some button
+    
     [SerializeField] private GameObject blockInputPanel;    //"Panel" over the whole screen to block mouse input when needed
 
     [SerializeField] private AudioMixer mixer;       //AudioMixer to set volume on startup
@@ -24,14 +25,15 @@ public class MainMenu : MonoBehaviour
         Time.timeScale = 1;         //Just in case, set timeScale to 1, if we didn't do it while quitting the game (that gets paused)
 
         blockInputPanel.SetActive(false);   //Disable it in case if was active for some reason
-        Destroy(GameObject.Find(nameof(StartupController)));    //Destroy StartupController of this scene (cuz it gets DontDestroyOnLoad in its Awake)
+        Destroy(GameObject.Find(nameof(StartupController)));    //Destroy StartupController of this scene (cuz it gets DontDestroyOnLoad in its Awake). We only need to destroy it when we go back to main menu
        
         music.Play();           //Play the music 
 
-        
+        CustomInputModule.Instance.Enabled = true;          //Make sure Menu input is enabled after we disable it for 0.5 delay after pressing some button
+        EventSystem.current.SetSelectedGameObject(firstSelected);  //Select some button
     }
 
-    void Update()
+    void Update()       //DELETE
     {
         if (Input.GetKeyDown(KeyCode.Alpha0))
         {
@@ -54,11 +56,11 @@ public class MainMenu : MonoBehaviour
         StartCoroutine(MenuSelect());
     }
 
-    private IEnumerator MenuSelect()    //This launches when pressed TODO any menu
+    private IEnumerator MenuSelect()    //This launches when pressed TODO any menu maybe
     {
         music.Stop();       //Stop the music playing
-        //yield return new WaitForSecondsRealtime(0.5f);
-        sfx.PlayOneShot(select);    //Play "select" sound
+        
+        CustomInputModule.Instance.PlaySelect();     //Play 'select' sound  
         disableInput();
 
         yield return new WaitForSecondsRealtime(0.5f);  //Wait 
@@ -68,14 +70,14 @@ public class MainMenu : MonoBehaviour
     }
 
     private void disableInput() //Function to disable player input after he clicked some button to go to next menu (since we have a small delay after pressing this button, when we don't want player to select something else)
-    {       
-        EventSystem.current.GetComponent<CustomInputModule>().Enabled = false;        //Block key input with EventSystem
-        blockInputPanel.SetActive(true);                                            //Enable the panel in front of everything that blocks mouse input
+    {
+        CustomInputModule.Instance.Enabled = false;        //Block key input with EventSystem
+        blockInputPanel.SetActive(true);                  //Enable the panel in front of everything that blocks mouse input
     }
 
     private void ApplySettingsOnStartup()
     {
-        //Resolution and windowed state get saved automatically by unity
+        //Resolution and windowed state get saved automatically by Unity
         QualitySettings.vSyncCount = PlayerPrefs.GetInt(PauseMenu.VideoSettings_VSync, 1);                                  //Apply VSync from PlayerPrefs
         QualitySettings.antiAliasing = (int)Mathf.Pow(2, PlayerPrefs.GetInt(PauseMenu.VideoSettings_AntiAliasing, 1));      //Anti-Aliasing
         Application.runInBackground = PlayerPrefs.GetInt(PauseMenu.VideoSettings_RunInBackground, 0) != 0;                  //Run-in-Background option

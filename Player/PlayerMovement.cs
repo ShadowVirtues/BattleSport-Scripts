@@ -24,7 +24,7 @@ public class PlayerMovement : MonoBehaviour
     private const string turningAxisName = "Turning";
     private const string jumpButtonName = "Jump";
 
-    private const string LB = "LB";     //COMM
+    private const string LB = "LB";     //Those are for two-button jumping
     private const string RB = "RB";
 
     public bool jumpSingleButton;
@@ -45,8 +45,8 @@ public class PlayerMovement : MonoBehaviour
         acceleration = tank.Acceleration * 0.41f + 8.6f;   //Calculate movement parameters from tank characteristics
         maxSpeed = tank.TopSpeed * 0.2f + 6;    //Why those formulas? Cuz.
 
-        AxisConfiguration jump = InputManager.GetAxisConfiguration(playerNumber, "Jump");   //COMM
-        if (jump.positive != KeyCode.None)
+        AxisConfiguration jump = InputManager.GetAxisConfiguration(playerNumber, jumpButtonName);   //Check control configuration for the player to see if there is one- or two-button jumping
+        if (jump.positive != KeyCode.None)  //If some button is bound to "Jump", then it's one-button jumping
         {
             jumpSingleButton = true;
         }
@@ -107,16 +107,16 @@ public class PlayerMovement : MonoBehaviour
         //    rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpVelocity, rigidbody.velocity.z);     //Just apply the Y velocity to jump      
         //}
 
-        if (grounded)    //We can jump only if we are on the ground COMM
+        if (grounded)    //We can jump only if we are on the ground
 	    {
-	        if (jumpSingleButton)
+	        if (jumpSingleButton)   //If "Jump" button is defined - use it
 	        {
 	            if (InputManager.GetButton(jumpButtonName, playerNumber))
 	            {
 	                rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpVelocity, rigidbody.velocity.z);     //Just apply the Y velocity to jump  
                 }	                
             }
-	        else
+	        else    //Otherwise use LB+RB (can be overridden manually editing control config XML if needed)
 	        {
 	            if (InputManager.GetButton(LB, playerNumber) && InputManager.GetButton(RB, playerNumber))
 	            {
@@ -159,7 +159,7 @@ public class PlayerMovement : MonoBehaviour
     }
 
 
-
+    //=======================HELPER FUNCTIONS===========================
 
 
     float normalizedX(Vector3 vector) //Auxiliary function to get normalized X component of a vector when taking into account only X and Z components. Because Jumping speed is independent of speed in X and Z directions of a tank

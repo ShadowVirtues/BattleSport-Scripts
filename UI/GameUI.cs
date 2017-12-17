@@ -26,24 +26,13 @@ public class GameUI : MonoBehaviour
     [SerializeField] private Text PlayerTwoName;    //Player names in Periods UI
     [SerializeField] private Text PlayerOneScore;   
     [SerializeField] private Text PlayerTwoScore;   //Player scores in Periods UI
-
-    [SerializeField] private AudioClip periodHorn;          //Period Horn when it ends
-    [SerializeField] private AudioClip finalHorn;          //Final Horn when the game ends   
-
+    
     [SerializeField] private RectTransform pauseMenu;   //Pause menu panel. RectTransform, because we change the position of the menu, depending on which player paused the game
-
-    [HideInInspector] public AudioSource audioSource;        //AudioSource for outputting all UI-related sounds. EventSystem gets the reference to this source, for playing its 'click' sound through it, that's why public
-    [SerializeField] private AudioClip select;          //'Select' sound to play in End-menu
     
     private GameObject[] periodCircles;     //Red period circles reference array to enable them each period
 
     //TODO Starting Sequence (TUGUSH)
-
-    void Awake()
-    {
-        audioSource = GetComponent<AudioSource>();  //AudioSource is attached to GameUI object
-    }
-
+    
     void Start()
     {
         number = GameController.Controller.NumberOfPeriods; //Shorter reference
@@ -128,7 +117,7 @@ public class GameUI : MonoBehaviour
     {
         GameController.Controller.Pause();      //Pause the game
        
-        audioSource.PlayOneShot(periodHorn);    //Play period horn
+        GameController.audioManager.PeriodHorn(); //Play period horn
         UIFader.color = Color.clear;            //Make sure UIFader is transparent (so we don't get black screen)
         GameFader.DOFade(1, time).SetUpdate(UpdateType.Normal, true);   //Fade out the game (SetUpdate makes tween use unscaled time, since the game is paused with Time.timeScale = 0)
 
@@ -204,7 +193,7 @@ public class GameUI : MonoBehaviour
         //We use 'custom' pausing the game here, without pausing the music
         Time.timeScale = 0;     //Set timescale to 0       
 
-        audioSource.PlayOneShot(finalHorn);    //Play end game horn
+        GameController.audioManager.FinalHorn(); //Play end game horn
         UIFader.color = Color.clear;            //Make sure UIFader is transparent (so we don't get black screen)
         GameFader.DOFade(1, time).SetUpdate(UpdateType.Normal, true);   //Fade out the game (SetUpdate makes tween use unscaled time, since the game is paused with Time.timeScale = 0)
         
@@ -243,17 +232,13 @@ public class GameUI : MonoBehaviour
         yield return new WaitForSecondsRealtime(time);  //Wait until it fades
 
         pauseMenu.GetComponent<PauseMenu>().eventSystem.enabled = true; //Enable EventSystem when the menu fully fades so players can control it
-        EventSystem.current.GetComponent<CustomInputModule>().PlayerOne = true;
-        EventSystem.current.GetComponent<CustomInputModule>().PlayerTwo = true;  //Set so both players can control this menu
+        CustomInputModule.Instance.PlayerOne = true;
+        CustomInputModule.Instance.PlayerTwo = true;  //Set so both players can control this menu
         EventSystem.current.SetSelectedGameObject(replayButton);                    //Select Replay button to enable button navigation
         
         //Everything further gets handled with pressing buttons in the menu
     }
-
-
-
-
-
+    
     public void MainMenu()  //Function tied to "Return to main menu" button on the end-panel
     {
         StartCoroutine(Menu());
@@ -263,7 +248,7 @@ public class GameUI : MonoBehaviour
     {
         GameController.audioManager.music.Stop();           //Stop music from playing
 
-        audioSource.PlayOneShot(select);    //Play 'select' sound
+        CustomInputModule.Instance.PlaySelect(); //Play 'select' sound
         EventSystem.current.enabled = false;        //Disable input
 
         yield return new WaitForSecondsRealtime(0.5f);  //Delay 0.5 sec
@@ -280,7 +265,7 @@ public class GameUI : MonoBehaviour
     {
         GameController.audioManager.music.Stop();           //Stop music from playing
 
-        audioSource.PlayOneShot(select);    //Play 'select' sound
+        CustomInputModule.Instance.PlaySelect();    //Play 'select' sound
         EventSystem.current.enabled = false;        //Disable input
 
         GameController.Controller.ReplayGame(); //Run a function on a GameController to get everything in the scene back to very initial state

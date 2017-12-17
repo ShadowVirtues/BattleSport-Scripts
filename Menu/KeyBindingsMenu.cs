@@ -49,14 +49,11 @@ public class KeyBindingsMenu : MonoBehaviour
 
 
     private Selectable deviceSelectable;
-
-    private CustomInputModule inputModule;
     
 
     void Awake()
     {
-        deviceSelectable = device.GetComponent<Selectable>();
-        inputModule = EventSystem.current.GetComponent<CustomInputModule>();
+        deviceSelectable = device.GetComponent<Selectable>();        
     }
 
     void OnEnable()
@@ -75,13 +72,13 @@ public class KeyBindingsMenu : MonoBehaviour
 
         LoadKeyBindingsValues();
 
-        inputModule.Menu = true;
+        CustomInputModule.Instance.Menu = true;
 
     }
 
     void OnDisable()
     {
-        inputModule.Menu = false;
+        CustomInputModule.Instance.Menu = false;
     }
 
 
@@ -251,6 +248,7 @@ public class KeyBindingsMenu : MonoBehaviour
     public void ApplyControls()
     {
         //CHECK ALL CLEARING if you need to zero axis and set "Button" and shit
+        //TODO Set jumpSingleButton for PlayerMovement
 
         if (device.GetIndex == 0 || device.GetIndex == 1)
         {
@@ -283,6 +281,7 @@ public class KeyBindingsMenu : MonoBehaviour
         else
         {
             //TODO Clear jump button???
+            //TODO DeadZone for player-specific menu controls
 
             int joystickIndex = device.GetIndex - 2;
 
@@ -309,13 +308,14 @@ public class KeyBindingsMenu : MonoBehaviour
             {
                 throttling.type = InputType.AnalogAxis;
                 throttling.axis = 1;
+                throttling.invert = true;
                 
                 turning.type = InputType.AnalogAxis;
                 turning.axis = 0;                
             }
             else if (turningThrottling.GetIndex == 1)   //D-Pad
             {
-                throttling.type = InputType.DigitalAxis;
+                throttling.type = InputType.AnalogAxis;
                 throttling.axis = 6;
 
                 turning.type = InputType.AnalogAxis;

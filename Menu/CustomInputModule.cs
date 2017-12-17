@@ -42,13 +42,13 @@ namespace TeamUtility.IO
 	{
 		public const string VERSION = "5.5";
                
-	    public bool Menu = true;
+	    public bool Menu = true;            //This flag defines if general input is active (in menu), or player-specific one (in game)
         [Header("Menu Only")]
 	    public bool Enabled = true;                 //Flag to disable input (made it only for any button input that I was actually altering in the default input system, mouse inputs are blocked by a panel over everything)
 
         [Header("Gameplay Only")]
 	    public bool PlayerOne;
-	    public bool PlayerTwo;  //Changed
+	    public bool PlayerTwo;  //Flags that define which player can control the pause menu (two flags, cuz there can be a case of both of them controlling)
 
 
         private float m_PrevActionTime;
@@ -93,7 +93,9 @@ namespace TeamUtility.IO
 	    [SerializeField] private string m_CancelButton = "Pause";
 
 	    [Header("General")]
-	    public AudioSource click;     //Click sound whenever user presses any vertical buttons (in allowed time-intervals), basically whenever vertical move actually executes. We set it in StartupController, so public
+	    private AudioSource click;  //Click sound whenever user presses any vertical buttons (in allowed time-intervals), basically whenever vertical move actually executes. Used to PlayOneShot select sound through it as well
+
+	    [SerializeField] private AudioClip select;  //There it is!
 
         [SerializeField] private float m_InputActionsPerSecond = 10;
 
@@ -186,18 +188,45 @@ namespace TeamUtility.IO
             {"joy_2_axis_1", "joy_2_axis_6"},
 	        {"joy_3_axis_1", "joy_3_axis_6"}
 	    };
-        protected override void Awake()
+
+	    public static CustomInputModule Instance;   //Static singleton and stuff
+
+	    protected override void OnEnable()  //It was giving errors in Awake, but OnEnable worked, so that's how it gets done, I guess
 	    {
+	        base.OnEnable();    //Idk, if base class has whatever stuff in Awake (it has)
+	        if (Instance != null)
+	        {
+	            Destroy(gameObject);    //Regular singleton stuff. Making sure if we go back to main menu, there won't be two EventSystems
+            }
+	        else
+	        {
+	            DontDestroyOnLoad(gameObject);  
+	            Instance = this;
+	        }
+        }
+
+        protected override void Awake()
+        {
+            click = GetComponent<AudioSource>();        //Get audioSource attached to the same object as EventSystem and InputModule
+
 	        joyNum = Input.GetJoystickNames().Length;   //Get the number of joysticks when the event system awakes at the scene load (that means after connecting a joystick, for it to work in the menu, you have to move to some other menu)
 	        if (joyNum > 4) joyNum = 4;                 //So shit doesn't break if there IS ACTUALLY SOME INSANE PERSON HAVING 5+ JOYSTICKS CONNECTED
+	    }
+
+	    public void PlayClick()     //Used in MenuSelectors on every Left-Right button
+	    {
+	        click.Play();
+	    }
+
+	    public void PlaySelect()    //Used everywhere when pressing some button
+	    {
+	        click.PlayOneShot(select);
 	    }
 
 	    public const float dead = 0.6f;         //Dead zone of joystick sticks when to accept menu input
 
         public override bool ShouldActivateModule()
-        {
-            if (Enabled == false) return false; //This is put everywhere where I brought my hands to in this script
-
+        {           
 			if(!base.ShouldActivateModule())
 				return false;
 
@@ -205,8 +234,10 @@ namespace TeamUtility.IO
 
             if (Menu)
             {
-                    //SUBMIT
-		        shouldActivate |= InputManager.GetKeyDown(KeyCode.Return);     
+                if (Enabled == false) return false; //This is put everywhere where I brought my hands to in this script
+
+                //SUBMIT
+                shouldActivate |= InputManager.GetKeyDown(KeyCode.Return);     
 		        shouldActivate |= InputManager.GetKeyDown(KeyCode.Space);               //I am not exactly sure what "shouldActivate" is for, but we put here all default hardcoded buttons that you can control menu with
                 shouldActivate |= InputManager.GetKeyDown(KeyCode.Joystick1Button7);    //Also not sure why default Unity script didn't have it written like "if (someButtonWasPressed) return true;" for all buttons. Much more efficient, IMO. We don't bottleneck from this implementation, so 'who cares'
 		        //shouldActivate |= InputManager.GetKeyDown(KeyCode.Joystick2Button7);  
@@ -245,19 +276,19 @@ namespace TeamUtility.IO
             }
             else
             {
-                if (PlayerOne)  //Changed
+                if (PlayerOne)  //If player one controls, activate whatever with this player's buttons
                 {
-                    shouldActivate |= InputManager.GetButtonDown(m_SubmitButton, PlayerID.One);     //Changed
-                    shouldActivate |= InputManager.GetButtonDown(m_CancelButton, PlayerID.One);     //Changed
-                    //shouldActivate |= !Mathf.Approximately(InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.One), 0.0f);  //Changed
-                    shouldActivate |= !Mathf.Approximately(InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.One), 0.0f);    //Changed
+                    shouldActivate |= InputManager.GetButtonDown(m_SubmitButton, PlayerID.One);     
+                    shouldActivate |= InputManager.GetButtonDown(m_CancelButton, PlayerID.One);       
+                    //shouldActivate |= !Mathf.Approximately(InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.One), 0.0f);
+                    shouldActivate |= Mathf.Abs(InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.One)) > dead;       
                 }
                 if (PlayerTwo)  //Changed
                 {
-                    shouldActivate |= InputManager.GetButtonDown(m_SubmitButton, PlayerID.Two);     //Changed           
-                    shouldActivate |= InputManager.GetButtonDown(m_CancelButton, PlayerID.Two);     //Changed            
-                    //shouldActivate |= !Mathf.Approximately(InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.Two), 0.0f);  //Changed           
-                    shouldActivate |= !Mathf.Approximately(InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.Two), 0.0f);    //Changed
+                    shouldActivate |= InputManager.GetButtonDown(m_SubmitButton, PlayerID.Two);             
+                    shouldActivate |= InputManager.GetButtonDown(m_CancelButton, PlayerID.Two);              
+                    //shouldActivate |= !Mathf.Approximately(InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.Two), 0.0f);           
+                    shouldActivate |= Mathf.Abs(InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.Two)) > dead;
                 }
 
                 shouldActivate |= (m_MousePosition - m_LastMousePosition).sqrMagnitude > 0.0f;
@@ -447,9 +478,7 @@ namespace TeamUtility.IO
 		/// Process submit keys.
 		/// </summary>
 		protected bool SendSubmitEventToSelectedObject()
-		{
-		    if (Enabled == false) return false;
-
+		{		    
             if (eventSystem.currentSelectedGameObject == null)
 				return false;
 
@@ -457,7 +486,9 @@ namespace TeamUtility.IO
 
 		    if (Menu)
 		    {
-		        bool pressed = false;
+		        if (Enabled == false) return false;
+
+                bool pressed = false;
 
 		        pressed |= InputManager.GetKeyDown(KeyCode.Return); //Evaluating all Submit buttons
 		        pressed |= InputManager.GetKeyDown(KeyCode.Space);
@@ -466,23 +497,23 @@ namespace TeamUtility.IO
 		        {
 		            for (int i = 1; i < joyNum; i++)
 		            {
-		                pressed |= InputManager.GetKeyDown((KeyCode)(357 + i * 20));
+		                pressed |= InputManager.GetKeyDown((KeyCode)(357 + i * 20));    //And additional joysticks if there are any
 		            }
 		        }
 
-		        if (pressed)    //Changed
+		        if (pressed)    //Changed it a bit from original implementation
 		            ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, data, ExecuteEvents.submitHandler);
             }
 		    else
 		    {
 		        if (PlayerOne)
 		        {
-		            if (InputManager.GetButtonDown(m_SubmitButton, PlayerID.One)) //Changed
+		            if (InputManager.GetButtonDown(m_SubmitButton, PlayerID.One)) //Doing similar stuff for player-specific controlling
 		            {
 		                ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, data, ExecuteEvents.submitHandler);
                     }
 
-		            if (InputManager.GetButtonDown(m_CancelButton, PlayerID.One)) //Changed
+		            if (InputManager.GetButtonDown(m_CancelButton, PlayerID.One)) 
 		            {
 		                ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, data, ExecuteEvents.cancelHandler);
                     }
@@ -490,22 +521,20 @@ namespace TeamUtility.IO
                 }
 		        if (PlayerTwo)
 		        {
-		            if (InputManager.GetButtonDown(m_SubmitButton, PlayerID.Two)) //Changed
+		            if (InputManager.GetButtonDown(m_SubmitButton, PlayerID.Two)) 
 		            {
 		                ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, data, ExecuteEvents.submitHandler);
                     }
 
-		            if (InputManager.GetButtonDown(m_CancelButton, PlayerID.Two)) //Changed
+		            if (InputManager.GetButtonDown(m_CancelButton, PlayerID.Two)) 
 		            {
 		                ExecuteEvents.Execute(eventSystem.currentSelectedGameObject, data, ExecuteEvents.cancelHandler);
                     }
 		                
                 }
-
 		       
             }
-		   
-            
+		             
 			return data.used;
 		}
 
@@ -524,7 +553,7 @@ namespace TeamUtility.IO
 
 		        if (Input.GetAxisRaw(joyAxisNames[0, 0]) > dead) vector.y += -1;
 		        if (Input.GetAxisRaw(joyAxisNames[0, 0]) < -dead) vector.y += 1;
-		        if (Input.GetAxisRaw(joyAxisNames[0, 1]) > dead) vector.y += 1;
+		        if (Input.GetAxisRaw(joyAxisNames[0, 1]) > dead) vector.y += 1;     //Considering Sticks controlling with Dead Zone
 		        if (Input.GetAxisRaw(joyAxisNames[0, 1]) < -dead) vector.y += -1;
 
 		        if (joyNum > 1)
@@ -544,17 +573,17 @@ namespace TeamUtility.IO
 		    {
 		        Vector2 P1Vector = Vector2.zero;
 		        Vector2 P2Vector = Vector2.zero;
-
-		        if (PlayerOne)
+                
+                if (PlayerOne && Mathf.Abs(InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.One)) > dead)
 		        {
 		            P1Vector = new Vector2(0, InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.One));   //InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.One)
 		        }
-		        if (PlayerTwo)
+		        if (PlayerTwo && Mathf.Abs(InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.Two)) > dead)
 		        {
 		            P2Vector = new Vector2(0, InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.Two));   //InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.Two)
 		        }
 
-		        return (P1Vector + P2Vector).normalized;
+		        return (P1Vector + P2Vector).normalized;    //We don't really need X axis here, I just left as it was in original code
             }
 		    
         }
@@ -628,7 +657,7 @@ namespace TeamUtility.IO
 					allow = (time > m_PrevActionTime + 1f / m_InputActionsPerSecond);
 			}
 
-		    if (allow) click.Play();
+		    if (allow) click.Play();    //Play click sound when pressed some Up/Down button
             
             if (!allow)
 				return false;

@@ -22,13 +22,10 @@ using Random = UnityEngine.Random;
     Delete getting controllers from MainMenu and GameController in Update by button press
     Test everything with new input module
    
-    Refactoring EventSystem:
-    Have it only in the first scene, then pass it through all scenes with DontDestroyOnLoad
-    Make it have its own AudioSource
-    MenuSelector has static reference to EventSystem
-    MenuSelector gets the AudioSource for click from this static reference
-    Check if we even need other UI sources for "Select Click", if we use GameUI's AudioSource for something else than that
-    Dont forget to deset Menu in EventSystem when loaded game scene
+    Refactoring EventSystem:    
+    Have Menu Effects in Game Settings, because EventSystem will have AudioSource with MenuSFX
+    Manage everything between scenes, like FirstSelected and all Menu/PlayerOne/PlayerTwo flags
+    Manage all UI sounds, like click select and everything
 
 
 
@@ -194,6 +191,7 @@ public class Player : MonoBehaviour
     private Material material;          //Tank material to modify it when the tank gets hit or picks up the ball
 
     private const string ballButtonName = "ShootBall";    //Caching button name for shooting the ball
+    private const string pauseButtonName = "Pause";       //And for pausing
 
     //=============================================
 
@@ -396,20 +394,17 @@ public class Player : MonoBehaviour
     
     void Update()
     {
-        if (Time.timeScale == 0) return;    //COMM
+        if (Time.timeScale == 0) return;    //If the game is paused, don't get any input from players (unpausing occurs from pressing Menu buttons). This seem to also prevent getting two pause menus for both players if they have the same button bound
 
-        if (InputManager.GetButtonDown("Pause", PlayerNumber))
-        {
-            //GameController.Controller.Pause();  //COMM
-            GameController.Controller.PauseMenu(PlayerNumber);
+        if (InputManager.GetButtonDown(pauseButtonName, PlayerNumber))
+        {           
+            GameController.Controller.PauseMenu(PlayerNumber);  //When pressed pause button, launch function on GameController to invoke pause menu passing paused player name
         }
         
         if (possession && InputManager.GetButtonDown(ballButtonName, PlayerNumber)) //If player has a ball and presses Shoot Ball button
         {
             LoseBall(FumbleCause.Shot); //"LOSE" ball due to shooting it
         }
-
-
     }
 
     public void Hit(float firePower, Weapon weapon)       //Gets invoked from Rocket or Laser OnCollisionEnter

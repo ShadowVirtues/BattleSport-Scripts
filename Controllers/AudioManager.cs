@@ -17,7 +17,10 @@ public class AudioManager : MonoBehaviour
 {
     [SerializeField] private AudioClip cloak;
     [SerializeField] private AudioClip laserHit;
-    
+
+    [SerializeField] private AudioClip periodHorn;          
+    [SerializeField] private AudioClip finalHorn;          
+
     [SerializeField] private AudioSource audioSource;   //Source.AudioManager object attached to AudioManagerPrefab
     public AudioSource music;                           //Source.Music object attached to AudioManagerPrefab (public, cuz get used to pause the music)
 
@@ -27,6 +30,10 @@ public class AudioManager : MonoBehaviour
 
     public void LaserHit() => audioSource.PlayOneShot(laserHit);    //Non-self-interruptible laser sound (should technically be interruptible, but absense of it doesn't hurn at all)
     
+    public void PeriodHorn() => audioSource.PlayOneShot(periodHorn);    //Period Horn when it ends
+
+    public void FinalHorn() => audioSource.PlayOneShot(finalHorn);      //Final Horn when the game ends   
+
     void Awake()    //When loaded the scene
     {
         music.clip = GameController.Controller.Music;   //Set the clip to arena music
