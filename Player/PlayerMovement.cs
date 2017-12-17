@@ -24,6 +24,10 @@ public class PlayerMovement : MonoBehaviour
     private const string turningAxisName = "Turning";
     private const string jumpButtonName = "Jump";
 
+    private const string LB = "LB";     //COMM
+    private const string RB = "RB";
+
+    public bool jumpSingleButton;
 
 #if UNITY_EDITOR
     //QualitySettings.vSyncCount = 0;  // Tests for different fps
@@ -40,6 +44,12 @@ public class PlayerMovement : MonoBehaviour
 
         acceleration = tank.Acceleration * 0.41f + 8.6f;   //Calculate movement parameters from tank characteristics
         maxSpeed = tank.TopSpeed * 0.2f + 6;    //Why those formulas? Cuz.
+
+        AxisConfiguration jump = InputManager.GetAxisConfiguration(playerNumber, "Jump");   //COMM
+        if (jump.positive != KeyCode.None)
+        {
+            jumpSingleButton = true;
+        }
     }
    
     void Update()
@@ -97,24 +107,24 @@ public class PlayerMovement : MonoBehaviour
         //    rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpVelocity, rigidbody.velocity.z);     //Just apply the Y velocity to jump      
         //}
 
-        if (grounded)    //We can jump only if we are on the ground
+        if (grounded)    //We can jump only if we are on the ground COMM
 	    {
-	        if (playerNumber == PlayerID.One)   //TODO probably only for now player one jumps with set button, and player two hard-coded from here by pressing LB+RB on a gamepad
-	        {                                   //TODO if there is something in config - use it, if there is blank - LB+RB
+	        if (jumpSingleButton)
+	        {
 	            if (InputManager.GetButton(jumpButtonName, playerNumber))
+	            {
 	                rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpVelocity, rigidbody.velocity.z);     //Just apply the Y velocity to jump  
-            }                
-            else if (playerNumber == PlayerID.Two)
-            { 
-                if (Input.GetKey(KeyCode.Joystick1Button4) && Input.GetKey(KeyCode.Joystick1Button5))                                  
-                    rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpVelocity, rigidbody.velocity.z);     //Just apply the Y velocity to jump  
-                
+                }	                
             }
-                
-                    
-
-
-
+	        else
+	        {
+	            if (InputManager.GetButton(LB, playerNumber) && InputManager.GetButton(RB, playerNumber))
+	            {
+	                rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpVelocity, rigidbody.velocity.z);     //Just apply the Y velocity to jump  
+                }
+	               
+            }
+            
         }
 
         

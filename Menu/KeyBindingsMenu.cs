@@ -13,6 +13,8 @@ public class KeyBindingsMenu : MonoBehaviour
     [SerializeField] private DeviceSelector device;
 
     [Header("Panels")]
+    [SerializeField] private GameObject settingPanel;
+    [SerializeField] private GameObject[] keyBindingsPanels;
     [SerializeField] private GameObject keyboardPanel;
     [SerializeField] private GameObject keyboardMousePanel;
     [SerializeField] private GameObject gamepadPanel;
@@ -20,11 +22,14 @@ public class KeyBindingsMenu : MonoBehaviour
     [Header("Keyboard Panel")]
     [SerializeField] private GameObject turnLeft;
     [SerializeField] private Selectable shootBallKeyboard;
+    [SerializeField] private Text cancelButtonKeyboard;
+    [SerializeField] private Text submitButtonKeyboard;
 
     [Header("Keyboard+Mouse Panel")]
     [SerializeField] private ValueSelector sensitivityMouse;
     [SerializeField] private Selectable shootBallMouse;
-    
+    [SerializeField] private Text cancelButtonMouse;
+    [SerializeField] private Text submitButtonMouse;
 
 
     [Header("Gamepad Panel")]
@@ -52,11 +57,12 @@ public class KeyBindingsMenu : MonoBehaviour
     {
         deviceSelectable = device.GetComponent<Selectable>();
         inputModule = EventSystem.current.GetComponent<CustomInputModule>();
-        
     }
 
     void OnEnable()
     {
+
+        DisableAllPanelsAndEnableOne(settingPanel);
 
         if (GameController.Controller.PausedPlayer == PlayerID.One)
         {           
@@ -130,8 +136,7 @@ public class KeyBindingsMenu : MonoBehaviour
 
 
     }
-
-    //TODO ChangeDevice() when entering menu
+    
     public void ChangeDevice()
     {
         if (device.GetIndex == 0)   //Keyboard
@@ -146,6 +151,20 @@ public class KeyBindingsMenu : MonoBehaviour
             setSelectableDown(deviceSelectable, turnLeft);                       
             setSelectableUp(back, defaultArrows);
             setSelectableUp(defaultWASD,shootBallKeyboard);
+
+
+            if (GameController.Controller.PausedPlayer == PlayerID.One)
+            {
+                cancelButtonKeyboard.text = "Escape";
+                submitButtonKeyboard.text = "Enter";
+            }
+            else if (GameController.Controller.PausedPlayer == PlayerID.Two)
+            {
+                cancelButtonKeyboard.text = "Backspace";
+                submitButtonKeyboard.text = "KeypadEnter";
+            }
+
+
         }
         else if (device.GetIndex == 1)  //Keyboard+Mouse
         {
@@ -158,7 +177,18 @@ public class KeyBindingsMenu : MonoBehaviour
 
             setSelectableDown(deviceSelectable, sensitivityMouse);
             setSelectableUp(back, defaultArrows);
-            setSelectableUp(defaultWASD, shootBallMouse);            
+            setSelectableUp(defaultWASD, shootBallMouse);
+
+            if (GameController.Controller.PausedPlayer == PlayerID.One)
+            {
+                cancelButtonMouse.text = "Escape";
+                submitButtonMouse.text = "Return";
+            }
+            else if (GameController.Controller.PausedPlayer == PlayerID.Two)
+            {
+                cancelButtonMouse.text = "Backspace";
+                submitButtonMouse.text = "KeypadEnter";
+            }
         }
         else                            //All gamepads
         {
@@ -178,7 +208,6 @@ public class KeyBindingsMenu : MonoBehaviour
         
     }
 
-    //TODO manage changing it when device changed
     public void TurningThrottlingChange()
     {
         if (turningThrottling.GetIndex == 0)    //Stick
@@ -209,11 +238,243 @@ public class KeyBindingsMenu : MonoBehaviour
     }
 
     //TODO Are you sure - reset WASD/Arrows
-    
+    public void DisableAllPanelsAndEnableOne(GameObject toEnable)   //This is 'general implementation' of menu switching, this function and the next one are applied to every menu-switching button, having the respective parameter 
+    {                                                               //In this case it is the menu panel that gets shown (enabled) after selecting this menu        
+        foreach (GameObject panel in keyBindingsPanels)              //Disabling all settings panels
+        {
+            panel.SetActive(false);
+        }
+        
+        if (toEnable != null) toEnable.SetActive(true);     //And enable the panel that we navigate to (function accepts no menu to enable, so don't enable anything if nothing was passed into function)
+    }
+
+    public void ApplyControls()
+    {
+        //CHECK ALL CLEARING if you need to zero axis and set "Button" and shit
+
+        if (device.GetIndex == 0 || device.GetIndex == 1)
+        {
+            AxisConfiguration cancelButton = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Pause");
+            AxisConfiguration submitButton = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Start");
+            if (GameController.Controller.PausedPlayer == PlayerID.One)
+            {
+                cancelButton.positive = KeyCode.Escape;
+                submitButton.positive = KeyCode.Return;                
+            }
+            else if (GameController.Controller.PausedPlayer == PlayerID.Two)
+            {
+                cancelButton.positive = KeyCode.Backspace;
+                submitButton.positive = KeyCode.KeypadEnter;               
+            }
+
+            AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "DEVICE");
+            playerDevice.description = "Keyboard";
+
+            if (device.GetIndex == 1)
+            {
+                AxisConfiguration turning = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Turning");
+                turning.type = InputType.MouseAxis;
+                turning.axis = 0;
+                //TODO Apply sensitivity
+
+                playerDevice.description = "Keyboard+Mouse";
+            }
+        }       
+        else
+        {
+            //TODO Clear jump button???
+
+            int joystickIndex = device.GetIndex - 2;
+
+            AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "DEVICE");
+
+            AxisConfiguration throttling = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Throttle");
+            AxisConfiguration turning = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Turning");
+            AxisConfiguration strafing = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Strafing");
+
+            AxisConfiguration jump = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Jump");
+            AxisConfiguration LB = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "LB");
+            AxisConfiguration RB = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "RB");
+
+            AxisConfiguration rocket = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Rocket");
+            AxisConfiguration laser = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Laser");
+            AxisConfiguration shootBall = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "ShootBall");
+           
+            AxisConfiguration cancelButton = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Pause");
+            AxisConfiguration submitButton = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Start");
+
+            playerDevice.description = "Joystick" + joystickIndex;      //CHECK WTF .ToString()
+
+            if (turningThrottling.GetIndex == 0)    //Stick
+            {
+                throttling.type = InputType.AnalogAxis;
+                throttling.axis = 1;
+                
+                turning.type = InputType.AnalogAxis;
+                turning.axis = 0;                
+            }
+            else if (turningThrottling.GetIndex == 1)   //D-Pad
+            {
+                throttling.type = InputType.DigitalAxis;
+                throttling.axis = 6;
+
+                turning.type = InputType.AnalogAxis;
+                turning.axis = 5;
+            }
+            throttling.joystick = joystickIndex;
+            turning.joystick = joystickIndex;
+
+            strafing.type = InputType.DigitalAxis;
+            strafing.positive = (KeyCode)(355 + joystickIndex * 20);    //JoystickXButton5
+            strafing.negative = (KeyCode)(354 + joystickIndex * 20);    //JoystickXButton4
+
+            jump.positive = KeyCode.None;
+
+            LB.positive = (KeyCode)(354 + joystickIndex * 20);   //JoystickXButton5
+            RB.positive = (KeyCode)(355 + joystickIndex * 20);   //JoystickXButton4
+
+            rocket.positive = (KeyCode)(351 + joystickIndex * 20); //JoystickXButton1
+            laser.positive = (KeyCode)(350 + joystickIndex * 20);    //JoystickXButton0
+            shootBall.positive = (KeyCode)(353 + joystickIndex * 20); //JoystickXButton3
+
+            cancelButton.positive = (KeyCode)(356 + joystickIndex * 20);    //JoystickXButton6
+            submitButton.positive = (KeyCode)(357 + joystickIndex * 20);    //JoystickXButton7
+            
+        }
 
 
 
 
+
+    }
+
+    public void DefaultWASD()
+    {
+        AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "DEVICE");
+        
+        AxisConfiguration throttling = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Throttle");
+        AxisConfiguration turning = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Turning");
+        AxisConfiguration strafing = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Strafing");
+
+        AxisConfiguration jump = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Jump");
+        AxisConfiguration LB = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "LB");
+        AxisConfiguration RB = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "RB");
+
+        AxisConfiguration rocket = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Rocket");
+        AxisConfiguration laser = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Laser");
+        AxisConfiguration shootBall = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "ShootBall");
+
+        if (device.GetIndex == 0)   //Keyboard
+        {
+            playerDevice.description = "Keyboard";
+
+            throttling.type = InputType.DigitalAxis;
+            throttling.positive = KeyCode.W;
+            throttling.negative = KeyCode.S;
+
+            turning.type = InputType.DigitalAxis;
+            turning.positive = KeyCode.D;
+            turning.negative = KeyCode.A;
+
+            strafing.type = InputType.DigitalAxis;
+            strafing.positive = KeyCode.J;  
+            strafing.negative = KeyCode.G;               
+
+            jump.positive = KeyCode.Space;
+
+            LB.positive = KeyCode.None;  
+            RB.positive = KeyCode.None;         
+
+            rocket.positive = KeyCode.LeftShift; 
+            laser.positive = KeyCode.K;    
+            shootBall.positive = KeyCode.LeftControl;  
+        }
+        else if (device.GetIndex == 1)  //Keyboard+Mouse
+        {
+            playerDevice.description = "Keyboard+Mouse";
+
+            throttling.type = InputType.DigitalAxis;
+            throttling.positive = KeyCode.W;
+            throttling.negative = KeyCode.S;
+                
+            strafing.type = InputType.DigitalAxis;
+            strafing.positive = KeyCode.D; 
+            strafing.negative = KeyCode.A;         
+
+            jump.positive = KeyCode.Space;
+
+            LB.positive = KeyCode.None; 
+            RB.positive = KeyCode.None;       
+
+            rocket.positive = KeyCode.Mouse0; 
+            laser.positive = KeyCode.LeftShift;  
+            shootBall.positive = KeyCode.Mouse1;      
+        }
+    }
+
+    public void DefaultArrows()
+    {
+        AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "DEVICE");
+
+        AxisConfiguration throttling = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Throttle");
+        AxisConfiguration turning = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Turning");
+        AxisConfiguration strafing = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Strafing");
+
+        AxisConfiguration jump = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Jump");
+        AxisConfiguration LB = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "LB");
+        AxisConfiguration RB = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "RB");
+
+        AxisConfiguration rocket = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Rocket");
+        AxisConfiguration laser = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Laser");
+        AxisConfiguration shootBall = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "ShootBall");
+
+        if (device.GetIndex == 0)   //Keyboard
+        {
+            playerDevice.description = "Keyboard";
+
+            throttling.type = InputType.DigitalAxis;
+            throttling.positive = KeyCode.UpArrow;
+            throttling.negative = KeyCode.DownArrow;
+
+            turning.type = InputType.DigitalAxis;
+            turning.positive = KeyCode.RightArrow;
+            turning.negative = KeyCode.LeftArrow;
+
+            strafing.type = InputType.DigitalAxis;
+            strafing.positive = KeyCode.Keypad6;  
+            strafing.negative = KeyCode.Keypad4;        
+
+            jump.positive = KeyCode.Keypad0;
+
+            LB.positive = KeyCode.None; 
+            RB.positive = KeyCode.None;    
+
+            rocket.positive = KeyCode.RightShift;
+            laser.positive = KeyCode.KeypadPlus;    
+            shootBall.positive = KeyCode.RightControl;      
+        }
+        else if (device.GetIndex == 1)  //Keyboard+Mouse
+        {
+            playerDevice.description = "Keyboard+Mouse";
+
+            throttling.type = InputType.DigitalAxis;
+            throttling.positive = KeyCode.UpArrow;
+            throttling.negative = KeyCode.DownArrow;
+            
+            strafing.type = InputType.DigitalAxis;
+            strafing.positive = KeyCode.RightArrow;
+            strafing.negative = KeyCode.LeftArrow;     
+
+            jump.positive = KeyCode.Keypad0;
+
+            LB.positive = KeyCode.None;
+            RB.positive = KeyCode.None;              
+
+            rocket.positive = KeyCode.Mouse0; 
+            laser.positive = KeyCode.LeftShift; 
+            shootBall.positive = KeyCode.Mouse1;    
+        }
+    }
 
     //=========================================
 

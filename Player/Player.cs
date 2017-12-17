@@ -22,6 +22,15 @@ using Random = UnityEngine.Random;
     Delete getting controllers from MainMenu and GameController in Update by button press
     Test everything with new input module
    
+    Refactoring EventSystem:
+    Have it only in the first scene, then pass it through all scenes with DontDestroyOnLoad
+    Make it have its own AudioSource
+    MenuSelector has static reference to EventSystem
+    MenuSelector gets the AudioSource for click from this static reference
+    Check if we even need other UI sources for "Select Click", if we use GameUI's AudioSource for something else than that
+    Dont forget to deset Menu in EventSystem when loaded game scene
+
+
 
     Consider we have lowered Mixer menu volumes
 
