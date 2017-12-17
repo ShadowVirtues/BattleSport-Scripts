@@ -12,9 +12,7 @@ public class DeviceSelector : StringSelector
         Options.RemoveRange(2,Options.Count - 2);
         
         Options.AddRange(InputManager.GetJoystickNames());
-
-        InputManager.Load();
-
+        
         for (int i = 2; i < Options.Count; i++)
         {
             if (String.IsNullOrEmpty(Options[i]))
