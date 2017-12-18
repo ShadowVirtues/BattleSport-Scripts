@@ -13,9 +13,9 @@ public class KeyBindingsMenu : MonoBehaviour
     [SerializeField] private DeviceSelector device;
 
     [Header("Panels")]
-    [SerializeField] private GameObject settingPanel;
+    [SerializeField] private GameObject keySettingPanel;
     [SerializeField] private GameObject[] keyBindingsPanels;
-    [SerializeField] private GameObject keyboardPanel;
+    [SerializeField] private GameObject keyboardPanel; 
     [SerializeField] private GameObject keyboardMousePanel;
     [SerializeField] private GameObject gamepadPanel;
 
@@ -53,13 +53,27 @@ public class KeyBindingsMenu : MonoBehaviour
 
     void Awake()
     {
-        deviceSelectable = device.GetComponent<Selectable>();        
+        deviceSelectable = device.GetComponent<Selectable>();       
+        
+        keySettingPanel.SetActive(true);       
+        keyboardMousePanel.SetActive(true);
+        gamepadPanel.SetActive(true);
+        
+        gamepadPanel.SetActive(false);
+        keyboardMousePanel.SetActive(false);
+        keySettingPanel.SetActive(false);
+
     }
 
     void OnEnable()
     {
 
-        DisableAllPanelsAndEnableOne(settingPanel);
+        //DisableAllPanelsAndEnableOne(keySettingPanel);
+        foreach (GameObject panel in keyBindingsPanels)
+        {
+            panel.SetActive(false);
+        }
+        keySettingPanel.SetActive(true);
 
         if (GameController.Controller.PausedPlayer == PlayerID.One)
         {           
@@ -87,16 +101,24 @@ public class KeyBindingsMenu : MonoBehaviour
         device.UpdateDevices();
 
         AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "DEVICE");
-        
+
+        AxisConfiguration turningAxis = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Turning");
+
         if (playerDevice.description == "Keyboard")
         {
             device.SetIndex(0);
             turningThrottling.SetIndex(0);  //So when some player with joystick sets their turning, it doesnt transfer to keyboard player when he switches to gamepad (so for keyboard player default option is "Stick", and not whatever 'joystick player' set last)
+            sensitivityStick.SetValue(25);
+            deadZone.SetValue(0);
+            sensitivityMouse.SetValue(25);
         }
         else if (playerDevice.description == "Keyboard+Mouse")
         {
             device.SetIndex(1);
             turningThrottling.SetIndex(0);
+            sensitivityStick.SetValue(25);
+            deadZone.SetValue(0);
+            sensitivityMouse.SetValue((int)((turningAxis.sensitivity - 0.1f) * 100));
         }
         else
         {
@@ -109,13 +131,24 @@ public class KeyBindingsMenu : MonoBehaviour
             else
             {
                 device.SetIndex(2 + selectedGamepad);
-
-                AxisConfiguration turningAxis = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Turning");
-
-                if (turningAxis.axis == 5)
+                
+                if (turningAxis.axis == 5)  //D-Pad
+                {
                     turningThrottling.SetIndex(1);
-                else if (turningAxis.axis == 0)
+                    sensitivityStick.SetValue(25);
+                    deadZone.SetValue(0);
+                    sensitivityMouse.SetValue(25);
+                }                  
+                else if (turningAxis.axis == 0) //Stick
+                {
                     turningThrottling.SetIndex(0);
+                    sensitivityStick.SetValue((int)((turningAxis.sensitivity - 0.5f) * 100));
+                    deadZone.SetValue((int)(turningAxis.deadZone * 100));
+                    sensitivityMouse.SetValue(25);
+                }
+                    
+
+                
 
                 TurningThrottlingChange();
             }
@@ -234,22 +267,13 @@ public class KeyBindingsMenu : MonoBehaviour
         
     }
 
-    //TODO Are you sure - reset WASD/Arrows
-    public void DisableAllPanelsAndEnableOne(GameObject toEnable)   //This is 'general implementation' of menu switching, this function and the next one are applied to every menu-switching button, having the respective parameter 
-    {                                                               //In this case it is the menu panel that gets shown (enabled) after selecting this menu        
-        foreach (GameObject panel in keyBindingsPanels)              //Disabling all settings panels
-        {
-            panel.SetActive(false);
-        }
-        
-        if (toEnable != null) toEnable.SetActive(true);     //And enable the panel that we navigate to (function accepts no menu to enable, so don't enable anything if nothing was passed into function)
-    }
-
+    
+    
     public void ApplyControls()
     {
         //CHECK ALL CLEARING if you need to zero axis and set "Button" and shit
-        //TODO Set jumpSingleButton for PlayerMovement
-
+        
+        
         if (device.GetIndex == 0 || device.GetIndex == 1)
         {
             AxisConfiguration cancelButton = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Pause");
@@ -264,25 +288,28 @@ public class KeyBindingsMenu : MonoBehaviour
                 cancelButton.positive = KeyCode.Backspace;
                 submitButton.positive = KeyCode.KeypadEnter;               
             }
+            
+            setJumpSingleButton(true);
 
             AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "DEVICE");
             playerDevice.description = "Keyboard";
+
+            setAnalogTurning(1);
 
             if (device.GetIndex == 1)
             {
                 AxisConfiguration turning = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Turning");
                 turning.type = InputType.MouseAxis;
                 turning.axis = 0;
-                //TODO Apply sensitivity
-
+                setAnalogTurning(0.2f);
+                turning.sensitivity = 0.1f + sensitivityMouse.Option / 100f;
+                
                 playerDevice.description = "Keyboard+Mouse";
             }
         }       
         else
         {
-            //TODO Clear jump button???
-            //TODO DeadZone for player-specific menu controls
-
+            
             int joystickIndex = device.GetIndex - 2;
 
             AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "DEVICE");
@@ -302,7 +329,7 @@ public class KeyBindingsMenu : MonoBehaviour
             AxisConfiguration cancelButton = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Pause");
             AxisConfiguration submitButton = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Start");
 
-            playerDevice.description = "Joystick" + joystickIndex;      //CHECK WTF .ToString()
+            playerDevice.description = "Joystick" + joystickIndex;
 
             if (turningThrottling.GetIndex == 0)    //Stick
             {
@@ -311,15 +338,24 @@ public class KeyBindingsMenu : MonoBehaviour
                 throttling.invert = true;
                 
                 turning.type = InputType.AnalogAxis;
-                turning.axis = 0;                
+                turning.axis = 0;
+
+                setAnalogTurning(3);
+
+                turning.sensitivity = 0.5f + sensitivityStick.Option / 100f;
+                turning.deadZone = deadZone.Option / 100f;
+
             }
             else if (turningThrottling.GetIndex == 1)   //D-Pad
             {
                 throttling.type = InputType.AnalogAxis;
                 throttling.axis = 6;
+                throttling.invert = false;
 
                 turning.type = InputType.AnalogAxis;
                 turning.axis = 5;
+
+                setAnalogTurning(1);
             }
             throttling.joystick = joystickIndex;
             turning.joystick = joystickIndex;
@@ -329,6 +365,7 @@ public class KeyBindingsMenu : MonoBehaviour
             strafing.negative = (KeyCode)(354 + joystickIndex * 20);    //JoystickXButton4
 
             jump.positive = KeyCode.None;
+            setJumpSingleButton(false);
 
             LB.positive = (KeyCode)(354 + joystickIndex * 20);   //JoystickXButton5
             RB.positive = (KeyCode)(355 + joystickIndex * 20);   //JoystickXButton4
@@ -347,6 +384,35 @@ public class KeyBindingsMenu : MonoBehaviour
 
 
     }
+
+    private void setAnalogTurning(float turning)
+    {
+        if (GameController.Controller.PausedPlayer == PlayerID.One)
+        {
+            GameController.Controller.PlayerOne.GetComponent<PlayerMovement>().analogTurning = turning;
+        }
+        else if (GameController.Controller.PausedPlayer == PlayerID.Two)
+        {
+            GameController.Controller.PlayerTwo.GetComponent<PlayerMovement>().analogTurning = turning;
+        }
+    }
+
+    private void setJumpSingleButton(bool state)
+    {
+        if (GameController.Controller.PausedPlayer == PlayerID.One)
+        {
+            GameController.Controller.PlayerOne.GetComponent<PlayerMovement>().jumpSingleButton = state;
+        }
+        else if (GameController.Controller.PausedPlayer == PlayerID.Two)
+        {
+            GameController.Controller.PlayerTwo.GetComponent<PlayerMovement>().jumpSingleButton = state;
+        }
+    }
+
+    //TODO Make both axis menu controlling player-specific for gamepad
+    //TODO Mouse fucking moves selectors!
+    //TODO In CustomInputModule make PlayerOne/TwoDevice, get it in start and reset it when rebinding. If there is joystick, player-specific control with both dpad and stick, if there is mouse, control selectors with strafing, keyboard control as usual
+    //TODO BESIDES CONTROLS, WE ALSO SET UP JUMP SINGLE BUTTON AND ANALOGTURNING IN PlayerMovement
 
     public void DefaultWASD()
     {
@@ -441,8 +507,8 @@ public class KeyBindingsMenu : MonoBehaviour
             turning.negative = KeyCode.LeftArrow;
 
             strafing.type = InputType.DigitalAxis;
-            strafing.positive = KeyCode.Keypad6;  
-            strafing.negative = KeyCode.Keypad4;        
+            strafing.positive = KeyCode.Keypad3;  
+            strafing.negative = KeyCode.Keypad1;        
 
             jump.positive = KeyCode.Keypad0;
 
@@ -471,11 +537,115 @@ public class KeyBindingsMenu : MonoBehaviour
             RB.positive = KeyCode.None;              
 
             rocket.positive = KeyCode.Mouse0; 
-            laser.positive = KeyCode.LeftShift; 
+            laser.positive = KeyCode.RightShift; 
             shootBall.positive = KeyCode.Mouse1;    
         }
     }
 
+    [Header("Pressing Back")]
+    [SerializeField] private Text[] allKeyboardKeys;
+    [SerializeField] private Text[] allMouseKeys;   
+    [SerializeField] private GameObject keyBindingsButton;
+    [SerializeField] private GameObject settingsPanel;
+    [SerializeField] private GameObject setAllPanel;
+    [SerializeField] private GameObject okButton;
+
+
+    public void BackFromKeyBindings()
+    {
+        bool denied = false;
+
+        if (device.GetIndex == 0)   //Keyboard
+        {
+            foreach (Text key in allKeyboardKeys)
+            {
+                if (key.text == "?")
+                {
+                    key.color = new Color(0.75f, 0, 0);
+                    denied = true;
+                }
+
+            }
+        }
+        else if (device.GetIndex == 1)  //Keyboard+Mouse
+        {
+            foreach (Text key in allMouseKeys)
+            {
+                if (key.text == "?")
+                {
+                    key.color = new Color(0.75f, 0, 0);
+                    denied = true;
+                }
+
+            }
+        }
+        //For joysticks - always accept
+        
+        
+                   
+
+        if (denied)
+        {
+            keySettingPanel.GetComponent<RectTransform>().anchoredPosition = new Vector2(5000, 5000);
+            //keySettingPanel.SetActive(false);
+            setAllPanel.SetActive(true);
+            CustomInputModule.Instance.PlaySelect();
+            EventSystem.current.SetSelectedGameObject(okButton);
+        }
+        else
+        {
+            gameObject.SetActive(false);
+            settingsPanel.SetActive(true);
+            CustomInputModule.Instance.PlaySelect();
+            EventSystem.current.SetSelectedGameObject(keyBindingsButton);
+            ApplyControls();           
+        }
+
+
+
+
+        
+    }
+
+    public void HideSettingPanelAndEnableOne(GameObject toEnable)
+    {
+        keySettingPanel.GetComponent<RectTransform>().anchoredPosition = new Vector2(5000, 5000);
+        toEnable.SetActive(true);
+    }
+
+    public void UnHideSettingPanelAndDisableOne(GameObject toDisable)
+    {
+        keySettingPanel.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+        toDisable.SetActive(false);
+    }
+
+    public void DisableEnableKeySettingPanel()
+    {
+        keySettingPanel.SetActive(false);
+        keySettingPanel.SetActive(true);
+
+    }
+
+    //public void OKPress()
+    //{
+    //    setAllPanel.SetActive(false);
+    //    //keySettingPanel.SetActive(true);
+    //    keySettingPanel.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+    //    CustomInputModule.Instance.PlaySelect();
+    //    EventSystem.current.SetSelectedGameObject(back.gameObject);
+    //}
+
+    //public void DisableAllPanelsAndEnableOne(GameObject toEnable)   //This is 'general implementation' of menu switching, this function and the next one are applied to every menu-switching button, having the respective parameter 
+    //{                                                               //In this case it is the menu panel that gets shown (enabled) after selecting this menu        
+    //    foreach (GameObject panel in keyBindingsPanels)              //Disabling all settings panels
+    //    {
+    //        panel.SetActive(false);
+    //    }
+
+    //    if (toEnable != null) toEnable.SetActive(true);     //And enable the panel that we navigate to (function accepts no menu to enable, so don't enable anything if nothing was passed into function)
+    //}
+    
+    
     //=========================================
 
     private void setSelectableDown(Selectable selectable, Component select)

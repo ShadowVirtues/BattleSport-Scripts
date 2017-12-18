@@ -83,8 +83,12 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
 
             }
             else    //Otherwise we are in game, where we only process input from the player which paused the game (Selectors are only in pause menu during the game)
-            {                
-                axis = Math.Sign(InputManager.GetAxisRaw(turningAxisName, GameController.Controller.PausedPlayer));    //Using Math, not Mathf, so when value is 0, Sign returns 0
+            {
+                if (Mathf.Abs(InputManager.GetAxisRaw(turningAxisName, GameController.Controller.PausedPlayer)) > CustomInputModule.dead)
+                {
+                    axis = Math.Sign(InputManager.GetAxisRaw(turningAxisName, GameController.Controller.PausedPlayer));    //Using Math, not Mathf, so when value is 0, Sign returns 0
+                }
+                
             }
             
             //Following code handles player holding down a button, so option switches once, waits 0.5 seconds, and then starts quickly switching further

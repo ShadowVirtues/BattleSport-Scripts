@@ -50,6 +50,8 @@ public class PauseMenu : MonoBehaviour
         rectTransform = GetComponent<RectTransform>();      //Get the reference
         eventSystem = EventSystem.current;                  //EventSystem gets instantiated in enabled state, and that's how we get a reference to it
         eventSystem.enabled = false;                                        //We got all the references, now disable event system, it gets enabled when some player pauses the game
+        Cursor.lockState = CursorLockMode.Locked;       //COMM
+        Cursor.visible = false;
 
         foreach (GameObject panel in settingsPanels)   //Unity has no good feature to run 'Awake' on disabled objects so we are going for this
         {
@@ -91,6 +93,9 @@ public class PauseMenu : MonoBehaviour
         }
         
         eventSystem.enabled = true;     //Enable event system, so players can navigate the menu
+        Cursor.lockState = CursorLockMode.None;       //COMM
+        Cursor.visible = true;
+
 
         CustomInputModule.Instance.PlaySelect();            //When invoking pause menu, play 'Select' sound
 
@@ -105,6 +110,9 @@ public class PauseMenu : MonoBehaviour
     public void ResumeGame()
     {
         eventSystem.enabled = false;        //Disable event system during gameplay
+        Cursor.lockState = CursorLockMode.Locked;       //COMM
+        Cursor.visible = false;
+
         gameObject.SetActive(false);        //Disable pause menu
         GameController.Controller.gameUI.gameObject.SetActive(false);   //Disable the whole Game UI canvas
         System.GC.Collect();

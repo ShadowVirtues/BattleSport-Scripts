@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using TeamUtility.IO;
 using UnityEngine;
@@ -28,11 +29,9 @@ public class PlayerMovement : MonoBehaviour
     private const string RB = "RB";
 
     public bool jumpSingleButton;
+    public float analogTurning = 1;           // = 1 if digital turning, = 2 if analog
 
-#if UNITY_EDITOR
-    //QualitySettings.vSyncCount = 0;  // Tests for different fps
-    //Application.targetFrameRate = 45;
-#endif
+
 
     void Start()    //Again, no Awake, cuz no references
     {
@@ -50,15 +49,31 @@ public class PlayerMovement : MonoBehaviour
         {
             jumpSingleButton = true;
         }
+
+#if UNITY_EDITOR
+        //QualitySettings.vSyncCount = 0;  // Tests for different fps
+        //Application.targetFrameRate = 60;
+#endif
     }
-   
+
     void Update()
     {
         if (Time.timeScale == 0) return;    //We don't want players to move during pause
         if (Time.deltaTime == 0) return;    //After unpausing, for one frame Time.deltaTime is still 0, which results in division by it in the next line, so don't run the function if that the case as well
 
-        float rotationY = InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed * Time.deltaTime * (0.005f / Time.deltaTime + 0.75f); //To rotate depending on input axis (rotation around Y axis)
-        float tankRotation = transform.localEulerAngles.y + rotationY;      //Add the rotation to current rotation of the tank  //TODO If you press the axis diagonally, you will have 0.707 value on GetAxisRaw
+        float rotationY = 0;
+
+        if (analogTurning == 1)
+        {
+            rotationY = Math.Sign(InputManager.GetAxis(turningAxisName, playerNumber)) * rotationSpeed * Time.deltaTime;     // * (0.0025f / Time.deltaTime + 0.75f); //To rotate depending on input axis (rotation around Y axis)
+        }
+        else
+        { 
+            rotationY = InputManager.GetAxis(turningAxisName, playerNumber) * rotationSpeed * analogTurning * Time.deltaTime;     // * (0.0025f / Time.deltaTime + 0.75f);
+        }
+
+
+        float tankRotation = transform.localEulerAngles.y + rotationY;      //Add the rotation to current rotation of the tank  
 
         rigidbody.MoveRotation(Quaternion.Euler(0, tankRotation, 0));   //Apply this rotation (X=0, Z=0 constraint the tank to not tilt when hitting objects)     
         //Rotating with rigidbody.MoveRotation in Update, because this was the only was I could make rotating and moving the tank not have jitter (because of 50fps FixedUpdate and 144- fps Update)
@@ -67,6 +82,7 @@ public class PlayerMovement : MonoBehaviour
         //transform.Rotate(0, InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed * Time.deltaTime, 0); //CHECK THIS AFTER UNITY UPDATE IF IT STILL STOPS MOVING OF INTERPOLATED RIGIDBODY
 
         //if (playerNumber == PlayerID.Two) print(rigidbody.velocity.magnitude);
+        
     }
 
     void FixedUpdate () 

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class ValueSelector : MenuSelector   //This selector selects only numeric values like "Period Time", "Period Number"
 {    
@@ -73,6 +74,13 @@ public class ValueSelector : MenuSelector   //This selector selects only numeric
     public void SetValue(int value)   //Function to set the index and value from specifying the actual value, instead of index (used in Settings)
     {
         index = Array.IndexOf(Options, value);  //Find the index of the value in the array
+        //TODO Find closest
+
+        if (index == -1)    //TEST
+        {
+            index = Options.OrderBy(x => Math.Abs(x - value)).First();
+        }
+
         OptionValue.text = Options[index].ToString();   
     }
 
