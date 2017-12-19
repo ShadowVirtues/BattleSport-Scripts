@@ -17,7 +17,7 @@ public class DeviceSelector : StringSelector
         {
             if (String.IsNullOrEmpty(Options[i]))
             {
-                Options[i] = "Unplugged";
+                Options[i] = "{Unplugged}";
             }
 
             if (Options[i].Contains(" (Controller)"))

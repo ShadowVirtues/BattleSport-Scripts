@@ -126,7 +126,7 @@ public class KeyBindingsMenu : MonoBehaviour
             
             if (Input.GetJoystickNames().Length < selectedGamepad + 1)
             {
-                device.SetIndex(0);
+                device.SetIndex(0);              
             }
             else
             {
@@ -528,7 +528,8 @@ public class KeyBindingsMenu : MonoBehaviour
     [SerializeField] private Text[] allMouseKeys;   
     [SerializeField] private GameObject keyBindingsButton;
     [SerializeField] private GameObject settingsPanel;
-    [SerializeField] private GameObject setAllPanel;
+    [SerializeField] private GameObject errorPanel;
+    [SerializeField] private Text errorMessage;
     [SerializeField] private Button okButton;
     [SerializeField] private Button backInSettings;
 
@@ -536,6 +537,8 @@ public class KeyBindingsMenu : MonoBehaviour
     public void BackFromKeyBindings()
     {
         bool denied = false;
+
+        string cause = "YOU NEED TO SET\r\nALL THE KEYS\r\nBEFORE PROCEEDING!";
 
         if (device.GetIndex == 0)   //Keyboard
         {
@@ -561,16 +564,22 @@ public class KeyBindingsMenu : MonoBehaviour
 
             }
         }
-        //For joysticks - always accept
+        else    //Any joystick
+        {
+            if (device.Option == "{Unplugged}")
+            {
+                denied = true;
+                cause = "YEAH, NICE TRY!\r\nYOU CAN'T SELECT\r\nAN UNPLUGGED DEVICE!";
+            }
+        }
         
-        
-                   
 
         if (denied)
         {
             keySettingPanel.GetComponent<RectTransform>().anchoredPosition = new Vector2(5000, 5000);
             //keySettingPanel.SetActive(false);
-            setAllPanel.SetActive(true);
+            errorMessage.text = cause;
+            errorPanel.SetActive(true);
             CustomInputModule.Instance.PlaySelect();
             EventSystem.current.SetSelectedGameObject(okButton.gameObject);
             GetComponentInParent<PauseMenu>().SetCurrentBackButton(okButton);
