@@ -15,7 +15,7 @@ public class PauseMenu : MonoBehaviour
     [SerializeField] private GameObject[] allOtherPanels;        //Reference to all other menu panels to disable all of them every time switching some menu (for 'general implementation' of menu switching)
  
     [Header("Other")]
-    [SerializeField] private GameObject resume; //Reference specifically to "Resume Game" button to select it when invoking pause menu (all other ones are getting selecting from 'general implementation' - see further)   
+    [SerializeField] private Button resume; //Reference specifically to "Resume Game" button to select it when invoking pause menu (all other ones are getting selecting from 'general implementation' - see further)   
 
     [Header("Game Settings Selectors")]
     [SerializeField] private ValueSelector UIScale;     //Reference to selectors in the Game Settings Menu
@@ -102,10 +102,52 @@ public class PauseMenu : MonoBehaviour
         DisableAllPanelsAndEnableOne(mainPanel);    //Disable all panels if the menu was saved with some random one active, and enable the main panel
 
         eventSystem.SetSelectedGameObject(null);    //Without this, when invoking pause menu, the "Resume" button wouldn't highlight for some reason (but it still would be selected for navigation)
-        eventSystem.SetSelectedGameObject(resume);  //Yeah, select "Resume" button
+        eventSystem.SetSelectedGameObject(resume.gameObject);  //Yeah, select "Resume" button
+
+        SetCurrentBackButton(resume);       //COMM
 
         System.GC.Collect();        //Collect garbage when pressed pause
     }
+
+    private const string cancelButton = "Pause";
+    private Button currentBackButton;
+
+    void Update()   //COMM
+    {
+        if (InputManager.GetButtonDown(cancelButton, GameController.Controller.PausedPlayer) && EventSystem.current != null)
+        {
+            //TODO maybe perform some checks like if the button is active
+            currentBackButton.onClick.Invoke();
+        }
+        else if (CustomInputModule.Instance.Menu == true && EventSystem.current != null)
+        {
+            bool pressed = false;
+
+            pressed |= InputManager.GetKeyDown(KeyCode.Escape); //Evaluating all Submit buttons
+            pressed |= InputManager.GetKeyDown(KeyCode.Backspace);
+            pressed |= InputManager.GetKeyDown(KeyCode.Joystick1Button6);
+            if (CustomInputModule.joyNum > 1)
+            {
+                for (int i = 1; i < CustomInputModule.joyNum; i++)
+                {
+                    pressed |= InputManager.GetKeyDown((KeyCode)(356 + i * 20));    //And additional joysticks if there are any
+                }
+            }
+            if (pressed)
+            {
+                currentBackButton.onClick.Invoke();
+            }
+        }
+
+
+    }
+
+    public void SetCurrentBackButton(Button toSet)
+    {
+        currentBackButton = toSet;  //TODO Attach this function to all buttons in the pause menu
+    }
+    
+    //TODO Set current back for keybindings
 
     public void ResumeGame()
     {

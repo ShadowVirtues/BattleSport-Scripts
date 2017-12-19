@@ -50,6 +50,8 @@ namespace TeamUtility.IO
 	    public bool PlayerOne;
 	    public bool PlayerTwo;  //Flags that define which player can control the pause menu (two flags, cuz there can be a case of both of them controlling)
 
+	    public int PlayerOneDevice;
+	    public int PlayerTwoDevice;
 
         private float m_PrevActionTime;
 		private Vector2 m_LastMoveVector;
@@ -173,21 +175,29 @@ namespace TeamUtility.IO
 
 	    public static int joyNum;   //Static variable to hold the number of conneceted joysticks (we also need it in MenuSelectors)
 
-	    public static readonly string[,] joyAxisNamesHor = new string[4, 2] //Array of allowed horizontal joystick axis names (for joysticks 1-4, because no way someone will have more than that connected)
+	    public static readonly string[,] joyAxisNamesHor = new string[8, 2] //Array of allowed horizontal joystick axis names (for joysticks 1-4, because no way someone will have more than that connected)
 	    {                                                                   //Static because we also need it in MenuSelectors
 	        {"joy_0_axis_0", "joy_0_axis_5"},
 	        {"joy_1_axis_0", "joy_1_axis_5"},
 	        {"joy_2_axis_0", "joy_2_axis_5"},
-	        {"joy_3_axis_0", "joy_3_axis_5"}
-	    };
+	        {"joy_3_axis_0", "joy_3_axis_5"},
+	        {"joy_4_axis_0", "joy_4_axis_5"},
+	        {"joy_5_axis_0", "joy_5_axis_5"},
+	        {"joy_6_axis_0", "joy_6_axis_5"},
+	        {"joy_7_axis_0", "joy_7_axis_5"}
+        };
 
-        private readonly string[,] joyAxisNames = new string[4, 2]  //Vertical ones, only need them here
+        private readonly string[,] joyAxisNames = new string[8, 2]  //Vertical ones, only need them here
 	    {
 	        {"joy_0_axis_1", "joy_0_axis_6"}, 
             {"joy_1_axis_1", "joy_1_axis_6"}, 
             {"joy_2_axis_1", "joy_2_axis_6"},
-	        {"joy_3_axis_1", "joy_3_axis_6"}
-	    };
+	        {"joy_3_axis_1", "joy_3_axis_6"},
+	        {"joy_4_axis_1", "joy_4_axis_6"},
+	        {"joy_5_axis_1", "joy_5_axis_6"},
+	        {"joy_6_axis_1", "joy_6_axis_6"},
+	        {"joy_7_axis_1", "joy_7_axis_6"}
+        };
 
 	    public static CustomInputModule Instance;   //Static singleton and stuff
 
@@ -210,8 +220,43 @@ namespace TeamUtility.IO
             click = GetComponent<AudioSource>();        //Get audioSource attached to the same object as EventSystem and InputModule
 
 	        joyNum = Input.GetJoystickNames().Length;   //Get the number of joysticks when the event system awakes at the scene load (that means after connecting a joystick, for it to work in the menu, you have to move to some other menu)
-	        if (joyNum > 4) joyNum = 4;                 //So shit doesn't break if there IS ACTUALLY SOME INSANE PERSON HAVING 5+ JOYSTICKS CONNECTED
+	        if (joyNum > 8) joyNum = 8;                 //So shit doesn't break if there IS ACTUALLY SOME INSANE PERSON HAVING 9+ JOYSTICKS CONNECTED
 	    }
+
+	    protected override void Start()
+	    {
+	        AxisConfiguration playerOneDevice = InputManager.GetAxisConfiguration(PlayerID.One, "DEVICE");
+	        AxisConfiguration playerTwoDevice = InputManager.GetAxisConfiguration(PlayerID.Two, "DEVICE");  //TEST
+
+	        if (playerOneDevice.description == "Keyboard")
+	        {
+	            PlayerOneDevice = 0;
+	        }
+            else if (playerOneDevice.description == "Keyboard+Mouse")
+	        {
+	            PlayerOneDevice = 1;
+	        }
+	        else
+	        {
+	            PlayerOneDevice = Int32.Parse(playerOneDevice.description.Substring(playerOneDevice.description.Length - 1, 1)) + 2;
+            }
+
+	        if (playerTwoDevice.description == "Keyboard")
+	        {
+                PlayerTwoDevice = 0;
+	        }
+	        else if (playerTwoDevice.description == "Keyboard+Mouse")
+	        {
+                PlayerTwoDevice = 1;
+	        }
+	        else
+	        {
+                PlayerTwoDevice = Int32.Parse(playerTwoDevice.description.Substring(playerTwoDevice.description.Length - 1, 1)) + 2;
+	        }
+
+
+
+        }
 
 	    public void PlayClick()     //Used in MenuSelectors on every Left-Right button
 	    {
@@ -538,7 +583,9 @@ namespace TeamUtility.IO
 			return data.used;
 		}
 
-		private Vector2 GetRawMoveVector()  //If for whatever reason players press directional buttons together, we add all of them and return "-1,0,1" value out of all their input. Otherwise, just whatever button got pressed will output "-1,1"
+	    private const string Joystick = "Joystick";
+        
+        private Vector2 GetRawMoveVector()  //If for whatever reason players press directional buttons together, we add all of them and return "-1,0,1" value out of all their input. Otherwise, just whatever button got pressed will output "-1,1"
 		{
 		    if (Menu)
 		    {
@@ -574,14 +621,43 @@ namespace TeamUtility.IO
 		        Vector2 P1Vector = Vector2.zero;
 		        Vector2 P2Vector = Vector2.zero;
                 
-                if (PlayerOne && Mathf.Abs(InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.One)) > dead)
+                if (PlayerOne)
 		        {
-		            P1Vector = new Vector2(0, InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.One));   //InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.One)
+		            
+
+                    if (PlayerOneDevice == 0 || PlayerOneDevice == 1)
+		            {                        
+		                P1Vector.y = InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.One);   //InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.One)
+                    }
+		            else
+		            {		                
+                        if (InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.One) > dead) P1Vector.y += 1;
+		                if (InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.One) < -dead) P1Vector.y += -1;
+
+                        if (Input.GetAxisRaw(joyAxisNames[PlayerOneDevice - 2, 0]) > dead) P1Vector.y += -1;
+		                if (Input.GetAxisRaw(joyAxisNames[PlayerOneDevice - 2, 0]) < -dead) P1Vector.y += 1;
+		                if (Input.GetAxisRaw(joyAxisNames[PlayerOneDevice - 2, 1]) > dead) P1Vector.y += 1;
+		                if (Input.GetAxisRaw(joyAxisNames[PlayerOneDevice - 2, 1]) < -dead) P1Vector.y += -1;
+                    }
+                    
 		        }
-		        if (PlayerTwo && Mathf.Abs(InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.Two)) > dead)
+		        if (PlayerTwo)
 		        {
-		            P2Vector = new Vector2(0, InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.Two));   //InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.Two)
-		        }
+		            if (PlayerTwoDevice == 0 || PlayerTwoDevice == 1)
+		            {
+		                P2Vector.y = InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.Two);   //InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.One)
+		            }
+		            else
+		            {
+		                if (InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.Two) > dead) P2Vector.y += 1;
+		                if (InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.Two) < -dead) P2Vector.y += -1;
+
+		                if (Input.GetAxisRaw(joyAxisNames[PlayerTwoDevice - 2, 0]) > dead) P2Vector.y += -1;
+		                if (Input.GetAxisRaw(joyAxisNames[PlayerTwoDevice - 2, 0]) < -dead) P2Vector.y += 1;
+		                if (Input.GetAxisRaw(joyAxisNames[PlayerTwoDevice - 2, 1]) > dead) P2Vector.y += 1;
+		                if (Input.GetAxisRaw(joyAxisNames[PlayerTwoDevice - 2, 1]) < -dead) P2Vector.y += -1;
+		            }
+                }
 
 		        return (P1Vector + P2Vector).normalized;    //We don't really need X axis here, I just left as it was in original code
             }
@@ -633,12 +709,25 @@ namespace TeamUtility.IO
 		        {
 		            //allow |= InputManager.GetButtonDown(m_HorizontalAxis, PlayerID.One);      //Changed
 		            allow |= InputManager.GetButtonDown(m_VerticalAxis, PlayerID.One);      //Changed
-		        }
+
+		            if (PlayerOneDevice > 1)
+		            {
+		                allow |= Input.GetButtonDown(joyAxisNames[PlayerOneDevice - 2, 0]);		                
+		                allow |= Input.GetButtonDown(joyAxisNames[PlayerOneDevice - 2, 1]);	               
+                    }
+                    
+                }
 		        if (PlayerTwo)      //Changed
 		        {
 		            //allow |= InputManager.GetButtonDown(m_HorizontalAxis, PlayerID.Two);      //Changed
 		            allow |= InputManager.GetButtonDown(m_VerticalAxis, PlayerID.Two);      //Changed
-		        }
+
+		            if (PlayerTwoDevice > 1)
+		            {
+		                allow |= Input.GetButtonDown(joyAxisNames[PlayerTwoDevice - 2, 0]);
+		                allow |= Input.GetButtonDown(joyAxisNames[PlayerTwoDevice - 2, 1]);
+		            }
+                }
             }
 		   
 

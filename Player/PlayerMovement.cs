@@ -50,6 +50,30 @@ public class PlayerMovement : MonoBehaviour
             jumpSingleButton = true;
         }
 
+        AxisConfiguration device = InputManager.GetAxisConfiguration(playerNumber, "DEVICE");
+        AxisConfiguration turning = InputManager.GetAxisConfiguration(playerNumber, turningAxisName);
+
+        if (device.description == "Keyboard")   //COMM
+        {
+            analogTurning = 1;
+        }
+        else if (device.description == "Keyboard+Mouse")
+        {
+            analogTurning = 0.2f;
+        }
+        else
+        {
+            if (turning.axis == 5)  //D-Pad
+            {
+                analogTurning = 1;
+            }
+            else if (turning.axis == 0) //Stick
+            {
+                analogTurning = 3;
+            }
+        }
+
+
 #if UNITY_EDITOR
         //QualitySettings.vSyncCount = 0;  // Tests for different fps
         //Application.targetFrameRate = 60;

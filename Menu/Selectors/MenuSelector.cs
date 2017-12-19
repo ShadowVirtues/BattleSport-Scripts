@@ -25,7 +25,9 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
     protected abstract string PreviousOption { get; }   //The usage for those properties is all the same and is defined here, in the base class, but getting this value is different for each derived selector
 
     private const string turningAxisName = "Turning";   //"Turning" buttons will switch between options for keyboard and controller input
-    
+    private const string strafingAxisName = "Strafing";   //"Turning" buttons will switch between options for keyboard and controller input
+
+
     [SerializeField] private UnityEvent unityEvent;     //Some Event that you invoke when you press any button (like applying some option instantly with changing it in settings). Will execute for the new value on the selector (to which it switches) 
 
     protected virtual void Awake()  //We need to call Awake from the base class, and derived ones. That's why it is virtual, so we can then override it in derived class and call base.Awake()
@@ -84,9 +86,47 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
             }
             else    //Otherwise we are in game, where we only process input from the player which paused the game (Selectors are only in pause menu during the game)
             {
-                if (Mathf.Abs(InputManager.GetAxisRaw(turningAxisName, GameController.Controller.PausedPlayer)) > CustomInputModule.dead)
+                if (GameController.Controller.PausedPlayer == PlayerID.One)
                 {
-                    axis = Math.Sign(InputManager.GetAxisRaw(turningAxisName, GameController.Controller.PausedPlayer));    //Using Math, not Mathf, so when value is 0, Sign returns 0
+                    if (CustomInputModule.Instance.PlayerOneDevice == 0)
+                    {
+                        axis = Math.Sign(InputManager.GetAxisRaw(turningAxisName, GameController.Controller.PausedPlayer));    //Using Math, not Mathf, so when value is 0, Sign returns 0
+                    }
+                    else if (CustomInputModule.Instance.PlayerOneDevice == 1)
+                    {
+                        axis = Math.Sign(InputManager.GetAxisRaw(strafingAxisName, GameController.Controller.PausedPlayer));    //Using Math, not Mathf, so when value is 0, Sign returns 0
+                    }
+                    else
+                    {
+                        if (InputManager.GetAxisRaw(turningAxisName, PlayerID.One) > CustomInputModule.dead) axis += 1;
+                        if (InputManager.GetAxisRaw(turningAxisName, PlayerID.One) < -CustomInputModule.dead) axis += -1;
+                        if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[CustomInputModule.Instance.PlayerOneDevice - 2, 0]) > CustomInputModule.dead) axis += 1;
+                        if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[CustomInputModule.Instance.PlayerOneDevice - 2, 0]) < -CustomInputModule.dead) axis += -1;
+                        if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[CustomInputModule.Instance.PlayerOneDevice - 2, 1]) > CustomInputModule.dead) axis += 1;
+                        if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[CustomInputModule.Instance.PlayerOneDevice - 2, 1]) < -CustomInputModule.dead) axis += -1;
+                        axis = Math.Sign(axis);
+                    }
+                }
+                else if (GameController.Controller.PausedPlayer == PlayerID.Two)
+                {
+                    if (CustomInputModule.Instance.PlayerTwoDevice == 0)
+                    {
+                        axis = Math.Sign(InputManager.GetAxisRaw(turningAxisName, GameController.Controller.PausedPlayer));    //Using Math, not Mathf, so when value is 0, Sign returns 0
+                    }
+                    else if (CustomInputModule.Instance.PlayerTwoDevice == 1)
+                    {
+                        axis = Math.Sign(InputManager.GetAxisRaw(strafingAxisName, GameController.Controller.PausedPlayer));    //Using Math, not Mathf, so when value is 0, Sign returns 0
+                    }
+                    else
+                    {
+                        if (InputManager.GetAxisRaw(turningAxisName, PlayerID.Two) > CustomInputModule.dead) axis += 1;
+                        if (InputManager.GetAxisRaw(turningAxisName, PlayerID.Two) < -CustomInputModule.dead) axis += -1;
+                        if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[CustomInputModule.Instance.PlayerTwoDevice - 2, 0]) > CustomInputModule.dead) axis += 1;
+                        if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[CustomInputModule.Instance.PlayerTwoDevice - 2, 0]) < -CustomInputModule.dead) axis += -1;
+                        if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[CustomInputModule.Instance.PlayerTwoDevice - 2, 1]) > CustomInputModule.dead) axis += 1;
+                        if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[CustomInputModule.Instance.PlayerTwoDevice - 2, 1]) < -CustomInputModule.dead) axis += -1;
+                        axis = Math.Sign(axis);
+                    }
                 }
                 
             }
@@ -153,8 +193,9 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
 
     public void OnPointerEnter(PointerEventData eventData)  //This is so when we hover over the selectable, it gets focused and selected
     {
-        if (!EventSystem.current.alreadySelecting)
-            EventSystem.current.SetSelectedGameObject(gameObject);  //Set this selectable as current selected item (EventSystem automatically deselects previously selected selectable)
+        if (EventSystem.current != null)
+            if (!EventSystem.current.alreadySelecting)
+                EventSystem.current.SetSelectedGameObject(gameObject);  //Set this selectable as current selected item (EventSystem automatically deselects previously selected selectable)
     }
 
     [Header("Colors")]
@@ -182,5 +223,15 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
         isAxisInUse = false;    
     }
 
-    
+    public void OnDisable()             //COMM
+    {
+        OptionName.color = optionDeselected;
+        OptionValue.color = valueDeselected;     //Set back all the colors and disable the arrows
+        Left.gameObject.SetActive(false);
+        Right.gameObject.SetActive(false);
+
+        quickSwitching = false;             //If we switch selector during holding left/right button, refresh the flags
+        isAxisInUse = false;
+    }
+
 }

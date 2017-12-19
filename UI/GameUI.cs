@@ -214,7 +214,7 @@ public class GameUI : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(time);      //Wait until it fades
 
-        while (InputManager.GetButtonDown("Start", PlayerID.One) == false && InputManager.GetButtonDown("Start", PlayerID.Two) == false)    //Until some user presses 'Start', wait
+        while (InputManager.GetButtonDown("Start", PlayerID.One) == false && InputManager.GetButtonDown("Start", PlayerID.Two) == false && Input.GetMouseButtonDown(0) == false)    //Until some user presses 'Start', wait
         {
             yield return null;
         }
@@ -234,6 +234,9 @@ public class GameUI : MonoBehaviour
         pauseMenu.GetComponent<PauseMenu>().eventSystem.enabled = true; //Enable EventSystem when the menu fully fades so players can control it
         CustomInputModule.Instance.PlayerOne = true;
         CustomInputModule.Instance.PlayerTwo = true;  //Set so both players can control this menu
+        Cursor.lockState = CursorLockMode.None;       //COMM
+        Cursor.visible = true;
+
         EventSystem.current.SetSelectedGameObject(replayButton);                    //Select Replay button to enable button navigation
         
         //Everything further gets handled with pressing buttons in the menu
@@ -267,6 +270,8 @@ public class GameUI : MonoBehaviour
 
         CustomInputModule.Instance.PlaySelect();    //Play 'select' sound
         EventSystem.current.enabled = false;        //Disable input
+        Cursor.lockState = CursorLockMode.Locked;       //COMM
+        Cursor.visible = false;
 
         GameController.Controller.ReplayGame(); //Run a function on a GameController to get everything in the scene back to very initial state
 

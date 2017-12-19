@@ -16,16 +16,14 @@ using Random = UnityEngine.Random;
     Small lag when you first score??
     Rebake lights in Arena 42
 
-    Make general navigating in menu, like pressing Escape or Cancel button on controller to go to previous menu
-    Test run in background bs again, all all video settings after changing array > list
-    DIsable mouse during gameplay, enable when navigating
-    Delete getting controllers from MainMenu and GameController in Update by button press
-    Test everything with new input module
-   
+    
+    When loading control config, implement exception handling
+    
+
+
     Refactoring EventSystem:    
     Have Menu Effects in Game Settings, because EventSystem will have AudioSource with MenuSFX
-    Manage everything between scenes, like FirstSelected and all Menu/PlayerOne/PlayerTwo flags
-    Manage all UI sounds, like click select and everything
+    
 
 
 
@@ -42,8 +40,8 @@ using Random = UnityEngine.Random;
         Powerups  
         Arena Preview (TUGUSH-TUGUSH)
         Main Menu Options
-        Options > KeyBindings
-        Smooth mouse/Stick controls
+        
+        
         10 Levels > Props, Skyboxes
         Design Main Menu       
         2 Player Exhibition (Maybe make an arena screenshot showing, rotating video or whatever)

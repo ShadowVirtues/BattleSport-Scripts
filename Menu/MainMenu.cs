@@ -30,7 +30,12 @@ public class MainMenu : MonoBehaviour
         music.Play();           //Play the music 
 
         CustomInputModule.Instance.Enabled = true;          //Make sure Menu input is enabled after we disable it for 0.5 delay after pressing some button
+        CustomInputModule.Instance.GetComponent<EventSystem>().enabled = true;
+        Cursor.lockState = CursorLockMode.None;       //COMM
+        Cursor.visible = true;
         EventSystem.current.SetSelectedGameObject(firstSelected);  //Select some button
+
+        
     }
 
     void Update()       //DELETE
@@ -88,6 +93,8 @@ public class MainMenu : MonoBehaviour
         //TODO Menu sound options
 
         firstLaunch = false;        //After applying all the settings, set the flag
+
+        InputManager.Load();
     }
 
     private float percentToDB(int percent)  //Function to convert Percents (0 - 100) to dB (-80 - 0)

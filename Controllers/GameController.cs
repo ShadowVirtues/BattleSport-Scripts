@@ -54,6 +54,7 @@ public class GameController : MonoBehaviour
             ArenaDimension = 100;      
             PlayerOne.PlayerName = "PLAYER 1";
             PlayerTwo.PlayerName = "PLAYER 2";
+            InputManager.Load();
         }
 
         announcer = audioManagerObject.GetComponent<Announcer>();           //Get Announcer component from instantiated audioManager object
@@ -167,7 +168,7 @@ public class GameController : MonoBehaviour
         gameUI.PauseMenu();               //Run a function on the side of GameUI to hide all panels and shot pause menu panel
     }
 
-    void LateUpdate()
+    void LateUpdate()   //DELETE
     {
         if (Input.GetKeyDown(KeyCode.O))
         {

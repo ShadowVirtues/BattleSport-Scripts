@@ -118,7 +118,7 @@ public class KeyBindingsMenu : MonoBehaviour
             turningThrottling.SetIndex(0);
             sensitivityStick.SetValue(25);
             deadZone.SetValue(0);
-            sensitivityMouse.SetValue((int)((turningAxis.sensitivity - 0.1f) * 100));
+            sensitivityMouse.SetValue(Mathf.RoundToInt((turningAxis.sensitivity - 0.1f) * 100));
         }
         else
         {
@@ -142,8 +142,8 @@ public class KeyBindingsMenu : MonoBehaviour
                 else if (turningAxis.axis == 0) //Stick
                 {
                     turningThrottling.SetIndex(0);
-                    sensitivityStick.SetValue((int)((turningAxis.sensitivity - 0.5f) * 100));
-                    deadZone.SetValue((int)(turningAxis.deadZone * 100));
+                    sensitivityStick.SetValue(Mathf.RoundToInt((turningAxis.sensitivity - 0.5f) * 100));
+                    deadZone.SetValue(Mathf.RoundToInt(turningAxis.deadZone * 100));
                     sensitivityMouse.SetValue(25);
                 }
                     
@@ -271,11 +271,13 @@ public class KeyBindingsMenu : MonoBehaviour
     
     public void ApplyControls()
     {
-        //CHECK ALL CLEARING if you need to zero axis and set "Button" and shit
-        
+        //CHECK ALL CLEARING if you need to zero axis and set "Button" and shit     
         
         if (device.GetIndex == 0 || device.GetIndex == 1)
         {
+            AxisConfiguration throttling = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Throttle");
+            throttling.invert = false;
+
             AxisConfiguration cancelButton = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Pause");
             AxisConfiguration submitButton = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Start");
             if (GameController.Controller.PausedPlayer == PlayerID.One)
@@ -293,6 +295,7 @@ public class KeyBindingsMenu : MonoBehaviour
 
             AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "DEVICE");
             playerDevice.description = "Keyboard";
+            setPlayerDevice(0);
 
             setAnalogTurning(1);
 
@@ -305,6 +308,7 @@ public class KeyBindingsMenu : MonoBehaviour
                 turning.sensitivity = 0.1f + sensitivityMouse.Option / 100f;
                 
                 playerDevice.description = "Keyboard+Mouse";
+                setPlayerDevice(1);
             }
         }       
         else
@@ -330,6 +334,7 @@ public class KeyBindingsMenu : MonoBehaviour
             AxisConfiguration submitButton = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Start");
 
             playerDevice.description = "Joystick" + joystickIndex;
+            setPlayerDevice(joystickIndex + 2);
 
             if (turningThrottling.GetIndex == 0)    //Stick
             {
@@ -379,39 +384,15 @@ public class KeyBindingsMenu : MonoBehaviour
             
         }
 
-
+        InputManager.Save();
 
 
 
     }
 
-    private void setAnalogTurning(float turning)
-    {
-        if (GameController.Controller.PausedPlayer == PlayerID.One)
-        {
-            GameController.Controller.PlayerOne.GetComponent<PlayerMovement>().analogTurning = turning;
-        }
-        else if (GameController.Controller.PausedPlayer == PlayerID.Two)
-        {
-            GameController.Controller.PlayerTwo.GetComponent<PlayerMovement>().analogTurning = turning;
-        }
-    }
+    
 
-    private void setJumpSingleButton(bool state)
-    {
-        if (GameController.Controller.PausedPlayer == PlayerID.One)
-        {
-            GameController.Controller.PlayerOne.GetComponent<PlayerMovement>().jumpSingleButton = state;
-        }
-        else if (GameController.Controller.PausedPlayer == PlayerID.Two)
-        {
-            GameController.Controller.PlayerTwo.GetComponent<PlayerMovement>().jumpSingleButton = state;
-        }
-    }
-
-    //TODO Make both axis menu controlling player-specific for gamepad
-    //TODO Mouse fucking moves selectors!
-    //TODO In CustomInputModule make PlayerOne/TwoDevice, get it in start and reset it when rebinding. If there is joystick, player-specific control with both dpad and stick, if there is mouse, control selectors with strafing, keyboard control as usual
+    
     //TODO BESIDES CONTROLS, WE ALSO SET UP JUMP SINGLE BUTTON AND ANALOGTURNING IN PlayerMovement
 
     public void DefaultWASD()
@@ -548,7 +529,8 @@ public class KeyBindingsMenu : MonoBehaviour
     [SerializeField] private GameObject keyBindingsButton;
     [SerializeField] private GameObject settingsPanel;
     [SerializeField] private GameObject setAllPanel;
-    [SerializeField] private GameObject okButton;
+    [SerializeField] private Button okButton;
+    [SerializeField] private Button backInSettings;
 
 
     public void BackFromKeyBindings()
@@ -590,7 +572,9 @@ public class KeyBindingsMenu : MonoBehaviour
             //keySettingPanel.SetActive(false);
             setAllPanel.SetActive(true);
             CustomInputModule.Instance.PlaySelect();
-            EventSystem.current.SetSelectedGameObject(okButton);
+            EventSystem.current.SetSelectedGameObject(okButton.gameObject);
+            GetComponentInParent<PauseMenu>().SetCurrentBackButton(okButton);
+            
         }
         else
         {
@@ -598,7 +582,9 @@ public class KeyBindingsMenu : MonoBehaviour
             settingsPanel.SetActive(true);
             CustomInputModule.Instance.PlaySelect();
             EventSystem.current.SetSelectedGameObject(keyBindingsButton);
-            ApplyControls();           
+            ApplyControls();
+            GetComponentInParent<PauseMenu>().SetCurrentBackButton(backInSettings);
+            
         }
 
 
@@ -676,11 +662,45 @@ public class KeyBindingsMenu : MonoBehaviour
         selectable.navigation = nav;
     }
 
+    //=============================================
+
+    private void setAnalogTurning(float turning)
+    {
+        if (GameController.Controller.PausedPlayer == PlayerID.One)
+        {
+            GameController.Controller.PlayerOne.GetComponent<PlayerMovement>().analogTurning = turning;
+        }
+        else if (GameController.Controller.PausedPlayer == PlayerID.Two)
+        {
+            GameController.Controller.PlayerTwo.GetComponent<PlayerMovement>().analogTurning = turning;
+        }
+    }
+
+    private void setJumpSingleButton(bool state)
+    {
+        if (GameController.Controller.PausedPlayer == PlayerID.One)
+        {
+            GameController.Controller.PlayerOne.GetComponent<PlayerMovement>().jumpSingleButton = state;
+        }
+        else if (GameController.Controller.PausedPlayer == PlayerID.Two)
+        {
+            GameController.Controller.PlayerTwo.GetComponent<PlayerMovement>().jumpSingleButton = state;
+        }
+    }
+
+    private void setPlayerDevice(int num)
+    {
+        if (GameController.Controller.PausedPlayer == PlayerID.One)
+        {
+            CustomInputModule.Instance.PlayerOneDevice = num;
+        }
+        else if (GameController.Controller.PausedPlayer == PlayerID.Two)
+        {
+            CustomInputModule.Instance.PlayerTwoDevice = num;
+        }
 
 
-
-
-
+    }
 
 
 
