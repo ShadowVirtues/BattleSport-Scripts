@@ -26,8 +26,7 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
 
     private const string turningAxisName = "Turning";   //"Turning" buttons will switch between options for keyboard and controller input
     private const string strafingAxisName = "Strafing";   //"Turning" buttons will switch between options for keyboard and controller input
-
-
+    
     [SerializeField] private UnityEvent unityEvent;     //Some Event that you invoke when you press any button (like applying some option instantly with changing it in settings). Will execute for the new value on the selector (to which it switches) 
 
     protected virtual void Awake()  //We need to call Awake from the base class, and derived ones. That's why it is virtual, so we can then override it in derived class and call base.Awake()
@@ -86,36 +85,36 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
             }
             else    //Otherwise we are in game, where we only process input from the player which paused the game (Selectors are only in pause menu during the game)
             {
-                if (GameController.Controller.PausedPlayer == PlayerID.One)
+                if (GameController.Controller.PausedPlayer == PlayerID.One) //If player one is controlling
                 {
-                    if (CustomInputModule.Instance.PlayerOneDevice == 0)
+                    if (CustomInputModule.Instance.PlayerOneDevice == 0)    //If his device is keyboard
                     {
-                        axis = Math.Sign(InputManager.GetAxisRaw(turningAxisName, GameController.Controller.PausedPlayer));    //Using Math, not Mathf, so when value is 0, Sign returns 0
+                        axis = Math.Sign(InputManager.GetAxisRaw(turningAxisName, GameController.Controller.PausedPlayer));    //Control with set turning axis
                     }
-                    else if (CustomInputModule.Instance.PlayerOneDevice == 1)
+                    else if (CustomInputModule.Instance.PlayerOneDevice == 1)   //If it's mouse
                     {
-                        axis = Math.Sign(InputManager.GetAxisRaw(strafingAxisName, GameController.Controller.PausedPlayer));    //Using Math, not Mathf, so when value is 0, Sign returns 0
+                        axis = Math.Sign(InputManager.GetAxisRaw(strafingAxisName, GameController.Controller.PausedPlayer));    //Control with set strafing axis
                     }
                     else
                     {
                         if (InputManager.GetAxisRaw(turningAxisName, PlayerID.One) > CustomInputModule.dead) axis += 1;
-                        if (InputManager.GetAxisRaw(turningAxisName, PlayerID.One) < -CustomInputModule.dead) axis += -1;
+                        if (InputManager.GetAxisRaw(turningAxisName, PlayerID.One) < -CustomInputModule.dead) axis += -1;   //If it's joystick, process bound button (in case it is custom) and default d-pad and left stick
                         if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[CustomInputModule.Instance.PlayerOneDevice - 2, 0]) > CustomInputModule.dead) axis += 1;
                         if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[CustomInputModule.Instance.PlayerOneDevice - 2, 0]) < -CustomInputModule.dead) axis += -1;
                         if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[CustomInputModule.Instance.PlayerOneDevice - 2, 1]) > CustomInputModule.dead) axis += 1;
                         if (Input.GetAxisRaw(CustomInputModule.joyAxisNamesHor[CustomInputModule.Instance.PlayerOneDevice - 2, 1]) < -CustomInputModule.dead) axis += -1;
-                        axis = Math.Sign(axis);
+                        axis = Math.Sign(axis); //Normalize value to 1
                     }
                 }
-                else if (GameController.Controller.PausedPlayer == PlayerID.Two)
+                else if (GameController.Controller.PausedPlayer == PlayerID.Two)    //Same if it's player two
                 {
                     if (CustomInputModule.Instance.PlayerTwoDevice == 0)
                     {
-                        axis = Math.Sign(InputManager.GetAxisRaw(turningAxisName, GameController.Controller.PausedPlayer));    //Using Math, not Mathf, so when value is 0, Sign returns 0
+                        axis = Math.Sign(InputManager.GetAxisRaw(turningAxisName, GameController.Controller.PausedPlayer));    
                     }
                     else if (CustomInputModule.Instance.PlayerTwoDevice == 1)
                     {
-                        axis = Math.Sign(InputManager.GetAxisRaw(strafingAxisName, GameController.Controller.PausedPlayer));    //Using Math, not Mathf, so when value is 0, Sign returns 0
+                        axis = Math.Sign(InputManager.GetAxisRaw(strafingAxisName, GameController.Controller.PausedPlayer));   
                     }
                     else
                     {
@@ -212,18 +211,17 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
         Right.gameObject.SetActive(true);
     }
 
-    public void OnDeselect(BaseEventData eventData)     //WHen the selectable gets deselected
+    public void OnDeselect(BaseEventData eventData)     //When the selectable gets deselected
     {
-        OptionName.color = optionDeselected;
-        OptionValue.color = valueDeselected;     //Set back all the colors and disable the arrows
-        Left.gameObject.SetActive(false);
-        Right.gameObject.SetActive(false);
-
-        quickSwitching = false;             //If we switch selector during holding left/right button, refresh the flags
-        isAxisInUse = false;    
+        Deselect();
     }
 
-    public void OnDisable()             //COMM
+    public void OnDisable()             //When going back the menu with "Cancel" button, OnDeselect doesn't get called, so deselecting here as well
+    {
+        Deselect();
+    }
+
+    private void Deselect()
     {
         OptionName.color = optionDeselected;
         OptionValue.color = valueDeselected;     //Set back all the colors and disable the arrows

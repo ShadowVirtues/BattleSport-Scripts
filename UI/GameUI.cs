@@ -234,7 +234,7 @@ public class GameUI : MonoBehaviour
         pauseMenu.GetComponent<PauseMenu>().eventSystem.enabled = true; //Enable EventSystem when the menu fully fades so players can control it
         CustomInputModule.Instance.PlayerOne = true;
         CustomInputModule.Instance.PlayerTwo = true;  //Set so both players can control this menu
-        Cursor.lockState = CursorLockMode.None;       //COMM
+        Cursor.lockState = CursorLockMode.None;       //Enable cursor in the end-menu
         Cursor.visible = true;
 
         EventSystem.current.SetSelectedGameObject(replayButton);                    //Select Replay button to enable button navigation
@@ -270,7 +270,7 @@ public class GameUI : MonoBehaviour
 
         CustomInputModule.Instance.PlaySelect();    //Play 'select' sound
         EventSystem.current.enabled = false;        //Disable input
-        Cursor.lockState = CursorLockMode.Locked;       //COMM
+        Cursor.lockState = CursorLockMode.Locked;       //Disable cursor
         Cursor.visible = false;
 
         GameController.Controller.ReplayGame(); //Run a function on a GameController to get everything in the scene back to very initial state

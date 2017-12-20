@@ -50,7 +50,7 @@ public class PauseMenu : MonoBehaviour
         rectTransform = GetComponent<RectTransform>();      //Get the reference
         eventSystem = EventSystem.current;                  //EventSystem gets instantiated in enabled state, and that's how we get a reference to it
         eventSystem.enabled = false;                                        //We got all the references, now disable event system, it gets enabled when some player pauses the game
-        Cursor.lockState = CursorLockMode.Locked;       //COMM
+        Cursor.lockState = CursorLockMode.Locked;       //Disable cursor (this happens when the arena scene loads)
         Cursor.visible = false;
 
         foreach (GameObject panel in settingsPanels)   //Unity has no good feature to run 'Awake' on disabled objects so we are going for this
@@ -93,7 +93,7 @@ public class PauseMenu : MonoBehaviour
         }
         
         eventSystem.enabled = true;     //Enable event system, so players can navigate the menu
-        Cursor.lockState = CursorLockMode.None;       //COMM
+        Cursor.lockState = CursorLockMode.None;       //Enable cursor when entering a pause menu
         Cursor.visible = true;
 
 
@@ -104,7 +104,7 @@ public class PauseMenu : MonoBehaviour
         eventSystem.SetSelectedGameObject(null);    //Without this, when invoking pause menu, the "Resume" button wouldn't highlight for some reason (but it still would be selected for navigation)
         eventSystem.SetSelectedGameObject(resume.gameObject);  //Yeah, select "Resume" button
 
-        SetCurrentBackButton(resume);       //COMM
+        SetCurrentBackButton(resume);       //Set so when pressing "Cancel" on keyboard or joystick, it "presses" resume button
 
         System.GC.Collect();        //Collect garbage when pressed pause
     }
@@ -112,47 +112,46 @@ public class PauseMenu : MonoBehaviour
     private const string cancelButton = "Pause";
     private Button currentBackButton;
 
-    void Update()   //COMM
+    void Update()   //Query "Cancel" button when the pause menu is active (to get back to previous menu from pressing it)
     {
-        if (InputManager.GetButtonDown(cancelButton, GameController.Controller.PausedPlayer) && EventSystem.current != null)
+        //If paused player pressed cancel button and if we process input (because sometimes we block it, when fading out menu and binding buttons)
+        if (InputManager.GetButtonDown(cancelButton, GameController.Controller.PausedPlayer) && EventSystem.current != null)    
         {
-            //TODO maybe perform some checks like if the button is active
-            currentBackButton.onClick.Invoke();
+            currentBackButton.onClick.Invoke(); //Invoke pressing a button that was specified
         }
-        else if (CustomInputModule.Instance.Menu == true && EventSystem.current != null)
+        else if (CustomInputModule.Instance.Menu == true && EventSystem.current != null)    //If the flag is set to "Menu", process any available cancel buttons
         {
-            bool pressed = false;
+            bool pressed = false;   //Flag to fill in true if some button got pressed
 
-            pressed |= InputManager.GetKeyDown(KeyCode.Escape); //Evaluating all Submit buttons
+            pressed |= InputManager.GetKeyDown(KeyCode.Escape); //Evaluating all Cancel buttons
             pressed |= InputManager.GetKeyDown(KeyCode.Backspace);
             pressed |= InputManager.GetKeyDown(KeyCode.Joystick1Button6);
-            if (CustomInputModule.joyNum > 1)
+            if (CustomInputModule.joyNum > 1)   //And for additional joysticks, if any
             {
                 for (int i = 1; i < CustomInputModule.joyNum; i++)
                 {
                     pressed |= InputManager.GetKeyDown((KeyCode)(356 + i * 20));    //And additional joysticks if there are any
                 }
             }
-            if (pressed)
+
+            if (pressed)    //In the end if some Cancel button got pressed
             {
-                currentBackButton.onClick.Invoke();
+                currentBackButton.onClick.Invoke(); //Invoke pressing a button that was specified
             }
         }
 
 
     }
 
-    public void SetCurrentBackButton(Button toSet)
+    public void SetCurrentBackButton(Button toSet)  //Public function that is tied to each button in the menu, specifying which back button is current after pressing that button
     {
-        currentBackButton = toSet;  //TODO Attach this function to all buttons in the pause menu
+        currentBackButton = toSet; 
     }
     
-    //TODO Set current back for keybindings
-
     public void ResumeGame()
     {
         eventSystem.enabled = false;        //Disable event system during gameplay
-        Cursor.lockState = CursorLockMode.Locked;       //COMM
+        Cursor.lockState = CursorLockMode.Locked;       //And disable cursor
         Cursor.visible = false;
 
         gameObject.SetActive(false);        //Disable pause menu
@@ -354,26 +353,8 @@ public class PauseMenu : MonoBehaviour
         PlayerPrefs.SetInt(VideoSettings_FOV, fov.Option);  //Saves FOV Value when backing from settings
     }
 
-
+    //Key bindings are handled in its own script
     //==========================================================
-
-
-
-
-
-
-
-    //========================================================
-
-
-    
-
-
-
-
-
-
-
 
     public void ExitGame()
     {       

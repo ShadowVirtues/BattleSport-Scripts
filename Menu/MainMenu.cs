@@ -30,8 +30,8 @@ public class MainMenu : MonoBehaviour
         music.Play();           //Play the music 
 
         CustomInputModule.Instance.Enabled = true;          //Make sure Menu input is enabled after we disable it for 0.5 delay after pressing some button
-        CustomInputModule.Instance.GetComponent<EventSystem>().enabled = true;
-        Cursor.lockState = CursorLockMode.None;       //COMM
+        CustomInputModule.Instance.GetComponent<EventSystem>().enabled = true;  //Enable event system if it was disabled for some reason. Before we get back to a menu from game, we disable event system (for 0.5 delay)
+        Cursor.lockState = CursorLockMode.None;       //Enable cursor in case it was disabled
         Cursor.visible = true;
         EventSystem.current.SetSelectedGameObject(firstSelected);  //Select some button
 

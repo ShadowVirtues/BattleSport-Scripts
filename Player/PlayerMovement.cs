@@ -28,11 +28,9 @@ public class PlayerMovement : MonoBehaviour
     private const string LB = "LB";     //Those are for two-button jumping
     private const string RB = "RB";
 
-    public bool jumpSingleButton;
+    public bool jumpSingleButton;           //If true, jumping with single button specified in controls, depends on if this single button is bound, if not - two button controls that Joystick users use by default
     public float analogTurning = 1;           // = 1 if digital turning, = 2 if analog
-
-
-
+    
     void Start()    //Again, no Awake, cuz no references
     {
         player = GetComponent<Player>();
@@ -50,16 +48,18 @@ public class PlayerMovement : MonoBehaviour
             jumpSingleButton = true;
         }
 
-        AxisConfiguration device = InputManager.GetAxisConfiguration(playerNumber, "DEVICE");
+        AxisConfiguration device = InputManager.GetAxisConfiguration(playerNumber, "DEVICE");           //Get devide and turning axis configurations to set up sensitivity modifier
         AxisConfiguration turning = InputManager.GetAxisConfiguration(playerNumber, turningAxisName);
 
-        if (device.description == "Keyboard")   //COMM
+        //This is to lead the "sensitivity" of stick and mouse to appropriate values
+
+        if (device.description == "Keyboard")   //If player device is Keyboard
         {
-            analogTurning = 1;
+            analogTurning = 1;          //Set controls sensitivity modifier to 1
         }
         else if (device.description == "Keyboard+Mouse")
         {
-            analogTurning = 0.2f;
+            analogTurning = 0.2f;       //If mouse, it's 0.2
         }
         else
         {
@@ -69,7 +69,7 @@ public class PlayerMovement : MonoBehaviour
             }
             else if (turning.axis == 0) //Stick
             {
-                analogTurning = 3;
+                analogTurning = 3;      //3 for stick
             }
         }
 
@@ -85,18 +85,17 @@ public class PlayerMovement : MonoBehaviour
         if (Time.timeScale == 0) return;    //We don't want players to move during pause
         if (Time.deltaTime == 0) return;    //After unpausing, for one frame Time.deltaTime is still 0, which results in division by it in the next line, so don't run the function if that the case as well
 
-        float rotationY = 0;
+        float rotationY = 0;    //Initializing the value, it then gets filled in 'if'
 
-        if (analogTurning == 1)
+        if (analogTurning == 1) //If we are controlling with keyboard or d-pad, get only -1,0,1 values from the axis, so using Math.Sign for that
         {
             rotationY = Math.Sign(InputManager.GetAxis(turningAxisName, playerNumber)) * rotationSpeed * Time.deltaTime;     // * (0.0025f / Time.deltaTime + 0.75f); //To rotate depending on input axis (rotation around Y axis)
         }
-        else
+        else    //For stick and mouse controls there are intermediate axis values, which we lead to appropriate values with "analogTurning"
         { 
             rotationY = InputManager.GetAxis(turningAxisName, playerNumber) * rotationSpeed * analogTurning * Time.deltaTime;     // * (0.0025f / Time.deltaTime + 0.75f);
         }
-
-
+        
         float tankRotation = transform.localEulerAngles.y + rotationY;      //Add the rotation to current rotation of the tank  
 
         rigidbody.MoveRotation(Quaternion.Euler(0, tankRotation, 0));   //Apply this rotation (X=0, Z=0 constraint the tank to not tilt when hitting objects)     

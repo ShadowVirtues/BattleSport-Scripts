@@ -20,7 +20,7 @@ using Random = UnityEngine.Random;
     When loading control config, implement exception handling
     
 
-
+    Test binding timeout
    
     Have Menu Effects in Game Settings, because EventSystem will have AudioSource with MenuSFX
     Make so if you start the game with unplugged joystick, it falls back to keyboard, either when the game starts, or when entered keybindings from main menu
