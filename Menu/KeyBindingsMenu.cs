@@ -518,6 +518,7 @@ public class KeyBindingsMenu : MonoBehaviour
     [SerializeField] private Text[] allKeyboardKeys;
     [SerializeField] private Text[] allMouseKeys;   
     [SerializeField] private GameObject keyBindingsButton;
+    [SerializeField] private GameObject settingsMenu;
     [SerializeField] private GameObject settingsPanel;
     [SerializeField] private GameObject errorPanel;
     [SerializeField] private Text errorMessage;
@@ -579,6 +580,7 @@ public class KeyBindingsMenu : MonoBehaviour
         else
         {
             gameObject.SetActive(false);
+            settingsMenu.SetActive(true);
             settingsPanel.SetActive(true);
             CustomInputModule.Instance.PlaySelect();
             EventSystem.current.SetSelectedGameObject(keyBindingsButton);

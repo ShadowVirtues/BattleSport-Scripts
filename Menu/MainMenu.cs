@@ -83,12 +83,12 @@ public class MainMenu : MonoBehaviour
     private void ApplySettingsOnStartup()
     {
         //Resolution and windowed state get saved automatically by Unity
-        QualitySettings.vSyncCount = PlayerPrefs.GetInt(PauseMenu.VideoSettings_VSync, 1);                                  //Apply VSync from PlayerPrefs
-        QualitySettings.antiAliasing = (int)Mathf.Pow(2, PlayerPrefs.GetInt(PauseMenu.VideoSettings_AntiAliasing, 1));      //Anti-Aliasing
-        Application.runInBackground = PlayerPrefs.GetInt(PauseMenu.VideoSettings_RunInBackground, 0) != 0;                  //Run-in-Background option
+        QualitySettings.vSyncCount = PlayerPrefs.GetInt(SettingsMenu.VideoSettings_VSync, 1);                                  //Apply VSync from PlayerPrefs
+        QualitySettings.antiAliasing = (int)Mathf.Pow(2, PlayerPrefs.GetInt(SettingsMenu.VideoSettings_AntiAliasing, 1));      //Anti-Aliasing
+        Application.runInBackground = PlayerPrefs.GetInt(SettingsMenu.VideoSettings_RunInBackground, 0) != 0;                  //Run-in-Background option
 
-        float db = percentToDB(PlayerPrefs.GetInt(PauseMenu.SoundSettings_Master, 100));        //Set master volume
-        mixer.SetFloat(PauseMenu.SoundSettings_Master, db);
+        float db = percentToDB(PlayerPrefs.GetInt(SettingsMenu.SoundSettings_Master, 100));        //Set master volume
+        mixer.SetFloat(SettingsMenu.SoundSettings_Master, db);
         
         //TODO Menu sound options
 
