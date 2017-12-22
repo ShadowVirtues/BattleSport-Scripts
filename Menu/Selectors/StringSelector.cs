@@ -45,6 +45,11 @@ public class StringSelector : MenuSelector
 
     public void SetIndex(int ind)   //Set index for selector, when loading previous state of the menu
     {
+        if (ind > Options.Count - 1 || ind < 0) //Check if the setting value can even be set
+        {
+            ind = Options.Count - 1;    //If not, set the max value
+            Debug.LogError("WTF Are you trying to set?");
+        }
         index = ind;        //Assign actual index of the selector passed to the function parameter
         OptionValue.text = Options[index];
     }

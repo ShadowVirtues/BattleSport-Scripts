@@ -30,7 +30,7 @@ public class PauseMenu : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;       //Disable cursor (this happens when the arena scene loads)
         Cursor.visible = false;
 
-        settingsMenu.SetActive(true);               //Enable settings menu panel, so its children actually get awaken       //CHECK WTF DOESNT WORK 
+        settingsMenu.SetActive(true);               //Enable settings menu panel, so its children actually get awaken      
         settingsMenu.SetActive(false);      //Disable it after
         
         gameObject.SetActive(false);                   //Pause menu instantiates in GameUI in enabled state to run this Awake, we need to disable it in the end of it so its OnEnable doesn't run 
@@ -73,12 +73,7 @@ public class PauseMenu : MonoBehaviour
 
     protected virtual void Update()   //Query "Cancel" button when the pause menu is active (to get back to previous menu from pressing it)
     {
-        //If paused player pressed cancel button and if we process input (because sometimes we block it, when fading out menu and binding buttons)
-        if (InputManager.GetButtonDown(cancelButton, GameController.Controller.PausedPlayer) && EventSystem.current != null)    
-        {
-            currentBackButton.onClick.Invoke(); //Invoke pressing a button that was specified
-        }
-        else if (CustomInputModule.Instance.Menu == true && EventSystem.current != null)    //If the flag is set to "Menu", process any available cancel buttons
+        if (CustomInputModule.Instance.Menu && EventSystem.current != null)    //If the flag is set to "Menu", process any available cancel buttons
         {
             bool pressed = false;   //Flag to fill in true if some button got pressed
 
@@ -98,8 +93,11 @@ public class PauseMenu : MonoBehaviour
                 currentBackButton.onClick.Invoke(); //Invoke pressing a button that was specified
             }
         }
-
-
+        else if (EventSystem.current != null && InputManager.GetButtonDown(cancelButton, GameController.Controller.PausedPlayer))
+        {   //If paused player pressed cancel button and if we process input (because sometimes we block it, when fading out menu and binding buttons)
+            currentBackButton.onClick.Invoke(); //Invoke pressing a button that was specified
+        }
+        
     }
 
     public void SetCurrentBackButton(Button toSet)  //Public function that is tied to each button in the menu, specifying which back button is current after pressing that button
@@ -135,7 +133,7 @@ public class PauseMenu : MonoBehaviour
 
     public void PlaySoundAndSelectOption(GameObject toSelect)   //Second function of 'general implementation', it plays the 'Select' sound when selecting the menu, and selects/highlights the respective menu option
     {
-        CustomInputModule.Instance.PlaySelect();        
+        CustomInputModule.Instance.PlaySelect();       
         eventSystem.SetSelectedGameObject(toSelect);
     }
     

@@ -45,7 +45,7 @@ public class InstantActionSetup : MonoBehaviour
         periodTime.text = isPlayToScore ? playToScoreString : periodMinutesString;  //Set the label to respective value (isPlayToScore gets set in LoadPreviousSettings)
        
         music.PlayDelayed(0.1f);    //We have Duck Volume on music when announcer plays. Delay so for the split second of the scene music doesnt get full volume and then instantly down because of announcer ducking 
-        announcer.Play();           //Play announcer that will duck the volume of music //TEST for different volumes btw
+        announcer.Play();           //Play announcer that will duck the volume of music
 
         CustomInputModule.Instance.Enabled = true;      //Enable input from disabling it for 0.5 before switching the scene
         EventSystem.current.SetSelectedGameObject(arenaSelector.gameObject);    //Set arena selector as first selected in the start of the scene

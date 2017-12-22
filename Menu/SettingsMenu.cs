@@ -24,6 +24,10 @@ public class SettingsMenu : PauseMenu
     [SerializeField] private ValueSelector musicVol;
     [SerializeField] private ValueSelector SFXVol;
     [SerializeField] private ValueSelector announcerVol;
+    [SerializeField] private ValueSelector menuSFXVol;
+
+    [SerializeField] private ValueSelector menuMusicVol;
+    [SerializeField] private ValueSelector menuAnnouncerVol;
 
     [Header("Video Settings Selectors")]
     [SerializeField] private ResolutionSelector resolution;     //Reference to selectors in the Video Settings Menu
@@ -38,7 +42,15 @@ public class SettingsMenu : PauseMenu
     
     protected override void Awake()
     {
-        if (eventSystem == null) eventSystem = EventSystem.current;
+        if (EventSystem.current != null)
+        {
+            eventSystem = EventSystem.current;
+        }
+        else
+        {
+            CustomInputModule.Instance.GetComponent<EventSystem>().enabled = true;
+            eventSystem = EventSystem.current;
+        }
 
         foreach (GameObject panel in settingsPanels)   //Unity has no good feature to run 'Awake' on disabled objects so we are going for this
         {
@@ -47,19 +59,33 @@ public class SettingsMenu : PauseMenu
         }       
 
         LoadGameSettingsValues();       //Load all game settings values from PlayerPrefs
-        ApplyUIScale();                 //And apply them
-        ApplyRadarScale();
-        ApplyRadarIconsScale();
-        ApplyRadarOpacity();
-
         LoadSoundSettingsValues();      //Load all sound settings values from PlayerPrefs
+        LoadFOVValue();                 //From video settings, only FOV value gets set "on the fly"
+
+        if (GameController.Controller != null)
+        {
+            ApplyUIScale();                 //And apply them
+            ApplyRadarScale();
+            ApplyRadarIconsScale();
+            ApplyRadarOpacity();
+
+            ApplyFOV();
+        }
+        
+
+        
         ApplyMasterVolume();            //And apply this
         ApplyMusicVolume();             //NOTE: sounds settings don't get applied when starting injected scenes (when settings are supposed to be applied right at the moment of pressing Play in Editor)
         ApplySFXVolume();
         ApplyAnnouncerVolume();
+        ApplyMenuSFXVolume();
 
-        LoadFOVValue();                 //From video settings, only FOV value gets set "on the fly"
-        ApplyFOV();
+        if (GameController.Controller == null)  //COMM and the rest
+        {
+            ApplyMenuMusicVolume();
+            ApplyMenuAnnouncerVolume();
+        }
+        
 
         gameObject.SetActive(false);                   //Pause menu instantiates in GameUI in enabled state to run this Awake, we need to disable it in the end of it so its OnEnable doesn't run 
     }
@@ -76,9 +102,7 @@ public class SettingsMenu : PauseMenu
             base.Update();
         }
     }
-
-    //CHECK running update twice during the game from this script and PauseMenu
-
+    
     public override void DisableAllPanelsAndEnableOne(GameObject toEnable)   //Kinda kludgy solution, because Unity doesn't allow you to have two method parameters when binding a method to event
     {                                                               //This is the function when navigating the settings menu, which enables settings menu, that has all other settings panels on it
         mainPanel.SetActive(false);
@@ -149,10 +173,14 @@ public class SettingsMenu : PauseMenu
         GameController.audioManager.music.Pause();     //Pause back the music
     }
 
-    public const string SoundSettings_Master = "SoundSettings_Master";
+    public const string SoundSettings_Master = "SoundSettings_Master";          //CHECK if we need to manually apply in MainMenu.cs
     private const string SoundSettings_Game_Music = "SoundSettings_Game_Music";     //PlayerPrefs keys and AudioMixer exposed parameters (I made so they have same names)
     private const string SoundSettings_Game_SFX = "SoundSettings_Game_SFX";
     private const string SoundSettings_Game_Announcer = "SoundSettings_Game_Announcer";
+    private const string SoundSettings_Menu_SFX = "SoundSettings_Menu_SFX";
+
+    private const string SoundSettings_Menu_Music = "SoundSettings_Menu_Music";
+    private const string SoundSettings_Menu_Announcer = "SoundSettings_Menu_Announcer";
 
     public void LoadSoundSettingsValues()    //Load settings from PlayerPrefs and set selector values to them
     {
@@ -160,6 +188,13 @@ public class SettingsMenu : PauseMenu
         musicVol.SetValue(PlayerPrefs.GetInt(SoundSettings_Game_Music, 100));
         SFXVol.SetValue(PlayerPrefs.GetInt(SoundSettings_Game_SFX, 100));
         announcerVol.SetValue(PlayerPrefs.GetInt(SoundSettings_Game_Announcer, 100));
+        menuSFXVol.SetValue(PlayerPrefs.GetInt(SoundSettings_Menu_SFX, 100));
+
+        if (GameController.Controller == null)
+        {
+            menuMusicVol.SetValue(PlayerPrefs.GetInt(SoundSettings_Menu_Music, 100));
+            menuAnnouncerVol.SetValue(PlayerPrefs.GetInt(SoundSettings_Menu_Announcer, 100));
+        }          
     }
 
     public void SaveSoundSettings()      //Saving to PlayerPrefs, tied to "Back" button in Sound Settings
@@ -168,6 +203,13 @@ public class SettingsMenu : PauseMenu
         PlayerPrefs.SetInt(SoundSettings_Game_Music, musicVol.Option);
         PlayerPrefs.SetInt(SoundSettings_Game_SFX, SFXVol.Option);
         PlayerPrefs.SetInt(SoundSettings_Game_Announcer, announcerVol.Option);
+        PlayerPrefs.SetInt(SoundSettings_Menu_SFX, menuSFXVol.Option);
+
+        if (GameController.Controller == null)
+        {
+            PlayerPrefs.SetInt(SoundSettings_Menu_Music, menuMusicVol.Option);
+            PlayerPrefs.SetInt(SoundSettings_Menu_Announcer, menuAnnouncerVol.Option);
+        }       
     }
 
     public void ApplyMasterVolume() //Apply volume when starting the scene, or switched the selector in the settings
@@ -194,6 +236,24 @@ public class SettingsMenu : PauseMenu
         mixer.SetFloat(SoundSettings_Game_Announcer, db);
     }
 
+    public void ApplyMenuSFXVolume()    //TODO
+    {
+        float db = percentToDB(menuSFXVol.Option);
+        mixer.SetFloat(SoundSettings_Menu_SFX, db);
+    }
+
+    public void ApplyMenuMusicVolume()    //TODO
+    {
+        float db = percentToDB(menuMusicVol.Option);
+        mixer.SetFloat(SoundSettings_Menu_Music, db);
+    }
+
+    public void ApplyMenuAnnouncerVolume()    //TODO
+    {
+        float db = percentToDB(menuAnnouncerVol.Option);
+        mixer.SetFloat(SoundSettings_Menu_Announcer, db);
+    }
+
     private float percentToDB(int percent)  //Function to convert Percents (0 - 100) to dB (-80 - 0)
     {
         int y = percent;
@@ -209,7 +269,7 @@ public class SettingsMenu : PauseMenu
     {
         GameController.announcer.Interception();    //I chose to play interception sound here, as these are the coolest
     }
-
+    //TODO MenuSoundSampler
     //===================VIDEO SETTINGS=====================
 
     public const string VideoSettings_VSync = "VideoSettings_VSync";

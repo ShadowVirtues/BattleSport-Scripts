@@ -226,7 +226,7 @@ namespace TeamUtility.IO
 	    protected override void Start()
 	    {
 	        AxisConfiguration playerOneDevice = InputManager.GetAxisConfiguration(PlayerID.One, "DEVICE");
-	        AxisConfiguration playerTwoDevice = InputManager.GetAxisConfiguration(PlayerID.Two, "DEVICE");  //TEST
+	        AxisConfiguration playerTwoDevice = InputManager.GetAxisConfiguration(PlayerID.Two, "DEVICE"); 
 
 	        if (playerOneDevice.description == "Keyboard")
 	        {

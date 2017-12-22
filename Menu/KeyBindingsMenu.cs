@@ -45,7 +45,9 @@ public class KeyBindingsMenu : MonoBehaviour
     [SerializeField] private Selectable back;
     
     private Selectable deviceSelectable;    //Selectable component on device selector
-    
+
+    private PlayerID PausedPlayer;      //COMM
+
     void Awake()
     {
         deviceSelectable = device.GetComponent<Selectable>();       //Getting it here
@@ -58,6 +60,8 @@ public class KeyBindingsMenu : MonoBehaviour
         keyboardMousePanel.SetActive(false);
         keySettingPanel.SetActive(false);
 
+        PausedPlayer = PlayerID.One;        //COMM
+
     }
 
     void OnEnable()     //When user enters key bindings menu
@@ -68,11 +72,17 @@ public class KeyBindingsMenu : MonoBehaviour
         }
         keySettingPanel.SetActive(true);    //Enable main key setting panel
 
-        if (GameController.Controller.PausedPlayer == PlayerID.One)
+        if (GameController.Controller != null)
+        {
+            PausedPlayer = GameController.Controller.PausedPlayer;
+            RebindInput.PausedPlayer = GameController.Controller.PausedPlayer;      //TEST HEAVY
+        }
+
+        if (PausedPlayer == PlayerID.One)
         {           
             playerLabel.text = "PLAYER ONE CONTROLS";   //Depending on paused player, set the label on top of the panel
         }
-        else if (GameController.Controller.PausedPlayer == PlayerID.Two)
+        else if (PausedPlayer == PlayerID.Two)
         {           
             playerLabel.text = "PLAYER TWO CONTROLS";
         }
@@ -84,16 +94,23 @@ public class KeyBindingsMenu : MonoBehaviour
 
     void OnDisable()    //When exiting key bindings menu, disable universal controls
     {
-        CustomInputModule.Instance.Menu = false;
+        if (GameController.Controller != null)
+            CustomInputModule.Instance.Menu = false;
     }
-    
+
+    public void SetPausedPlayer(int toSet) //COMM
+    {
+        PausedPlayer = (PlayerID)(toSet - 1);
+        RebindInput.PausedPlayer = (PlayerID)(toSet - 1);
+    }
+
     private void LoadKeyBindingsValues()    //Function to load all values to the menu from the settings
     {
         device.UpdateDevices();     //Update connected joysticks
 
-        AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "DEVICE");   //Getting those AxisConfigurations throughout the script, not gonna comment them
+        AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(PausedPlayer, "DEVICE");   //Getting those AxisConfigurations throughout the script, not gonna comment them
         //First parameter is the player for which to get the config, second is the "axis", which may be just a field like "DEVICE", or single button ((((Unity input system is absolute shit))))
-        AxisConfiguration turningAxis = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Turning");
+        AxisConfiguration turningAxis = InputManager.GetAxisConfiguration(PausedPlayer, "Turning");
 
         if (playerDevice.description == "Keyboard")     //The line says it clear
         {
@@ -174,15 +191,15 @@ public class KeyBindingsMenu : MonoBehaviour
             setSelectableUp(defaultWASD,shootBallKeyboard);
 
 
-            if (GameController.Controller.PausedPlayer == PlayerID.One)
+            if (PausedPlayer == PlayerID.One)
             {
                 cancelButtonKeyboard.text = "Escape";
-                submitButtonKeyboard.text = "Enter";
+                submitButtonKeyboard.text = "Space";
             }
-            else if (GameController.Controller.PausedPlayer == PlayerID.Two)
+            else if (PausedPlayer == PlayerID.Two)
             {
                 cancelButtonKeyboard.text = "Backspace";
-                submitButtonKeyboard.text = "KeypadEnter";
+                submitButtonKeyboard.text = "Return";
             }
 
 
@@ -200,15 +217,15 @@ public class KeyBindingsMenu : MonoBehaviour
             setSelectableUp(back, defaultArrows);
             setSelectableUp(defaultWASD, shootBallMouse);
 
-            if (GameController.Controller.PausedPlayer == PlayerID.One)
+            if (PausedPlayer == PlayerID.One)
             {
                 cancelButtonMouse.text = "Escape";
-                submitButtonMouse.text = "Return";
+                submitButtonMouse.text = "Space";
             }
-            else if (GameController.Controller.PausedPlayer == PlayerID.Two)
+            else if (PausedPlayer == PlayerID.Two)
             {
                 cancelButtonMouse.text = "Backspace";
-                submitButtonMouse.text = "KeypadEnter";
+                submitButtonMouse.text = "Return";
             }
         }
         else                            //All gamepads
@@ -257,42 +274,59 @@ public class KeyBindingsMenu : MonoBehaviour
         }
         
     }
-
-    
     
     public void ApplyControls()
     {
-        //CHECK ALL CLEARING if you need to zero axis and set "Button" and shit     
-        
         if (device.GetIndex == 0 || device.GetIndex == 1)
         {
-            AxisConfiguration throttling = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Throttle");
-            throttling.invert = false;
+            AxisConfiguration throttling = InputManager.GetAxisConfiguration(PausedPlayer, "Throttle");
+            throttling.type = InputType.DigitalAxis;
+            throttling.ClearDigitalAxis();
+            AxisConfiguration turning = InputManager.GetAxisConfiguration(PausedPlayer, "Turning");
+            turning.type = InputType.DigitalAxis;
+            turning.ClearDigitalAxis();
+            AxisConfiguration strafing = InputManager.GetAxisConfiguration(PausedPlayer, "Strafing");
+            strafing.type = InputType.DigitalAxis;
+            strafing.ClearDigitalAxis();
 
-            AxisConfiguration cancelButton = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Pause");
-            AxisConfiguration submitButton = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Start");
-            if (GameController.Controller.PausedPlayer == PlayerID.One)
+            AxisConfiguration jump = InputManager.GetAxisConfiguration(PausedPlayer, "Jump");
+            jump.ClearButton();
+            AxisConfiguration LB = InputManager.GetAxisConfiguration(PausedPlayer, "LB");
+            LB.ClearCompletely();
+            AxisConfiguration RB = InputManager.GetAxisConfiguration(PausedPlayer, "RB");
+            RB.ClearCompletely();
+
+            AxisConfiguration rocket = InputManager.GetAxisConfiguration(PausedPlayer, "Rocket");
+            rocket.ClearButton();
+            AxisConfiguration laser = InputManager.GetAxisConfiguration(PausedPlayer, "Laser");
+            laser.ClearButton();
+            AxisConfiguration shootBall = InputManager.GetAxisConfiguration(PausedPlayer, "ShootBall");
+            shootBall.ClearButton();
+
+            AxisConfiguration cancelButton = InputManager.GetAxisConfiguration(PausedPlayer, "Pause");
+            cancelButton.ClearButton();
+            AxisConfiguration submitButton = InputManager.GetAxisConfiguration(PausedPlayer, "Start");
+            submitButton.ClearButton();
+            if (PausedPlayer == PlayerID.One)
             {
                 cancelButton.positive = KeyCode.Escape;
-                submitButton.positive = KeyCode.Return;                
+                submitButton.positive = KeyCode.Space;                
             }
-            else if (GameController.Controller.PausedPlayer == PlayerID.Two)
+            else if (PausedPlayer == PlayerID.Two)
             {
                 cancelButton.positive = KeyCode.Backspace;
-                submitButton.positive = KeyCode.KeypadEnter;               
+                submitButton.positive = KeyCode.Return;               
             }
-            
-            setJumpSingleButton(true);
 
-            AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "DEVICE");
+            AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(PausedPlayer, "DEVICE");
             playerDevice.description = "Keyboard";
             setPlayerDevice(0);
-
+            setJumpSingleButton(true);
             setAnalogTurning(1);
 
             if (device.GetIndex == 1)
             {
-                AxisConfiguration turning = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Turning");
+                turning.ClearCompletely();
                 turning.type = InputType.MouseAxis;
                 turning.axis = 0;
                 setAnalogTurning(0.2f);
@@ -303,27 +337,38 @@ public class KeyBindingsMenu : MonoBehaviour
             }
         }       
         else
-        {
-            
+        {            
             int joystickIndex = device.GetIndex - 2;
 
-            AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "DEVICE");
+            AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(PausedPlayer, "DEVICE");
 
-            AxisConfiguration throttling = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Throttle");
-            AxisConfiguration turning = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Turning");
-            AxisConfiguration strafing = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Strafing");
+            AxisConfiguration throttling = InputManager.GetAxisConfiguration(PausedPlayer, "Throttle");
+            AxisConfiguration turning = InputManager.GetAxisConfiguration(PausedPlayer, "Turning");
+            AxisConfiguration strafing = InputManager.GetAxisConfiguration(PausedPlayer, "Strafing");
 
-            AxisConfiguration jump = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Jump");
-            AxisConfiguration LB = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "LB");
-            AxisConfiguration RB = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "RB");
+            AxisConfiguration jump = InputManager.GetAxisConfiguration(PausedPlayer, "Jump");
+            AxisConfiguration LB = InputManager.GetAxisConfiguration(PausedPlayer, "LB");
+            AxisConfiguration RB = InputManager.GetAxisConfiguration(PausedPlayer, "RB");
 
-            AxisConfiguration rocket = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Rocket");
-            AxisConfiguration laser = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Laser");
-            AxisConfiguration shootBall = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "ShootBall");
+            AxisConfiguration rocket = InputManager.GetAxisConfiguration(PausedPlayer, "Rocket");
+            AxisConfiguration laser = InputManager.GetAxisConfiguration(PausedPlayer, "Laser");
+            AxisConfiguration shootBall = InputManager.GetAxisConfiguration(PausedPlayer, "ShootBall");
            
-            AxisConfiguration cancelButton = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Pause");
-            AxisConfiguration submitButton = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Start");
+            AxisConfiguration cancelButton = InputManager.GetAxisConfiguration(PausedPlayer, "Pause");
+            AxisConfiguration submitButton = InputManager.GetAxisConfiguration(PausedPlayer, "Start");
 
+            throttling.ClearCompletely();
+            turning.ClearCompletely();
+            strafing.ClearCompletely();
+            jump.ClearCompletely();
+            LB.ClearCompletely();
+            RB.ClearCompletely();
+            rocket.ClearCompletely();
+            laser.ClearCompletely();
+            shootBall.ClearCompletely();
+            cancelButton.ClearCompletely();
+            submitButton.ClearCompletely();
+            
             playerDevice.description = "Joystick" + joystickIndex;
             setPlayerDevice(joystickIndex + 2);
 
@@ -388,19 +433,19 @@ public class KeyBindingsMenu : MonoBehaviour
 
     public void DefaultWASD()
     {
-        AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "DEVICE");
+        AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(PausedPlayer, "DEVICE");
         
-        AxisConfiguration throttling = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Throttle");
-        AxisConfiguration turning = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Turning");
-        AxisConfiguration strafing = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Strafing");
+        AxisConfiguration throttling = InputManager.GetAxisConfiguration(PausedPlayer, "Throttle");
+        AxisConfiguration turning = InputManager.GetAxisConfiguration(PausedPlayer, "Turning");
+        AxisConfiguration strafing = InputManager.GetAxisConfiguration(PausedPlayer, "Strafing");
 
-        AxisConfiguration jump = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Jump");
-        AxisConfiguration LB = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "LB");
-        AxisConfiguration RB = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "RB");
+        AxisConfiguration jump = InputManager.GetAxisConfiguration(PausedPlayer, "Jump");
+        AxisConfiguration LB = InputManager.GetAxisConfiguration(PausedPlayer, "LB");
+        AxisConfiguration RB = InputManager.GetAxisConfiguration(PausedPlayer, "RB");
 
-        AxisConfiguration rocket = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Rocket");
-        AxisConfiguration laser = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Laser");
-        AxisConfiguration shootBall = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "ShootBall");
+        AxisConfiguration rocket = InputManager.GetAxisConfiguration(PausedPlayer, "Rocket");
+        AxisConfiguration laser = InputManager.GetAxisConfiguration(PausedPlayer, "Laser");
+        AxisConfiguration shootBall = InputManager.GetAxisConfiguration(PausedPlayer, "ShootBall");
 
         if (device.GetIndex == 0)   //Keyboard
         {
@@ -452,19 +497,19 @@ public class KeyBindingsMenu : MonoBehaviour
 
     public void DefaultArrows()
     {
-        AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "DEVICE");
+        AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(PausedPlayer, "DEVICE");
 
-        AxisConfiguration throttling = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Throttle");
-        AxisConfiguration turning = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Turning");
-        AxisConfiguration strafing = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Strafing");
+        AxisConfiguration throttling = InputManager.GetAxisConfiguration(PausedPlayer, "Throttle");
+        AxisConfiguration turning = InputManager.GetAxisConfiguration(PausedPlayer, "Turning");
+        AxisConfiguration strafing = InputManager.GetAxisConfiguration(PausedPlayer, "Strafing");
 
-        AxisConfiguration jump = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Jump");
-        AxisConfiguration LB = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "LB");
-        AxisConfiguration RB = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "RB");
+        AxisConfiguration jump = InputManager.GetAxisConfiguration(PausedPlayer, "Jump");
+        AxisConfiguration LB = InputManager.GetAxisConfiguration(PausedPlayer, "LB");
+        AxisConfiguration RB = InputManager.GetAxisConfiguration(PausedPlayer, "RB");
 
-        AxisConfiguration rocket = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Rocket");
-        AxisConfiguration laser = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "Laser");
-        AxisConfiguration shootBall = InputManager.GetAxisConfiguration(GameController.Controller.PausedPlayer, "ShootBall");
+        AxisConfiguration rocket = InputManager.GetAxisConfiguration(PausedPlayer, "Rocket");
+        AxisConfiguration laser = InputManager.GetAxisConfiguration(PausedPlayer, "Laser");
+        AxisConfiguration shootBall = InputManager.GetAxisConfiguration(PausedPlayer, "ShootBall");
 
         if (device.GetIndex == 0)   //Keyboard
         {
@@ -516,15 +561,22 @@ public class KeyBindingsMenu : MonoBehaviour
 
     [Header("Pressing Back")]
     [SerializeField] private Text[] allKeyboardKeys;
-    [SerializeField] private Text[] allMouseKeys;   
-    [SerializeField] private GameObject keyBindingsButton;
-    [SerializeField] private GameObject settingsMenu;
-    [SerializeField] private GameObject settingsPanel;
+    [SerializeField] private Text[] allMouseKeys;
+
     [SerializeField] private GameObject errorPanel;
     [SerializeField] private Text errorMessage;
     [SerializeField] private Button okButton;
+
+    [SerializeField] private GameObject settingsMenu;
+    [SerializeField] private GameObject previousPanel;   
     [SerializeField] private Button backInSettings;
 
+    private GameObject previousButton;
+
+    public void SetPrevoiusButton(GameObject button)
+    {
+        previousButton = button;    //TODO IN game
+    }
 
     public void BackFromKeyBindings()
     {
@@ -581,9 +633,9 @@ public class KeyBindingsMenu : MonoBehaviour
         {
             gameObject.SetActive(false);
             settingsMenu.SetActive(true);
-            settingsPanel.SetActive(true);
+            previousPanel.SetActive(true);
             CustomInputModule.Instance.PlaySelect();
-            EventSystem.current.SetSelectedGameObject(keyBindingsButton);
+            EventSystem.current.SetSelectedGameObject(previousButton);
             ApplyControls();
             GetComponentInParent<PauseMenu>().SetCurrentBackButton(backInSettings);
             
@@ -648,35 +700,41 @@ public class KeyBindingsMenu : MonoBehaviour
 
     private void setAnalogTurning(float turning)
     {
-        if (GameController.Controller.PausedPlayer == PlayerID.One)
+        if (GameController.Controller != null)
         {
-            GameController.Controller.PlayerOne.GetComponent<PlayerMovement>().analogTurning = turning;
-        }
-        else if (GameController.Controller.PausedPlayer == PlayerID.Two)
-        {
-            GameController.Controller.PlayerTwo.GetComponent<PlayerMovement>().analogTurning = turning;
+            if (PausedPlayer == PlayerID.One)
+            {
+                GameController.Controller.PlayerOne.GetComponent<PlayerMovement>().analogTurning = turning;
+            }
+            else if (PausedPlayer == PlayerID.Two)
+            {
+                GameController.Controller.PlayerTwo.GetComponent<PlayerMovement>().analogTurning = turning;
+            }
         }
     }
 
     private void setJumpSingleButton(bool state)
     {
-        if (GameController.Controller.PausedPlayer == PlayerID.One)
+        if (GameController.Controller != null)
         {
-            GameController.Controller.PlayerOne.GetComponent<PlayerMovement>().jumpSingleButton = state;
-        }
-        else if (GameController.Controller.PausedPlayer == PlayerID.Two)
-        {
-            GameController.Controller.PlayerTwo.GetComponent<PlayerMovement>().jumpSingleButton = state;
-        }
+            if (PausedPlayer == PlayerID.One)
+            {
+                GameController.Controller.PlayerOne.GetComponent<PlayerMovement>().jumpSingleButton = state;
+            }
+            else if (PausedPlayer == PlayerID.Two)
+            {
+                GameController.Controller.PlayerTwo.GetComponent<PlayerMovement>().jumpSingleButton = state;
+            }
+        }       
     }
 
     private void setPlayerDevice(int num)
     {
-        if (GameController.Controller.PausedPlayer == PlayerID.One)
+        if (PausedPlayer == PlayerID.One)
         {
             CustomInputModule.Instance.PlayerOneDevice = num;
         }
-        else if (GameController.Controller.PausedPlayer == PlayerID.Two)
+        else if (PausedPlayer == PlayerID.Two)
         {
             CustomInputModule.Instance.PlayerTwoDevice = num;
         }

@@ -18,8 +18,17 @@ public class MainMenu : MonoBehaviour
 
     private static bool firstLaunch = true; //A flag so we apply settings only when firstly launched the game, not when we come back to main menu from either scene
 
+
+    [SerializeField] private GameObject mainMenu;
+    [SerializeField] private GameObject settingsMenu;
+
+
     void Awake()
-    {          
+    {
+        settingsMenu.SetActive(true);               //Enable settings menu panel, so its children actually get awaken       
+        settingsMenu.SetActive(false);      //Disable it after
+        //BackFromSettings();
+
         if (firstLaunch) ApplySettingsOnStartup();  //Only if the game is initially launched, apply the settings
         
         Time.timeScale = 1;         //Just in case, set timeScale to 1, if we didn't do it while quitting the game (that gets paused)
@@ -33,6 +42,8 @@ public class MainMenu : MonoBehaviour
         CustomInputModule.Instance.GetComponent<EventSystem>().enabled = true;  //Enable event system if it was disabled for some reason. Before we get back to a menu from game, we disable event system (for 0.5 delay)
         Cursor.lockState = CursorLockMode.None;       //Enable cursor in case it was disabled
         Cursor.visible = true;
+
+        //EventSystem.current.SetSelectedGameObject(null);
         EventSystem.current.SetSelectedGameObject(firstSelected);  //Select some button
 
         
@@ -43,12 +54,14 @@ public class MainMenu : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha0))
         {
 
-            string[] asdf = Input.GetJoystickNames();
-            for (int i = 0; i < asdf.Length; i++)
-            {
-                Debug.LogError(i + ". " + asdf[i]);
-            }
+            //string[] asdf = Input.GetJoystickNames();
+            //for (int i = 0; i < asdf.Length; i++)
+            //{
+            //    Debug.LogError(i + ". " + asdf[i]);
+            //}
 
+            AxisConfiguration strafing = InputManager.GetAxisConfiguration(PlayerID.One, "Strafing");
+            strafing.ClearDigitalAxis();
 
         }
 
@@ -87,20 +100,26 @@ public class MainMenu : MonoBehaviour
         QualitySettings.antiAliasing = (int)Mathf.Pow(2, PlayerPrefs.GetInt(SettingsMenu.VideoSettings_AntiAliasing, 1));      //Anti-Aliasing
         Application.runInBackground = PlayerPrefs.GetInt(SettingsMenu.VideoSettings_RunInBackground, 0) != 0;                  //Run-in-Background option
 
-        float db = percentToDB(PlayerPrefs.GetInt(SettingsMenu.SoundSettings_Master, 100));        //Set master volume
-        mixer.SetFloat(SettingsMenu.SoundSettings_Master, db);
+        //Sound options get applied by initializing settings menu
         
-        //TODO Menu sound options
+        InputManager.Load();
+
+        //TODO Implement exception handling for bullshit control configs, falling back to default ones if config doesn't exist and falling back to keyboard if joystick doesn't exist
 
         firstLaunch = false;        //After applying all the settings, set the flag
-
-        InputManager.Load();
     }
 
     private float percentToDB(int percent)  //Function to convert Percents (0 - 100) to dB (-80 - 0)
     {
         int y = percent;
         return y == 0 ? -80 : 30 * Mathf.Log10(y / 100f);
+    }
+
+    public void BackFromSettings()
+    {
+        settingsMenu.SetActive(false);
+        mainMenu.SetActive(true);
+      
     }
 
     public void ExitGame()
