@@ -238,7 +238,16 @@ namespace TeamUtility.IO
 	        }
 	        else
 	        {
-	            PlayerOneDevice = Int32.Parse(playerOneDevice.description.Substring(playerOneDevice.description.Length - 1, 1)) + 2;
+	            try     //COMM
+	            {
+	                PlayerOneDevice = Int32.Parse(playerOneDevice.description.Substring(playerOneDevice.description.Length - 1, 1)) + 2;
+
+                }
+	            catch (Exception e)
+	            {
+	                PlayerOneDevice = 0;
+                }
+
             }
 
 	        if (playerTwoDevice.description == "Keyboard")
@@ -251,7 +260,15 @@ namespace TeamUtility.IO
 	        }
 	        else
 	        {
-                PlayerTwoDevice = Int32.Parse(playerTwoDevice.description.Substring(playerTwoDevice.description.Length - 1, 1)) + 2;
+	            try     //COMM
+	            {
+	                PlayerTwoDevice = Int32.Parse(playerTwoDevice.description.Substring(playerTwoDevice.description.Length - 1, 1)) + 2;
+                }
+	            catch (Exception e)
+	            {
+	                PlayerTwoDevice = 0;
+                }
+                
 	        }
 
 

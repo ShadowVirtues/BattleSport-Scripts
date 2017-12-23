@@ -15,34 +15,24 @@ using Random = UnityEngine.Random;
     DO NEXT:       
     Small lag when you first score??
     Rebake lights in Arena 42
-
-    
-    When loading control config, implement exception handling
     
 
-    Test binding timeout
-    Visually redesign Main Menu
-    Make so if you start the game with unplugged joystick, it falls back to keyboard
-
-
-
+    
     Consider we have lowered Mixer menu volumes
 
 
+
+
+
     GENERAL THINGS TO DO:
-
-        
-        
-        
-        Keybindings
-
+    
         Powerups  
         Arena Preview (TUGUSH-TUGUSH)
         Main Menu Options
         
         
         10 Levels > Props, Skyboxes
-        Design Main Menu       
+        Visually redesign Main Menu   
         2 Player Exhibition (Maybe make an arena screenshot showing, rotating video or whatever)
         
 

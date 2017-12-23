@@ -38,7 +38,8 @@ public class KeyBindingsMenu : MonoBehaviour
     [SerializeField] private Text throttlingValue;
 
     [SerializeField] private GameObject[] stickSelectors;   //This is DeadZone and Sensitivity text fields to enable-disable them when switching D-Pad and Stick on selector
-    
+    [SerializeField] private ValueSelector[] stickSelectables;      //COMM
+
     [Header("Bottom")]              //References to bottom side of the menu buttons
     [SerializeField] private Selectable defaultWASD;
     [SerializeField] private Selectable defaultArrows;
@@ -104,7 +105,7 @@ public class KeyBindingsMenu : MonoBehaviour
         RebindInput.PausedPlayer = (PlayerID)(toSet - 1);
     }
 
-    private void LoadKeyBindingsValues()    //Function to load all values to the menu from the settings
+    public void LoadKeyBindingsValues()    //Function to load all values to the menu from the settings  //COMM why public
     {
         device.UpdateDevices();     //Update connected joysticks
 
@@ -114,11 +115,7 @@ public class KeyBindingsMenu : MonoBehaviour
 
         if (playerDevice.description == "Keyboard")     //The line says it clear
         {
-            device.SetIndex(0);             //Set device selector to Keyboard
-            turningThrottling.SetIndex(0);  //So when some player with joystick sets their turning, it doesnt transfer to keyboard player when he switches to gamepad (so for keyboard player default option is "Stick", and not whatever 'joystick player' set last)
-            sensitivityStick.SetValue(25);  //Set default values for joystick panel, so when the player switched to them, they are not the last selected
-            deadZone.SetValue(0);           //COMM FURTHER
-            sensitivityMouse.SetValue(25);
+            defaultDevice();        //COMM
         }
         else if (playerDevice.description == "Keyboard+Mouse")
         {
@@ -130,11 +127,23 @@ public class KeyBindingsMenu : MonoBehaviour
         }
         else
         {
-            int selectedGamepad = Int32.Parse(playerDevice.description.Substring(playerDevice.description.Length - 1, 1));
-            
-            if (Input.GetJoystickNames().Length < selectedGamepad + 1)
+            int selectedGamepad = 0;
+            try
             {
-                device.SetIndex(0);              
+                selectedGamepad = Int32.Parse(playerDevice.description.Substring(playerDevice.description.Length - 1, 1));
+            }
+            catch (Exception e)
+            {
+                defaultDevice();        //COMM
+                ChangeDevice();
+                return;
+            }
+
+            
+            
+            if (Input.GetJoystickNames().Length - 1 < selectedGamepad)
+            {
+                defaultDevice();        //COMM       
             }
             else
             {
@@ -174,7 +183,16 @@ public class KeyBindingsMenu : MonoBehaviour
 
 
     }
-    
+
+    private void defaultDevice()
+    {
+        device.SetIndex(0);             //Set device selector to Keyboard
+        turningThrottling.SetIndex(0);  //So when some player with joystick sets their turning, it doesnt transfer to keyboard player when he switches to gamepad (so for keyboard player default option is "Stick", and not whatever 'joystick player' set last)
+        sensitivityStick.SetValue(25);  //Set default values for joystick panel, so when the player switched to them, they are not the last selected
+        deadZone.SetValue(0);           //COMM FURTHER
+        sensitivityMouse.SetValue(25);
+    }
+
     public void ChangeDevice()
     {
         if (device.GetIndex == 0)   //Keyboard
@@ -254,6 +272,10 @@ public class KeyBindingsMenu : MonoBehaviour
             {
                 text.SetActive(true);
             }
+            foreach (ValueSelector selectable in stickSelectables)
+            {
+                selectable.enabled = true;
+            }
 
             setSelectableDown(turningThrottling.GetComponent<Selectable>(), sensitivityStick);
             setSelectableUp(back, deadZone);
@@ -265,6 +287,10 @@ public class KeyBindingsMenu : MonoBehaviour
             foreach (GameObject text in stickSelectors)
             {
                 text.SetActive(false);
+            }
+            foreach (ValueSelector selectable in stickSelectables)
+            {
+                selectable.enabled = false;
             }
 
             setSelectableDown(turningThrottling.GetComponent<Selectable>(), back);
@@ -533,7 +559,7 @@ public class KeyBindingsMenu : MonoBehaviour
             RB.positive = KeyCode.None;    
 
             rocket.positive = KeyCode.RightShift;
-            laser.positive = KeyCode.KeypadPlus;    
+            laser.positive = KeyCode.KeypadEnter;    
             shootBall.positive = KeyCode.RightControl;      
         }
         else if (device.GetIndex == 1)  //Keyboard+Mouse
@@ -613,7 +639,7 @@ public class KeyBindingsMenu : MonoBehaviour
             if (device.Option == "{Unplugged}")
             {
                 denied = true;
-                cause = "YEAH, NICE TRY!\r\nYOU CAN'T SELECT\r\nAN UNPLUGGED DEVICE!";
+                cause = "YEAH, NICE TRY!\r\nYOU CAN'T SELECT\r\nAN UNPLUGGED DEVICE!";              
             }
         }
         

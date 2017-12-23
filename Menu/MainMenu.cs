@@ -103,16 +103,8 @@ public class MainMenu : MonoBehaviour
         //Sound options get applied by initializing settings menu
         
         InputManager.Load();
-
-        //TODO Implement exception handling for bullshit control configs, falling back to default ones if config doesn't exist and falling back to keyboard if joystick doesn't exist
-
+        
         firstLaunch = false;        //After applying all the settings, set the flag
-    }
-
-    private float percentToDB(int percent)  //Function to convert Percents (0 - 100) to dB (-80 - 0)
-    {
-        int y = percent;
-        return y == 0 ? -80 : 30 * Mathf.Log10(y / 100f);
     }
 
     public void BackFromSettings()

@@ -24,10 +24,16 @@ public class DeviceSelector : StringSelector
             {
                 Options[i] = Options[i].Remove(Options[i].Length - 13); //Remove the amount of characters from the string
             }
+
+            Options[i] = Options[i].TrimEnd(' ');
         }
     }
 
-
+    public void UpdateSelector()    //COMM
+    {
+        UpdateDevices();
+        OptionValue.text = Options[index];
+    }
 
 
 
