@@ -13,22 +13,18 @@ using Random = UnityEngine.Random;
     
     
     DO NEXT:       
-    Small lag when you first score??
-    Rebake lights in Arena 42
+    
+    Rebake lights in Arena 42 after Unity update (HOPE IT FRICKING FIXES IT!!!!)
     
 
     
     Consider we have lowered Mixer menu volumes
 
 
-
-
-
     GENERAL THINGS TO DO:
     
         Powerups  
         Arena Preview (TUGUSH-TUGUSH)
-        Main Menu Options
         
         
         10 Levels > Props, Skyboxes
@@ -204,6 +200,15 @@ public class Player : MonoBehaviour
 
         ballShootForce = tank.BallHandling;     //BallHandling means the force the player shoots the ball with
         playerRigidbody.mass = tank.Armor / 10; //Setting tank mass to tenth of the armor, so more armored tanks throw the less armored across the map when colliding with them
+
+        StartCoroutine(cacheItalicFont());  //Italic font used in Score Image for players has to be cached (because Unity), which occurs only if something shows with it on screen, so we show it for a frame and hide (when countdown is going anyway)
+    }
+
+    IEnumerator cacheItalicFont()  
+    {
+        scoreImage.SetActive(true);
+        yield return null; 
+        scoreImage.SetActive(false);                            
     }
 
     private IEnumerator Explode()   //Process of exploding the player

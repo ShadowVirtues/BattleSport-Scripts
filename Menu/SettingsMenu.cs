@@ -9,7 +9,7 @@ using UnityEngine.UI;
 public class SettingsMenu : PauseMenu
 {
     [Header("Panels/Menus")]
-    //[SerializeField] private GameObject mainPanel;          //Reference specifically to Main panel to enable it when invoking pause menu
+    //[SerializeField] private GameObject mainPanel;          //This gets inherited from PauseMenu (everything else as well, despite being private tho ******UNITY******)
     
     [SerializeField] private GameObject[] settingsPanels;       //Reference to settings panels specifically to enable-disable them in Awake here, so MenuSelector's Awakes also run
 
@@ -40,11 +40,11 @@ public class SettingsMenu : PauseMenu
     [Header("Audio")]
     [SerializeField] private AudioMixer mixer;          //AudioMixer to set volumes for it
     
-    protected override void Awake()
+    protected override void Awake()     //PauseMenu which is the base class has its own Awake, which we override so it doesn't run
     {
         if (EventSystem.current != null)
         {
-            eventSystem = EventSystem.current;
+            eventSystem = EventSystem.current;  //Getting event system reverence if its null. "eventSystem" is base class field
         }
         else
         {
@@ -62,56 +62,52 @@ public class SettingsMenu : PauseMenu
         LoadSoundSettingsValues();      //Load all sound settings values from PlayerPrefs
         LoadFOVValue();                 //From video settings, only FOV value gets set "on the fly"
 
-        if (GameController.Controller != null)
+        if (GameController.Controller != null)  //Apply settings only when in game
         {
-            ApplyUIScale();                 //And apply them
+            ApplyUIScale();                 
             ApplyRadarScale();
             ApplyRadarIconsScale();
             ApplyRadarOpacity();
-
             ApplyFOV();
         }
         
-
-        
-        ApplyMasterVolume();            //And apply this
-        ApplyMusicVolume();             //NOTE: sounds settings don't get applied when starting injected scenes (when settings are supposed to be applied right at the moment of pressing Play in Editor)
-        ApplySFXVolume();
+        ApplyMasterVolume();            //Those sound settings get appied both in game and in menu
+        ApplyMusicVolume();             
+        ApplySFXVolume();               //NOTE: sounds settings don't get applied when starting injected scenes (when settings are supposed to be applied right at the moment of pressing Play in Editor)
         ApplyAnnouncerVolume();
         ApplyMenuSFXVolume();
 
-        if (GameController.Controller == null)  //COMM and the rest
+        if (GameController.Controller == null)  //Only apply those in main menu
         {
             ApplyMenuMusicVolume();
             ApplyMenuAnnouncerVolume();
         }
         
-
         gameObject.SetActive(false);                   //Pause menu instantiates in GameUI in enabled state to run this Awake, we need to disable it in the end of it so its OnEnable doesn't run 
     }
 
-    protected override void OnEnable()
+    protected override void OnEnable()      //Making sure PauseMenu's OnEnable doesn't run
     {
         
     }
 
-    protected override void Update()
+    protected override void Update()    //When update from PauseMenu already runs (in game, when there are both PauseMenu and SettingsMenu), don't run this update
     {
-        if (GameController.Controller == null)
+        if (GameController.Controller == null)  //So only if we are not in game
         {
-            base.Update();
+            base.Update();                      //Run update (it processes "Back" buttons in menu)
         }
     }
     
-    public override void DisableAllPanelsAndEnableOne(GameObject toEnable)   //Kinda kludgy solution, because Unity doesn't allow you to have two method parameters when binding a method to event
-    {                                                               //This is the function when navigating the settings menu, which enables settings menu, that has all other settings panels on it
-        mainPanel.SetActive(false);
-        foreach (GameObject panel in settingsPanels)
+    public override void DisableAllPanelsAndEnableOne(GameObject toEnable)  //This is the function when navigating specifically in the settings menu, which enables settings menu, that has all other settings panels on it
+    {                                                               
+        mainPanel.SetActive(false);                         //Disable main panel
+        foreach (GameObject panel in settingsPanels)        //Disable all settings panel to enable one
         {
             panel.SetActive(false);
         }        
         gameObject.SetActive(true);                          //Enabling settings menu, instead of disabling it in the original method
-        if (toEnable != null) toEnable.SetActive(true);
+        if (toEnable != null) toEnable.SetActive(true);     //And then enabling some panel on settings menu
     }
     
     //==============GAME SETTINGS====================
@@ -173,7 +169,7 @@ public class SettingsMenu : PauseMenu
         GameController.audioManager.music.Pause();     //Pause back the music
     }
 
-    public const string SoundSettings_Master = "SoundSettings_Master";          //CHECK if we need to manually apply in MainMenu.cs
+    private const string SoundSettings_Master = "SoundSettings_Master";          
     private const string SoundSettings_Game_Music = "SoundSettings_Game_Music";     //PlayerPrefs keys and AudioMixer exposed parameters (I made so they have same names)
     private const string SoundSettings_Game_SFX = "SoundSettings_Game_SFX";
     private const string SoundSettings_Game_Announcer = "SoundSettings_Game_Announcer";
@@ -190,7 +186,7 @@ public class SettingsMenu : PauseMenu
         announcerVol.SetValue(PlayerPrefs.GetInt(SoundSettings_Game_Announcer, 100));
         menuSFXVol.SetValue(PlayerPrefs.GetInt(SoundSettings_Menu_SFX, 100));
 
-        if (GameController.Controller == null)
+        if (GameController.Controller == null)  //We don't have those selectors in game, so only set them when in main menu
         {
             menuMusicVol.SetValue(PlayerPrefs.GetInt(SoundSettings_Menu_Music, 100));
             menuAnnouncerVol.SetValue(PlayerPrefs.GetInt(SoundSettings_Menu_Announcer, 100));
@@ -205,7 +201,7 @@ public class SettingsMenu : PauseMenu
         PlayerPrefs.SetInt(SoundSettings_Game_Announcer, announcerVol.Option);
         PlayerPrefs.SetInt(SoundSettings_Menu_SFX, menuSFXVol.Option);
 
-        if (GameController.Controller == null)
+        if (GameController.Controller == null)      //We don't have those selectors in game, so only get their values when in main menu
         {
             PlayerPrefs.SetInt(SoundSettings_Menu_Music, menuMusicVol.Option);
             PlayerPrefs.SetInt(SoundSettings_Menu_Announcer, menuAnnouncerVol.Option);
@@ -236,19 +232,19 @@ public class SettingsMenu : PauseMenu
         mixer.SetFloat(SoundSettings_Game_Announcer, db);
     }
 
-    public void ApplyMenuSFXVolume()    //TODO
+    public void ApplyMenuSFXVolume() 
     {
         float db = percentToDB(menuSFXVol.Option);
         mixer.SetFloat(SoundSettings_Menu_SFX, db);
     }
 
-    public void ApplyMenuMusicVolume()    //TODO
+    public void ApplyMenuMusicVolume()
     {
         float db = percentToDB(menuMusicVol.Option);
         mixer.SetFloat(SoundSettings_Menu_Music, db);
     }
 
-    public void ApplyMenuAnnouncerVolume()    //TODO
+    public void ApplyMenuAnnouncerVolume()
     {
         float db = percentToDB(menuAnnouncerVol.Option);
         mixer.SetFloat(SoundSettings_Menu_Announcer, db);
@@ -269,7 +265,7 @@ public class SettingsMenu : PauseMenu
     {
         GameController.announcer.Interception();    //I chose to play interception sound here, as these are the coolest
     }
-    //TODO MenuSoundSampler
+    
     //===================VIDEO SETTINGS=====================
 
     public const string VideoSettings_VSync = "VideoSettings_VSync";
@@ -317,18 +313,5 @@ public class SettingsMenu : PauseMenu
     }
 
     //Key bindings are handled in its own script
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
 }

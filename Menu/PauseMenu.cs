@@ -22,7 +22,7 @@ public class PauseMenu : MonoBehaviour
     [HideInInspector] public EventSystem eventSystem;     //The event system is getting used only in pause menu, and other than that once during end-game menu "Replay Game/Return to Menu". 
                                                           //We can't use EventSystem.current, cuz we disable it during gameplay, and it returns 'EventSystem.current = null' if it is disabled
     
-    protected virtual void Awake()
+    protected virtual void Awake()                      //Settings menu inherits this class, and has its own Awake
     {
         rectTransform = GetComponent<RectTransform>();      //Get the reference
         eventSystem = EventSystem.current;                  //EventSystem gets instantiated in enabled state, and that's how we get a reference to it
@@ -54,8 +54,7 @@ public class PauseMenu : MonoBehaviour
         eventSystem.enabled = true;     //Enable event system, so players can navigate the menu
         Cursor.lockState = CursorLockMode.None;       //Enable cursor when entering a pause menu
         Cursor.visible = true;
-
-
+        
         CustomInputModule.Instance.PlaySelect();            //When invoking pause menu, play 'Select' sound
 
         DisableAllPanelsAndEnableOne(mainPanel);    //Disable all panels if the menu was saved with some random one active, and enable the main panel
@@ -68,8 +67,8 @@ public class PauseMenu : MonoBehaviour
         System.GC.Collect();        //Collect garbage when pressed pause
     }
 
-    private const string cancelButton = "Pause";
-    private static Button currentBackButton;            //COMM
+    private const string cancelButton = "Pause";        //Caching string
+    private static Button currentBackButton;            //Each menu you enter has its "Back" button, which gets invoked if user presses "Cancel" button, we set this button after entering each menu
 
     protected virtual void Update()   //Query "Cancel" button when the pause menu is active (to get back to previous menu from pressing it)
     {
@@ -93,8 +92,9 @@ public class PauseMenu : MonoBehaviour
                 currentBackButton.onClick.Invoke(); //Invoke pressing a button that was specified
             }
         }
-        else if (EventSystem.current != null && InputManager.GetButtonDown(cancelButton, GameController.Controller.PausedPlayer))
+        else if (EventSystem.current != null && InputManager.GetButtonDown(cancelButton, GameController.Controller.PausedPlayer))   
         {   //If paused player pressed cancel button and if we process input (because sometimes we block it, when fading out menu and binding buttons)
+            //Quering EventSystem first, cuz when binding keys in menu it's null, so the second condition here doesn't even get asked (so GameController doesn't raise an exception)
             currentBackButton.onClick.Invoke(); //Invoke pressing a button that was specified
         }
         
@@ -129,8 +129,6 @@ public class PauseMenu : MonoBehaviour
         if (toEnable != null) toEnable.SetActive(true);     //And enable the panel that we navigate to (function accepts no menu to enable, so don't enable anything if nothing was passed into function)
     }
     
-    
-
     public void PlaySoundAndSelectOption(GameObject toSelect)   //Second function of 'general implementation', it plays the 'Select' sound when selecting the menu, and selects/highlights the respective menu option
     {
         CustomInputModule.Instance.PlaySelect();       
@@ -142,10 +140,7 @@ public class PauseMenu : MonoBehaviour
         eventSystem.enabled = false;    //Disable event system, so during fading out animation, player couldn't navigate the menu        
         GameController.Controller.gameUI.QuitMatch();   //Run a function on the side of Game UI to fade the screen and all the rest
     }
-
     
-    //==========================================================
-
     public void ExitGame()
     {       
 #if UNITY_EDITOR

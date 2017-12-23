@@ -13,22 +13,17 @@ public class MainMenu : MonoBehaviour
     [SerializeField] private AudioSource music; //Reference to music audiosource of Main Menu
     
     [SerializeField] private GameObject blockInputPanel;    //"Panel" over the whole screen to block mouse input when needed
-
-    [SerializeField] private AudioMixer mixer;       //AudioMixer to set volume on startup
-
+    
     private static bool firstLaunch = true; //A flag so we apply settings only when firstly launched the game, not when we come back to main menu from either scene
-
-
-    [SerializeField] private GameObject mainMenu;
+    
+    [SerializeField] private GameObject mainMenu;       //Reference to MainMenu and SettingsMenu panels to enable-disable them when navigating menu
     [SerializeField] private GameObject settingsMenu;
-
-
+    
     void Awake()
     {
         settingsMenu.SetActive(true);               //Enable settings menu panel, so its children actually get awaken       
         settingsMenu.SetActive(false);      //Disable it after
-        //BackFromSettings();
-
+        
         if (firstLaunch) ApplySettingsOnStartup();  //Only if the game is initially launched, apply the settings
         
         Time.timeScale = 1;         //Just in case, set timeScale to 1, if we didn't do it while quitting the game (that gets paused)
@@ -43,7 +38,6 @@ public class MainMenu : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;       //Enable cursor in case it was disabled
         Cursor.visible = true;
 
-        //EventSystem.current.SetSelectedGameObject(null);
         EventSystem.current.SetSelectedGameObject(firstSelected);  //Select some button
 
         
@@ -59,14 +53,9 @@ public class MainMenu : MonoBehaviour
             //{
             //    Debug.LogError(i + ". " + asdf[i]);
             //}
-
-            AxisConfiguration strafing = InputManager.GetAxisConfiguration(PlayerID.One, "Strafing");
-            strafing.ClearDigitalAxis();
-
+            
         }
-
-        //print(Input.GetAxisRaw("joy_0_axis_4"));
-
+        
     }
 
     public void InstantActionSetup()    //When pressed "Instant Action Setup"
@@ -102,16 +91,15 @@ public class MainMenu : MonoBehaviour
 
         //Sound options get applied by initializing settings menu
         
-        InputManager.Load();
+        InputManager.Load();    //Load keybindings
         
         firstLaunch = false;        //After applying all the settings, set the flag
     }
 
-    public void BackFromSettings()
+    public void BackFromSettings()          //Navigating in Main Menu settings uses functions from SettingsMenu.cs, but when exiting settings, we need custom function, which is this one
     {
         settingsMenu.SetActive(false);
-        mainMenu.SetActive(true);
-      
+        mainMenu.SetActive(true);     
     }
 
     public void ExitGame()

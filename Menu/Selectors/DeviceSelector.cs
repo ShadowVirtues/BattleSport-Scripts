@@ -25,11 +25,12 @@ public class DeviceSelector : StringSelector
                 Options[i] = Options[i].Remove(Options[i].Length - 13); //Remove the amount of characters from the string
             }
 
-            Options[i] = Options[i].TrimEnd(' ');
+            Options[i] = Options[i].TrimEnd(' ');   //Some controllers will have some random spaces for no reason
         }
     }
 
-    public void UpdateSelector()    //COMM
+    //This is the function that updates devices and updates the selector value (gets used when trying to apply Unplugged controller, so when the user plugs it back and presses OK on error, the selector gets updated)
+    public void UpdateSelector()    
     {
         UpdateDevices();
         OptionValue.text = Options[index];

@@ -223,12 +223,12 @@ namespace TeamUtility.IO
 	        if (joyNum > 8) joyNum = 8;                 //So shit doesn't break if there IS ACTUALLY SOME INSANE PERSON HAVING 9+ JOYSTICKS CONNECTED
 	    }
 
-	    protected override void Start()
+	    protected override void Start()             //Setting device for each player to be able to process Joystick's both left stick and D-Pad in the menu for player-specific controls
 	    {
-	        AxisConfiguration playerOneDevice = InputManager.GetAxisConfiguration(PlayerID.One, "DEVICE");
+	        AxisConfiguration playerOneDevice = InputManager.GetAxisConfiguration(PlayerID.One, "DEVICE");          //Getting axisConfig of devices
 	        AxisConfiguration playerTwoDevice = InputManager.GetAxisConfiguration(PlayerID.Two, "DEVICE"); 
 
-	        if (playerOneDevice.description == "Keyboard")
+	        if (playerOneDevice.description == "Keyboard")  //Setting the number
 	        {
 	            PlayerOneDevice = 0;
 	        }
@@ -238,10 +238,9 @@ namespace TeamUtility.IO
 	        }
 	        else
 	        {
-	            try     //COMM
+	            try     //If the user wrote some bs in the config file, don't get the exception, but instead set default device (other stuff regarding this is handled in other scripts)
 	            {
-	                PlayerOneDevice = Int32.Parse(playerOneDevice.description.Substring(playerOneDevice.description.Length - 1, 1)) + 2;
-
+	                PlayerOneDevice = Int32.Parse(playerOneDevice.description.Substring(playerOneDevice.description.Length - 1, 1)) + 2;    //Getting last character with joystick number and +2, because 0 and 1 are keyboard-mouse
                 }
 	            catch (Exception e)
 	            {
@@ -250,7 +249,7 @@ namespace TeamUtility.IO
 
             }
 
-	        if (playerTwoDevice.description == "Keyboard")
+	        if (playerTwoDevice.description == "Keyboard")  //Same for player two
 	        {
                 PlayerTwoDevice = 0;
 	        }
@@ -260,7 +259,7 @@ namespace TeamUtility.IO
 	        }
 	        else
 	        {
-	            try     //COMM
+	            try     
 	            {
 	                PlayerTwoDevice = Int32.Parse(playerTwoDevice.description.Substring(playerTwoDevice.description.Length - 1, 1)) + 2;
                 }
@@ -270,8 +269,6 @@ namespace TeamUtility.IO
                 }
                 
 	        }
-
-
 
         }
 
