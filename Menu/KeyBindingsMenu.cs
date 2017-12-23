@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TeamUtility.IO;
@@ -12,7 +12,7 @@ public class KeyBindingsMenu : MonoBehaviour
     [SerializeField] private Text playerLabel;          //Label on top of the panel "Player X Controls"
     [SerializeField] private DeviceSelector device;     //Device selector. DUH
 
-    [Header("Panels")]
+    [Header("Panels")] 
     [SerializeField] private GameObject keySettingPanel;        //The panel where all the setting gets handled
     [SerializeField] private GameObject[] keyBindingsPanels;    //Different panels of KeyBinding panel, like "Are you sure" dialogs or error messages, includes KeySettingPanel as well
     [SerializeField] private GameObject keyboardPanel;          //Panel with keyboards setting
@@ -38,20 +38,20 @@ public class KeyBindingsMenu : MonoBehaviour
     [SerializeField] private Text throttlingValue;
 
     [SerializeField] private GameObject[] stickSelectors;   //This is DeadZone and Sensitivity text fields to enable-disable them when switching D-Pad and Stick on selector
-    [SerializeField] private ValueSelector[] stickSelectables;      //COMM
+    [SerializeField] private ValueSelector[] stickSelectables;      //Along with disabling text fields, disabling ValueSelector script components so they can't be selected with mouse
 
     [Header("Bottom")]              //References to bottom side of the menu buttons
     [SerializeField] private Selectable defaultWASD;
     [SerializeField] private Selectable defaultArrows;
     [SerializeField] private Selectable back;
     
-    private Selectable deviceSelectable;    //Selectable component on device selector
+    private Selectable deviceSelectable;    //Selectable component on device selector (to set its navigation)
 
-    private PlayerID PausedPlayer;      //COMM
+    private PlayerID PausedPlayer;      //General variable of which player to set up controls for. Gets set when paused in game, or in main menu when selected for which player to set controls
 
     void Awake()
     {
-        deviceSelectable = device.GetComponent<Selectable>();       //Getting it here
+        deviceSelectable = device.GetComponent<Selectable>();       //Getting it from device
         
         keySettingPanel.SetActive(true);       
         keyboardMousePanel.SetActive(true);     //When the pause menu gets 'awaken' in the start of the scene with enable-disabling it in pause menu, do the same here (to initialize all selectors)
@@ -61,8 +61,7 @@ public class KeyBindingsMenu : MonoBehaviour
         keyboardMousePanel.SetActive(false);
         keySettingPanel.SetActive(false);
 
-        PausedPlayer = PlayerID.One;        //COMM
-
+        PausedPlayer = PlayerID.One;        //Set the default paused player to avoid exceptions in case some Awake or OnEnable raises
     }
 
     void OnEnable()     //When user enters key bindings menu
@@ -73,11 +72,12 @@ public class KeyBindingsMenu : MonoBehaviour
         }
         keySettingPanel.SetActive(true);    //Enable main key setting panel
 
-        if (GameController.Controller != null)
+        if (GameController.Controller != null)  //Only if we are in a game, set paused player to one from GameController
         {
             PausedPlayer = GameController.Controller.PausedPlayer;
-            RebindInput.PausedPlayer = GameController.Controller.PausedPlayer;      //TEST HEAVY
+            RebindInput.PausedPlayer = GameController.Controller.PausedPlayer;      //Also set the static variable for RebindInput
         }
+        //If we are in the menu, it will get set from menu button onClick event
 
         if (PausedPlayer == PlayerID.One)
         {           
@@ -95,17 +95,17 @@ public class KeyBindingsMenu : MonoBehaviour
 
     void OnDisable()    //When exiting key bindings menu, disable universal controls
     {
-        if (GameController.Controller != null)
+        if (GameController.Controller != null)          //When we are in the menu, we always have menu controls, so don't disable them
             CustomInputModule.Instance.Menu = false;
     }
 
-    public void SetPausedPlayer(int toSet) //COMM
+    public void SetPausedPlayer(int toSet) //Public function that is tied to buttons in main menu to set "PausedPlayer"
     {
-        PausedPlayer = (PlayerID)(toSet - 1);
+        PausedPlayer = (PlayerID)(toSet - 1);       //Parameters tied to buttons are 1 - PlayerOne, 2 - PlayerTwo. In enum they are 0 - PlayerOne, 1 - PlayerTwo, so converting them
         RebindInput.PausedPlayer = (PlayerID)(toSet - 1);
     }
 
-    public void LoadKeyBindingsValues()    //Function to load all values to the menu from the settings  //COMM why public
+    private void LoadKeyBindingsValues()    //Function to load all values to the menu from the settings
     {
         device.UpdateDevices();     //Update connected joysticks
 
@@ -115,116 +115,100 @@ public class KeyBindingsMenu : MonoBehaviour
 
         if (playerDevice.description == "Keyboard")     //The line says it clear
         {
-            defaultDevice();        //COMM
+            defaultDevice();        //Set keyboard, which is the default device, which gets fallen back to if some issue happens
         }
         else if (playerDevice.description == "Keyboard+Mouse")
         {
-            device.SetIndex(1);
-            turningThrottling.SetIndex(0);
-            sensitivityStick.SetValue(25);
+            device.SetIndex(1);                 //Setting device selector index
+            turningThrottling.SetIndex(0);      //Setting default index for selector if used decides to switch to it 
+            sensitivityStick.SetValue(25);      //We basically need to set all selectors, so they get operated appropriately, setting their index and the value they show
             deadZone.SetValue(0);
-            sensitivityMouse.SetValue(Mathf.RoundToInt((turningAxis.sensitivity - 0.1f) * 100));
+            sensitivityMouse.SetValue(Mathf.RoundToInt((turningAxis.sensitivity - 0.1f) * 100));    //For mouse sensitivity get it from value set in controls config (the 0-100 sensitivity is 0.1-1.1 sensitivity in config, so 0 sensitivity would move the mouse at all)
         }
         else
         {
-            int selectedGamepad = 0;
+            int selectedJoystick = 0;    //Declaring variable
             try
             {
-                selectedGamepad = Int32.Parse(playerDevice.description.Substring(playerDevice.description.Length - 1, 1));
+                selectedJoystick = Int32.Parse(playerDevice.description.Substring(playerDevice.description.Length - 1, 1));  //Try to get the last character of the device string
             }
-            catch (Exception e)
+            catch (Exception)   //If some bullshit is written there (most likely by manually editing config)
             {
-                defaultDevice();        //COMM
-                ChangeDevice();
-                return;
+                defaultDevice();        //Set default device, which is keyboard
+                ChangeDevice();         //Since we return from the function, run ChangeDevice to swith to keyboard tab in the menu (this method is getting called in the end of this function)
+                return;                 //Returning, cuz if error occured, we don't want to use the unassigned "selectedJoystick"
             }
-
             
-            
-            if (Input.GetJoystickNames().Length - 1 < selectedGamepad)
-            {
-                defaultDevice();        //COMM       
+            if (Input.GetJoystickNames().Length - 1 < selectedJoystick)  //If specified joystick index in the config is largher than the amount of joysticks 
+            {                                                           //(this gets invoked only when entering key bindings, so when entered game, player can freely connect the joystick and play without reconfiguring anything)
+                defaultDevice();        //Setting to default device, which is keyboard     
             }
-            else
+            else    //If we are still in range of connected joysticks
             {
-                device.SetIndex(2 + selectedGamepad);
+                device.SetIndex(2 + selectedJoystick);  //Set index to a correcponding joysticks (joysticks are numbered from 0, but their device index from 2)
                 
                 if (turningAxis.axis == 5)  //D-Pad
                 {
-                    turningThrottling.SetIndex(1);
-                    sensitivityStick.SetValue(25);
+                    turningThrottling.SetIndex(1);  //If D-Pad is set in config, set its index in selector
+                    sensitivityStick.SetValue(25);  //And set default values for all other selectors
                     deadZone.SetValue(0);
                     sensitivityMouse.SetValue(25);
                 }                  
                 else if (turningAxis.axis == 0) //Stick
                 {
-                    turningThrottling.SetIndex(0);
-                    sensitivityStick.SetValue(Mathf.RoundToInt((turningAxis.sensitivity - 0.5f) * 100));
-                    deadZone.SetValue(Mathf.RoundToInt(turningAxis.deadZone * 100));
+                    turningThrottling.SetIndex(0);  //Set it on selector
+                    sensitivityStick.SetValue(Mathf.RoundToInt((turningAxis.sensitivity - 0.5f) * 100));    //Get sensitivity from config (0-100 is 0.5-1.5 in config)
+                    deadZone.SetValue(Mathf.RoundToInt(turningAxis.deadZone * 100));                        //Get deadZone from config (0-100 is 0-1 in config)
                     sensitivityMouse.SetValue(25);
                 }
-                    
-
-                
-
-                TurningThrottlingChange();
+                  
+                TurningThrottlingChange();      //Run a function that depending on a selector state, changes some menu fields/selectors
             }
         }
-
         
-        ChangeDevice();
+        ChangeDevice(); //Run a function that shows specific panel with specific for Keyboard/Keyboard+Mouse/Joystick fields
         
-
-
-
-        
-
-
-
-
     }
 
-    private void defaultDevice()
+    private void defaultDevice()        //Used a couple of times here, so get this all in a function
     {
         device.SetIndex(0);             //Set device selector to Keyboard
         turningThrottling.SetIndex(0);  //So when some player with joystick sets their turning, it doesnt transfer to keyboard player when he switches to gamepad (so for keyboard player default option is "Stick", and not whatever 'joystick player' set last)
         sensitivityStick.SetValue(25);  //Set default values for joystick panel, so when the player switched to them, they are not the last selected
-        deadZone.SetValue(0);           //COMM FURTHER
-        sensitivityMouse.SetValue(25);
+        deadZone.SetValue(0);           
+        sensitivityMouse.SetValue(25);  
     }
 
     public void ChangeDevice()
     {
         if (device.GetIndex == 0)   //Keyboard
         {
-            keyboardPanel.SetActive(true);
+            keyboardPanel.SetActive(true);      //Enable keyboard panel and disable the rest
             keyboardMousePanel.SetActive(false);
             gamepadPanel.SetActive(false);
 
-            defaultWASD.gameObject.SetActive(true);
+            defaultWASD.gameObject.SetActive(true);     //Enable bottom buttons (only for keyboard/mouse)
             defaultArrows.gameObject.SetActive(true);
 
-            setSelectableDown(deviceSelectable, turnLeft);                       
-            setSelectableUp(back, defaultArrows);
-            setSelectableUp(defaultWASD,shootBallKeyboard);
-
-
+            setSelectableDown(deviceSelectable, turnLeft);   //Set selectables so key navigation is proper
+            setSelectableUp(back, defaultArrows);            //In those functions, first parameter is what to set, second is TO what to set
+            setSelectableUp(defaultWASD, shootBallKeyboard);
+            
             if (PausedPlayer == PlayerID.One)
             {
-                cancelButtonKeyboard.text = "Escape";
-                submitButtonKeyboard.text = "Space";
+                cancelButtonKeyboard.text = "Escape";   //For specific player set their default hardcoded changeable-only-manually-editing-config-file
+                submitButtonKeyboard.text = "Space";    //This is because its super clumsy to bind those buttons (them being buttons that start and cancel binding process)
             }
             else if (PausedPlayer == PlayerID.Two)
             {
                 cancelButtonKeyboard.text = "Backspace";
                 submitButtonKeyboard.text = "Return";
             }
-
-
+            
         }
         else if (device.GetIndex == 1)  //Keyboard+Mouse
         {
-            keyboardMousePanel.SetActive(true);
+            keyboardMousePanel.SetActive(true); //Pretty much all the same as for keyboard
             keyboardPanel.SetActive(false);           
             gamepadPanel.SetActive(false);
 
@@ -246,68 +230,71 @@ public class KeyBindingsMenu : MonoBehaviour
                 submitButtonMouse.text = "Return";
             }
         }
-        else                            //All gamepads
+        else                            //All joystick
         {
             keyboardPanel.SetActive(false);
             keyboardMousePanel.SetActive(false);
             gamepadPanel.SetActive(true);
 
-            defaultWASD.gameObject.SetActive(false);
+            defaultWASD.gameObject.SetActive(false);        //Disable botton buttons for binding default keyboard keys
             defaultArrows.gameObject.SetActive(false);
 
             setSelectableDown(deviceSelectable, turningThrottling);
             setSelectableUp(back, turningThrottling);
             
-            TurningThrottlingChange();
+            TurningThrottlingChange();      //Change joystick panel depending on if D-Pad or stick is selected
         }
 
-        
     }
 
-    public void TurningThrottlingChange()
+    public void TurningThrottlingChange()       //Yeah, this function
     {
         if (turningThrottling.GetIndex == 0)    //Stick
         {
-            foreach (GameObject text in stickSelectors)
+            //We don't want to disable whole selectors when switching between D-Pad and Stick, because that would move Vertical Layout group layout, so we are leaving objects in there, but disabling it visually and interactibly
+            foreach (GameObject text in stickSelectors) //Enable text fields of sensitivity and deadZone selectors
             {
                 text.SetActive(true);
             }
-            foreach (ValueSelector selectable in stickSelectables)
+            foreach (ValueSelector selectable in stickSelectables)  //Enable script components which handle their selection with mouse
             {
                 selectable.enabled = true;
             }
 
-            setSelectableDown(turningThrottling.GetComponent<Selectable>(), sensitivityStick);
+            setSelectableDown(turningThrottling.GetComponent<Selectable>(), sensitivityStick);  //Set navigation
             setSelectableUp(back, deadZone);
 
-            throttlingValue.text = "LEFT STICK Y Axis";
+            throttlingValue.text = "LEFT STICK Y Axis"; //Write that throttling is controlled by Stick
         }
         else if (turningThrottling.GetIndex == 1)   //D-Pad
         {
-            foreach (GameObject text in stickSelectors)
+            foreach (GameObject text in stickSelectors) //Disable text fields of sensitivity and deadZone selectors
             {
                 text.SetActive(false);
             }
-            foreach (ValueSelector selectable in stickSelectables)
+            foreach (ValueSelector selectable in stickSelectables)  //Disable script components which handle their selection with mouse
             {
                 selectable.enabled = false;
             }
 
-            setSelectableDown(turningThrottling.GetComponent<Selectable>(), back);
+            setSelectableDown(turningThrottling.GetComponent<Selectable>(), back);  //Set navigation
             setSelectableUp(back, turningThrottling);
 
-            throttlingValue.text = "D-PAD UP/DOWN";
+            throttlingValue.text = "D-PAD UP/DOWN";     //Write that throttling is controlled by D-Pad
         }
         
     }
     
-    public void ApplyControls()
+    public void ApplyControls()     //Function that runs when successfully gone back from keybindings menu
     {
-        if (device.GetIndex == 0 || device.GetIndex == 1)
+        //Keyboard controls when getting bound are instantly getting set to the InputManager config (that's how they made it work), so we just set all the rest but button binds here
+        //If you bound something for keyboard, but then switched back to joystick, everything will get cleared properly
+
+        if (device.GetIndex == 0 || device.GetIndex == 1)   //Applying keyboard and keyboard+mouse has a lot of similarities, so doing a lot of stuff for them both, but if keyboard+mouse is selected, overriding some stuff with its specific settings
         {
-            AxisConfiguration throttling = InputManager.GetAxisConfiguration(PausedPlayer, "Throttle");
+            AxisConfiguration throttling = InputManager.GetAxisConfiguration(PausedPlayer, "Throttle"); //Getting all axis configurations from InputManager config, setting axis types and clearing each axis accordingly
             throttling.type = InputType.DigitalAxis;
-            throttling.ClearDigitalAxis();
+            throttling.ClearDigitalAxis();      //Means everything but positive-negative buttons and axis type is cleared
             AxisConfiguration turning = InputManager.GetAxisConfiguration(PausedPlayer, "Turning");
             turning.type = InputType.DigitalAxis;
             turning.ClearDigitalAxis();
@@ -316,7 +303,7 @@ public class KeyBindingsMenu : MonoBehaviour
             strafing.ClearDigitalAxis();
 
             AxisConfiguration jump = InputManager.GetAxisConfiguration(PausedPlayer, "Jump");
-            jump.ClearButton();
+            jump.ClearButton();     //Means everything but positive button is cleared
             AxisConfiguration LB = InputManager.GetAxisConfiguration(PausedPlayer, "LB");
             LB.ClearCompletely();
             AxisConfiguration RB = InputManager.GetAxisConfiguration(PausedPlayer, "RB");
@@ -333,7 +320,7 @@ public class KeyBindingsMenu : MonoBehaviour
             cancelButton.ClearButton();
             AxisConfiguration submitButton = InputManager.GetAxisConfiguration(PausedPlayer, "Start");
             submitButton.ClearButton();
-            if (PausedPlayer == PlayerID.One)
+            if (PausedPlayer == PlayerID.One)   //Set default cancel-submit buttons to specific player (hardcoded)
             {
                 cancelButton.positive = KeyCode.Escape;
                 submitButton.positive = KeyCode.Space;                
@@ -346,30 +333,30 @@ public class KeyBindingsMenu : MonoBehaviour
 
             AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(PausedPlayer, "DEVICE");
             playerDevice.description = "Keyboard";
-            setPlayerDevice(0);
-            setJumpSingleButton(true);
-            setAnalogTurning(1);
+            setPlayerDevice(0);             //Setting player device in CustomInputModule
+            setJumpSingleButton(true);      //Setting if jumping is handled with one button in PlayerMovement 
+            setAnalogTurning(1);            //Setting so sensitivity saved in config gets lead to appropriate values depending on the device 
 
-            if (device.GetIndex == 1)
+            if (device.GetIndex == 1)       //All written before was the same for both keyboard and keyboard+mouse, so if the device is mouse, override some settings
             {
-                turning.ClearCompletely();
-                turning.type = InputType.MouseAxis;
-                turning.axis = 0;
-                setAnalogTurning(0.2f);
-                turning.sensitivity = 0.1f + sensitivityMouse.Option / 100f;
+                turning.ClearCompletely();  //Means clear the whole axis
+                turning.type = InputType.MouseAxis; //Set type to mouse
+                turning.axis = 0;       //Set X axis (left-right)
+                setAnalogTurning(0.2f); //Set factor for turning, so mouse is appropriately sensitive
+                turning.sensitivity = 0.1f + sensitivityMouse.Option / 100f;        //Convert from 0-100 to 0.1-1.1 that gets saved in config
                 
-                playerDevice.description = "Keyboard+Mouse";
-                setPlayerDevice(1);
+                playerDevice.description = "Keyboard+Mouse";    //Set device
+                setPlayerDevice(1);    //Setting player device in CustomInputModule
             }
         }       
-        else
+        else    //Joystick
         {            
-            int joystickIndex = device.GetIndex - 2;
+            int joystickIndex = device.GetIndex - 2;    //Converting from 2-based selector jostick indexes to 0-based joystick number (x-based means numbering starts from 'x")
 
             AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(PausedPlayer, "DEVICE");
 
             AxisConfiguration throttling = InputManager.GetAxisConfiguration(PausedPlayer, "Throttle");
-            AxisConfiguration turning = InputManager.GetAxisConfiguration(PausedPlayer, "Turning");
+            AxisConfiguration turning = InputManager.GetAxisConfiguration(PausedPlayer, "Turning");     //Getting all axis
             AxisConfiguration strafing = InputManager.GetAxisConfiguration(PausedPlayer, "Strafing");
 
             AxisConfiguration jump = InputManager.GetAxisConfiguration(PausedPlayer, "Jump");
@@ -387,9 +374,9 @@ public class KeyBindingsMenu : MonoBehaviour
             turning.ClearCompletely();
             strafing.ClearCompletely();
             jump.ClearCompletely();
-            LB.ClearCompletely();
+            LB.ClearCompletely();       //Clearing literally everything. Ok, actually leaving DEVICE not cleared
             RB.ClearCompletely();
-            rocket.ClearCompletely();
+            rocket.ClearCompletely();   //COMM further 
             laser.ClearCompletely();
             shootBall.ClearCompletely();
             cancelButton.ClearCompletely();

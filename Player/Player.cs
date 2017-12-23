@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
@@ -16,8 +16,9 @@ using Random = UnityEngine.Random;
     
     Rebake lights in Arena 42 after Unity update (HOPE IT FRICKING FIXES IT!!!!)
     
+    Test all player messages with powerups overflow
+    Try steering wheel
 
-    
     Consider we have lowered Mixer menu volumes
 
 
@@ -89,6 +90,10 @@ public static class Message //Just a class container for all on-screen messages 
     public const string Overtime = "OVERTIME";
     public const string ScoreToWin = "SCORE TO WIN";
     //TODO Add powerup messages
+    public const string Blinded = "BLINDED";
+    public const string EnemyBlinded = "ENEMY BLINDED";
+    public const string SightRestored = "SIGHT RESTORED";
+
 }
 
 [Serializable]
@@ -120,7 +125,7 @@ public class Player : MonoBehaviour
     [Header("Health")]          //All the stuff about health
     [SerializeField] private Slider healthSlider;   //Reference to slider to change its value depending on the player health
     public new Camera camera;     //Reference to player's camera to shake it on rocket hit. Also to set its FOV
-    private float Health = 100;  //Tank Health variable, changes when taking damage
+    public float Health { get; private set; } = 100;  //Tank Health variable, changes when taking damage
 
     [Header("Explosion")]                   //All the stuff about explosion
     [SerializeField] private ParticleSystem particleSmoke;    //Reference to two particle systems which lengths depend on the death timer, we change their length from those references
@@ -149,7 +154,7 @@ public class Player : MonoBehaviour
     private float ballShootForce;           //Dependant on tank parameter BallHandling
     private float pickupTime;               //The time moment in seconds from the start of the game the ball got picked up (to count the PossessionTime for stats)
 
-    [SerializeField] private AudioSource pickup;    //"Self-interruptible" audioSource player the pickup sound (ball shot is the same sound as well)
+    public AudioSource pickup;    //"Self-interruptible" audioSource player the pickup sound (ball shot is the same sound as well)  //COMM why public
 
     [SerializeField] private GameObject ballClock;      //Reference to Shot Clock UI Image to disable/enable it when have or don't have the ball
     [SerializeField] private Text ballClockText;        //Reference to text timer on the Shot Clock UI
@@ -163,6 +168,8 @@ public class Player : MonoBehaviour
     //Reference for being able to smoothly stop the exploding tank with setting its drag (we disable PlayerMovement script when dead, so the player can't move dead ship...
     private Rigidbody playerRigidbody;      //And in PlayerMovement custom drag when alive is implemented, so we apply the internal rigidbody drag when dead
     private PlayerMovement movement;        //Reference to disable it when dead
+    [HideInInspector] public PlayerPowerup powerup;            //COMM
+    public GameObject blinder;                              //COMM
     private Tank tank;                  //Reference to Tank component of attached tank to get its characteristics
     [Header("Other UI")]
     [SerializeField] private Text messageBox;   //Text box in the middle of the screen to show messages on for players
@@ -193,6 +200,7 @@ public class Player : MonoBehaviour
          
         playerRigidbody = GetComponent<Rigidbody>();
         movement = GetComponent<PlayerMovement>();
+        powerup = GetComponent<PlayerPowerup>();
 
         cameraAnim = camera.GetComponent<Animator>();
 
@@ -241,14 +249,19 @@ public class Player : MonoBehaviour
         movement.enabled = true;        //Enable player ability to move
         playerRigidbody.drag = 0;       //Disable rigidbody's drag we used for stopping the player after exploding
 
-        Health = 100;
-        healthSlider.value = Health;  //Set full health and update the slider
+        SetHealth(100);
 
         tank.gameObject.SetActive(true);      //Enable tank model
         deathScreen.SetActive(false);   //Disable death screen
 
         yield return endOfFrame; //Wait until the end of frame, before revealing the enemy on the map. This is due to Update updating the radar running before the couroutine yields, so the frame of player being at the explosion position would slip through
         PlayerRadar.HidePlayerFromRadar(PlayerNumber, false);    //Reveal this player icon from enemy radar
+    }
+
+    public void SetHealth(float toSet)  //Public, cuz powerup can do it
+    {
+        Health = toSet;
+        healthSlider.value = Health;    //Update slider
     }
     
     private void IncreaseDestroyedTime()    //Gets launched on 5 and 10 death in a game
@@ -266,17 +279,87 @@ public class Player : MonoBehaviour
     }
     
     private readonly WaitForSeconds tankFlashTime = new WaitForSeconds(0.05f); //Tank flashes for this time when taking damage
+    private readonly WaitForSeconds cloakTankFlashTime = new WaitForSeconds(0.025f); //Tank flashes for this time when taking damage    //COMM
 
     private IEnumerator flashTank()     //Flash tank on hit
     {        
         if (DOTween.IsTweening(material) == false)      //If the tank material is already flashing from picking up the ball, don't flash it from being hit
         {
-            const float fin = 0.35f;                
-            Color final = new Color(fin, fin, fin); //Flash the tank to this color
-            material.SetColor(emissionColor, final);
-            yield return tankFlashTime;             //Wait
-            material.SetColor(emissionColor, Color.black);   //Set the color back
+            if (powerup.Invisibility == false)
+            {
+                const float fin = 0.35f;
+                Color final = new Color(fin, fin, fin); //Flash the tank to this color
+                material.SetColor(emissionColor, final);
+                yield return tankFlashTime;             //Wait
+                material.SetColor(emissionColor, Color.black);   //Set the color back
+            }
+            else                            //COMM
+            {
+                const float fin = 1f;
+                Color final = new Color(1, 1, 1, fin); //Flash the tank to this color
+                material.color = final;
+                yield return cloakTankFlashTime;             //Wait
+                material.color = new Color(1, 1, 1, 0); //Set the color back
+            }
+           
         }       
+    }
+
+    public void CloakEngage()       //COMM
+    {
+        GameController.audioManager.Cloak();
+        material.DOFade(0, 1);
+    }
+
+    public void CloakDisengage()
+    {
+        GameController.audioManager.Cloak();
+        material.DOFade(1, 1);
+    }
+
+    public void Blind(bool yourself)    //COMM
+    {
+        if (yourself)
+        {
+            ShowMessage(Message.Blinded);
+            blinder.SetActive(true);
+        }
+        else
+        {
+            ShowMessage(Message.EnemyBlinded);
+            if (PlayerNumber == PlayerID.One)
+            {
+                GameController.Controller.PlayerTwo.ShowMessage(Message.Blinded);
+                GameController.Controller.PlayerTwo.blinder.SetActive(true);
+            }
+            else if (PlayerNumber == PlayerID.Two)
+            {
+                GameController.Controller.PlayerOne.ShowMessage(Message.Blinded);
+                GameController.Controller.PlayerOne.blinder.SetActive(true);
+            }
+        }
+    }
+
+    public void UnBlind(bool yourself)
+    {
+        if (yourself)
+        {
+            ShowMessage(Message.SightRestored);
+            blinder.SetActive(false);
+        }
+        else
+        {
+            if (PlayerNumber == PlayerID.One)
+            {
+                GameController.Controller.PlayerTwo.ShowMessage(Message.SightRestored);
+                GameController.Controller.PlayerTwo.blinder.SetActive(false);
+            }
+            else if (PlayerNumber == PlayerID.Two)
+            {
+                GameController.Controller.PlayerOne.ShowMessage(Message.SightRestored);
+                GameController.Controller.PlayerOne.blinder.SetActive(false);
+            }
+        }
     }
 
     private Vector3 FindRandomPosition()    //Algorithm for finding random position on the map for player to spawn after death
@@ -407,8 +490,7 @@ public class Player : MonoBehaviour
 
         if (Health < 0)    //If goes below 0, set it to 0, set the slider to it
         {
-            Health = 0;
-            healthSlider.value = Health;    //Set slider value
+            SetHealth(0);
 
             playerStats.Deaths++;    //Increment player's death to change the death timer and for end-game stats
             if (playerStats.Deaths == 5 || playerStats.Deaths == 10) IncreaseDestroyedTime();   //On 5 deaths the death timer is 3 sec, on 10 deaths it is 4 sec
@@ -660,8 +742,7 @@ public class Player : MonoBehaviour
         movement.enabled = true;        //Enable player ability to move if it was disabled due to explosion
         playerRigidbody.drag = 0;       //Disable rigidbody's drag we used for stopping the player after exploding
 
-        Health = 100;
-        healthSlider.value = Health;  //Set full health and update the slider
+        SetHealth(100);  //Set full health
 
         tank.gameObject.SetActive(true);      //Enable tank model
         deathScreen.SetActive(false);   //Disable death screen

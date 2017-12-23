@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using TeamUtility.IO;
 using UnityEngine;
@@ -23,7 +23,7 @@ public class PlayerShooting : MonoBehaviour
     private Rigidbody[] laserRigidbody;    //Array of rididbodies of pooled lasers
     private Laser[] laser;                //Array of Laser components of pooled lasers
 
-    private float laserFireRate = 0.25f;    //TODO TurboLazers
+    public float laserFireRate { private get; set; } = 0.25f;    //TODO TurboLazers
     private int laserCount;
     private int playerRocketCount;          //Variable to hold rocket count of the player
     private const string rocketButtonName = "Rocket";        //Input for rocket shooting is handled here so caching this
@@ -140,9 +140,15 @@ public class PlayerShooting : MonoBehaviour
 
                     rocketSource.Play();    //Play rocket shot sound that would interrupt itself if played in quick succession
 
-                    //if (doubleDamage)
-                    //    rocket[i].FirePower = tank.firePower * 2; //TEST. TODO When implementing, remember to set the damage back to normal
-
+                    if (player.powerup.DoubleDamage)
+                    {
+                        rocket[i].FirePower = tank.FirePower * 2; //TEST. TODO When implementing, remember to set the damage back to normal
+                    }
+                    else
+                    {
+                        rocket[i].FirePower = tank.FirePower;
+                    }
+                      
                     break;  //If we found disabled rocket, don't look further.
                 }
             }
@@ -177,15 +183,21 @@ public class PlayerShooting : MonoBehaviour
 
                     laserSource.Play(); //Play laser shot sound that would interrupt itself if played in quick succession
 
-                    //if (doubleDamage)
-                    //    laser[i].FirePower = tank.firePower * 2; //TEST. TODO When implementing, remember to set the damage back to normal
+                    if (player.powerup.DoubleDamage)
+                    {
+                        laser[i].FirePower = tank.FirePower * 2; //TEST. TODO When implementing, remember to set the damage back to normal
+                    }
+                    else
+                    {
+                        laser[i].FirePower = tank.FirePower;
+                    }
 
-                    break;  //If we found disabled laser, don't look further.
+                    break;   //If we found disabled laser, don't look further.
                 }
             }
 
         }
-
+         
     }
 
 

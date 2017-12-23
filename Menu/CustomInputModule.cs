@@ -1,4 +1,4 @@
-﻿#region [License]
+#region [License]
 //	The MIT License (MIT)
 //	
 //	Copyright (c) 2015, Unity Technologies
@@ -31,7 +31,7 @@ using UnityEngine.Serialization;
 using UnityEditor;
 #endif
 using System;
-
+ 
 //This is custom edited by me StandaloneInputModule that we use in menus to accept all default hardcoded input for navigation. Like "Submit" buttons are Enter, Space, and a start button on all joysticks. 
 //Directional keys are WASD, arrows on keyboard and left arrow pad and left stick on joysticks
 //It is made to have default navigation in menus, regardless of what players set up in key bindings.
@@ -242,7 +242,7 @@ namespace TeamUtility.IO
 	            {
 	                PlayerOneDevice = Int32.Parse(playerOneDevice.description.Substring(playerOneDevice.description.Length - 1, 1)) + 2;    //Getting last character with joystick number and +2, because 0 and 1 are keyboard-mouse
                 }
-	            catch (Exception e)
+	            catch (Exception)
 	            {
 	                PlayerOneDevice = 0;
                 }
@@ -263,7 +263,7 @@ namespace TeamUtility.IO
 	            {
 	                PlayerTwoDevice = Int32.Parse(playerTwoDevice.description.Substring(playerTwoDevice.description.Length - 1, 1)) + 2;
                 }
-	            catch (Exception e)
+	            catch (Exception)
 	            {
 	                PlayerTwoDevice = 0;
                 }
