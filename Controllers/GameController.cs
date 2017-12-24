@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TeamUtility.IO;
@@ -49,7 +49,7 @@ public class GameController : MonoBehaviour
             audioManagerObject = Instantiate(audioManagerPrefab);
             NumberOfPeriods = 3;
             isPlayToScore = false;
-            ShotClock = 10;
+            ShotClock = 5;
             PeriodTime = 180;
             ArenaDimension = 100;      
             PlayerOne.PlayerName = "PLAYER 1";

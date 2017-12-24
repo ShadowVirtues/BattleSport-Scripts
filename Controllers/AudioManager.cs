@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -19,8 +19,10 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioClip laserHit;
 
     [SerializeField] private AudioClip periodHorn;          
-    [SerializeField] private AudioClip finalHorn;          
+    [SerializeField] private AudioClip finalHorn;  
 
+    [SerializeField] private AudioClip hesAirbourne;  
+    
     [SerializeField] private AudioSource audioSource;   //Source.AudioManager object attached to AudioManagerPrefab
     public AudioSource music;                           //Source.Music object attached to AudioManagerPrefab (public, cuz get used to pause the music)
 
@@ -33,6 +35,8 @@ public class AudioManager : MonoBehaviour
     public void PeriodHorn() => audioSource.PlayOneShot(periodHorn);    //Period Horn when it ends
 
     public void FinalHorn() => audioSource.PlayOneShot(finalHorn);      //Final Horn when the game ends   
+
+    public void HesAirbourne() => audioSource.PlayOneShot(hesAirbourne);    //"He's Airbourne" when the player starts flying first
 
     void Awake()    //When loaded the scene
     {

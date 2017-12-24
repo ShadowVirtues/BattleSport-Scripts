@@ -2,16 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FumbleProtection : Powerup
+public class Invinsibility : Powerup
 {
     protected override void ActionIn(PlayerPowerup player)
     {
-        player.FumbleProtection = true;
+        player.Invinsibility = true;
     }
 
     protected override void ActionOut(PlayerPowerup player)
     {
-        player.FumbleProtection = false;
+        player.Invinsibility = false;
     }
     
 
@@ -22,8 +22,8 @@ public class FumbleProtection : Powerup
 
     void Reset()
     {
-        MessageIn = "FUMBLE PROTECTION";
-        MessageOut = "PROTECTION OFF";
+        MessageIn = "INVINSIBILITY";
+        MessageOut = "INVINSIBILITY OFF";
         duration = 12;
     }
 }

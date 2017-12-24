@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TeamUtility.IO;
@@ -11,6 +11,7 @@ public class PlayerMovement : MonoBehaviour
 
     private float acceleration;  //Acceleration to apply (gets calculated from tanks characteristic)
     private float maxSpeed;      //Same for Max Speed  
+    private float initialSpeed; //COMM
     private float dragCoeff = 15;     //Coefficient of linear drag that all tanks stop from (like air friction)
 
     private float rotationSpeed = 125; //Rotation speed when turning the tank with A-D or equivalent on gamepad
@@ -19,6 +20,7 @@ public class PlayerMovement : MonoBehaviour
     private new Rigidbody rigidbody;    //Caching rigidbody
 
     private bool grounded = false;      //Variable to check for if grounded to be able to jump
+    public bool airbourne = false;    //COMM
 
     private const string throttleAxisName = "Throttle";
     private const string strafingAxisName = "Strafing";    //Caching axis names for input
@@ -40,7 +42,8 @@ public class PlayerMovement : MonoBehaviour
         Tank tank = GetComponentInChildren<Tank>();
 
         acceleration = tank.Acceleration * 0.41f + 8.6f;   //Calculate movement parameters from tank characteristics
-        maxSpeed = tank.TopSpeed * 0.2f + 6;    //Why those formulas? Cuz.
+        initialSpeed = tank.TopSpeed * 0.2f + 6;        //COMM
+        maxSpeed = initialSpeed;    //Why those formulas? Cuz.
 
         AxisConfiguration jump = InputManager.GetAxisConfiguration(playerNumber, jumpButtonName);   //Check control configuration for the player to see if there is one- or two-button jumping
         if (jump.positive != KeyCode.None)  //If some button is bound to "Jump", then it's one-button jumping
@@ -146,6 +149,62 @@ public class PlayerMovement : MonoBehaviour
         //    rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpVelocity, rigidbody.velocity.z);     //Just apply the Y velocity to jump      
         //}
 
+        
+	    if (player.powerup.FlightSystem)
+	    {
+	        if (jumpSingleButton)   //If "Jump" button is defined - use it
+	        {
+	            if (InputManager.GetButton(jumpButtonName, playerNumber))
+	            {
+	                if (rigidbody.velocity.y <= 0)
+	                {
+	                    rigidbody.velocity = new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z);
+	                    if (airbourne == false)
+	                    {
+	                        GameController.audioManager.HesAirbourne();
+	                        airbourne = true;
+	                    }
+	                    rigidbody.useGravity = false;
+	                }
+                    else
+                    {
+                        rigidbody.useGravity = true;
+                    }
+                }
+	            else
+	            {
+	                rigidbody.useGravity = true;
+	            }
+            }
+	        else    //Otherwise use LB+RB (can be overridden manually editing control config XML if needed)
+	        {
+	            if (InputManager.GetButton(LB, playerNumber) && InputManager.GetButton(RB, playerNumber))
+	            {
+	                if (rigidbody.velocity.y <= 0)
+	                {
+	                    rigidbody.velocity = new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z);
+	                    if (airbourne == false)
+	                    {
+	                        GameController.audioManager.HesAirbourne();
+	                        airbourne = true;
+	                    }
+                        rigidbody.useGravity = false;
+	                }
+                    else
+                    {
+                        rigidbody.useGravity = true;
+                    }
+                }
+                else
+                {
+                    rigidbody.useGravity = true;
+                }
+
+            }
+
+        }
+
+
         if (grounded)    //We can jump only if we are on the ground
 	    {
 	        if (jumpSingleButton)   //If "Jump" button is defined - use it
@@ -197,6 +256,17 @@ public class PlayerMovement : MonoBehaviour
         GroundCheck(other);
     }
 
+    public void SetSuperSpeed(bool set) //COMM
+    {
+        if (set)
+        {
+            maxSpeed = initialSpeed * 2;
+        }
+        else
+        {
+            maxSpeed = initialSpeed;
+        }
+    }
 
     //=======================HELPER FUNCTIONS===========================
 

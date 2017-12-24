@@ -2,16 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FumbleProtection : Powerup
+public class Shielding : Powerup
 {
     protected override void ActionIn(PlayerPowerup player)
     {
-        player.FumbleProtection = true;
+        player.Shielding = true;
     }
 
     protected override void ActionOut(PlayerPowerup player)
     {
-        player.FumbleProtection = false;
+        player.Shielding = false;
     }
     
 
@@ -22,8 +22,8 @@ public class FumbleProtection : Powerup
 
     void Reset()
     {
-        MessageIn = "FUMBLE PROTECTION";
-        MessageOut = "PROTECTION OFF";
+        MessageIn = "SHIELDING";
+        MessageOut = "SHIELDING OFF";
         duration = 12;
     }
 }

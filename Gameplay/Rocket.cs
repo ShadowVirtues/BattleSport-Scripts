@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -47,16 +47,24 @@ public class Rocket : MonoBehaviour
             Vector3 forceVector = normalForceRatio * -other.contacts[0].normal +    //Normal to the collider part
                                    (1 - normalForceRatio - upForceRatio) * shotDirection * codirCoeff   //Rocket velocity vector part * codirCoeff is the player is moving the same direction as the rocket that hits him
                                    + Vector3.up * upForceRatio;     //And finally knockup part
-
-            other.rigidbody.AddForce(forceVector * FirePower * forceCoeff, ForceMode.VelocityChange);   //Add force to the other player combined with a vector
             
             if (otherPlayerLayer == 8)           //PlayerOne layer, then hit player one (getting the reference from GameController)
             {
+                if (GameController.Controller.PlayerOne.powerup.Stabilizers == false)   //COMM
+                {
+                    other.rigidbody.AddForce(forceVector * FirePower * forceCoeff, ForceMode.VelocityChange);   //Add force to the other player combined with a vector
+                }
+
                 GameController.Controller.PlayerTwo.playerStats.MissilesHit++;
                 GameController.Controller.PlayerOne.Hit(FirePower, Weapon.Rocket);    
             }
             else if (otherPlayerLayer == 9)     //PlayerTwo layer 
             {
+                if (GameController.Controller.PlayerTwo.powerup.Stabilizers == false)
+                {
+                    other.rigidbody.AddForce(forceVector * FirePower * forceCoeff, ForceMode.VelocityChange);   //Add force to the other player combined with a vector
+                }
+
                 GameController.Controller.PlayerOne.playerStats.MissilesHit++;
                 GameController.Controller.PlayerTwo.Hit(FirePower, Weapon.Rocket);
             }

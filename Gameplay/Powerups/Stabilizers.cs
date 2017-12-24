@@ -2,16 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FumbleProtection : Powerup
+public class Stabilizers : Powerup
 {
     protected override void ActionIn(PlayerPowerup player)
     {
-        player.FumbleProtection = true;
+        player.Stabilizers = true;
     }
 
     protected override void ActionOut(PlayerPowerup player)
     {
-        player.FumbleProtection = false;
+        player.Stabilizers = false;
     }
     
 
@@ -22,8 +22,8 @@ public class FumbleProtection : Powerup
 
     void Reset()
     {
-        MessageIn = "FUMBLE PROTECTION";
-        MessageOut = "PROTECTION OFF";
+        MessageIn = "STABILIZERS";
+        MessageOut = "STABILIZERS OFF";
         duration = 12;
     }
 }

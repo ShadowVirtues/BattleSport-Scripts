@@ -3,35 +3,36 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.UI;
 
-//public enum Powerups
-//{
-//    BallAttractor,
-//    BallGuidance,
-//    DoubleDamage,
-//    FlightSystem,
-//    FumbleProtection,
-//    TurboLazers,
-//    Health,
-//    Shielding,
-//    SuperSpeed,
-//    BlindEnemy,
-//    Invisibility,
-//    Invinsibility,
-//    Stabilizers,
-//    Mystery
-//}
+public enum Powerups
+{
+    BallAttractor,
+    BallGuidance,
+    DoubleDamage,
+    FlightSystem,
+    FumbleProtection,
+    TurboLazers,
+    Health,
+    Shielding,
+    SuperSpeed,
+    BlindEnemy,
+    Invisibility,
+    Invinsibility,
+    Stabilizers,
+    Mystery
+}
 
 public abstract class Powerup : MonoBehaviour
 {
-    //private Powerups type;
-    
+    public Powerups type;
 
+    public Image icon;
         
     public string MessageIn;
     public string MessageOut;
 
-    [SerializeField] protected int duration;
+    public int duration;
     public WaitForSeconds timer;
     
     protected abstract void ActionIn(PlayerPowerup player);
@@ -47,7 +48,7 @@ public abstract class Powerup : MonoBehaviour
         timer = new WaitForSeconds(duration);
     }
 
-
+    //TODO some system of refreshing duration if picked up the same powerup
     protected virtual void OnTriggerEnter(Collider other)
     {
         if (this.enabled == false) return;

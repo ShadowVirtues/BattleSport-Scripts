@@ -90,6 +90,8 @@ public static class Message //Just a class container for all on-screen messages 
     public const string Overtime = "OVERTIME";
     public const string ScoreToWin = "SCORE TO WIN";
     //TODO Add powerup messages
+    public const string ViolationOverridden = "VIOLATION OVERRIDDEN";
+
     public const string Blinded = "BLINDED";
     public const string EnemyBlinded = "ENEMY BLINDED";
     public const string SightRestored = "SIGHT RESTORED";
@@ -464,7 +466,15 @@ public class Player : MonoBehaviour
             yield return secondOfDeath;     //Wait a second between changing timer values
             playerStats.PossessionTime++;   //Count every second into the PossessionTime of this player
         }
-        LoseBall(FumbleCause.Violation);    //If the countown manages to go all the way down, lose ball due to violation. It is written just after the timer, because we StopCoroutine every time countdown is interrupted
+        if (powerup.FumbleProtection)   //COMM
+        {
+            ShowMessage(Message.ViolationOverridden);
+        }
+        else
+        {
+            LoseBall(FumbleCause.Violation);    //If the countown manages to go all the way down, lose ball due to violation. It is written just after the timer, because we StopCoroutine every time countdown is interrupted
+        }
+        
     }
     
     void Update()
@@ -485,6 +495,9 @@ public class Player : MonoBehaviour
     public void Hit(float firePower, Weapon weapon)       //Gets invoked from Rocket or Laser OnCollisionEnter
     {
         float damage = (160 - tank.Armor) / 250 * firePower;    //Bullshit formula, but that's the closest I could decypher actual game's damage system
+
+        if (powerup.Shielding) damage /= 2;         //COMM
+        if (powerup.Invinsibility) damage = 0;
 
         Health -= damage;   //Decrease health
 
@@ -517,7 +530,7 @@ public class Player : MonoBehaviour
             
             //TODO Maybe make some part deattach from a tank
 
-            if (possession && weapon == Weapon.Rocket)  //If player had a ball and got hit by a rocket
+            if (possession && weapon == Weapon.Rocket && powerup.FumbleProtection == false)  //If player had a ball and got hit by a rocket //COMM
             {
                 float chance = (firePower - tank.Armor * 0.2f) * 0.01f;  //The chance of fumble is "FirePowerOfShootingTank - ArmorOfReceivingTank/5"
                 float random = Random.value;                        //Random value (0,1)
