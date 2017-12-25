@@ -78,7 +78,7 @@ public class GameController : MonoBehaviour
 
         if (StartupController.Controller != null)   //DELETE. For testing in INJECTED arenas when StartupController doesn't exist
         {
-            StartCoroutine(Countdown());    //TODO Start the countdown before the game starts
+            StartCoroutine(Countdown());    
         }
         else     //DELETE. For testing in INJECTED arenas when StartupController doesn't exist
         {

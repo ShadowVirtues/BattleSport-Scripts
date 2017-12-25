@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -25,6 +25,7 @@ public class TurboLasers : Powerup
 
     void Reset()
     {
+        type = Powerups.TurboLazers;
         MessageIn = "TURBO LASERS";
         MessageOut = "TURBO LASERS OFF";
         duration = 12;

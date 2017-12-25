@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -27,6 +27,7 @@ public class Invisibility : Powerup
 
     void Reset()
     {
+        type = Powerups.Invisibility;
         MessageIn = "CLOAK ENGAGED";
         MessageOut = "CLOAK DISENGAGED";
         duration = 12;

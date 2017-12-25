@@ -17,6 +17,7 @@ public enum Powerups
     Shielding,
     SuperSpeed,
     BlindEnemy,
+    BlindYourself,
     Invisibility,
     Invinsibility,
     Stabilizers,
@@ -27,7 +28,7 @@ public abstract class Powerup : MonoBehaviour
 {
     public Powerups type;
 
-    public Image icon;
+    public Sprite icon;
         
     public string MessageIn;
     public string MessageOut;
@@ -48,7 +49,7 @@ public abstract class Powerup : MonoBehaviour
         timer = new WaitForSeconds(duration);
     }
 
-    //TODO some system of refreshing duration if picked up the same powerup
+    
     protected virtual void OnTriggerEnter(Collider other)
     {
         if (this.enabled == false) return;

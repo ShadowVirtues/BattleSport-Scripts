@@ -2,16 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Invinsibility : Powerup
+public class BallGuidance : Powerup
 {
     protected override void ActionIn(PlayerPowerup player)
     {
-        player.Invinsibility = true;
+        player.BallGuidance = true;
     }
 
     protected override void ActionOut(PlayerPowerup player)
     {
-        player.Invinsibility = false;
+        player.BallGuidance = false;
     }
     
 
@@ -22,9 +22,9 @@ public class Invinsibility : Powerup
 
     void Reset()
     {
-        type = Powerups.Invinsibility;
-        MessageIn = "INVINSIBILITY";
-        MessageOut = "INVINSIBILITY OFF";
+        type = Powerups.BallGuidance;
+        MessageIn = "BALL GUIDANCE";
+        MessageOut = "GUIDANCE EXPIRED";
         duration = 12;
     }
 }

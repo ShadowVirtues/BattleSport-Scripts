@@ -28,6 +28,7 @@ public class DoubleDamage : Powerup
 
     void Reset()
     {
+        type = Powerups.DoubleDamage;
         MessageIn = "DOUBLE DAMAGE";
         MessageOut = "NORMAL DAMAGE";
         duration = 12;

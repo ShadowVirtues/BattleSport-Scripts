@@ -34,6 +34,7 @@ public class SuperSpeed : Powerup
 
     void Reset()
     {
+        type = Powerups.SuperSpeed;
         MessageIn = "SUPER SPEED";
         MessageOut = "NORMAL SPEED";
         duration = 12;

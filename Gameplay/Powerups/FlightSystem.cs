@@ -16,14 +16,13 @@ public class FlightSystem : Powerup
         player.GetComponent<Rigidbody>().useGravity = true;
     }
     
-    //TODO HE'S AIRBOURNE
-
 
 
 
 
     void Reset()
     {
+        type = Powerups.FlightSystem;
         MessageIn = "FLIGHT SYSTEM";
         MessageOut = "FLIGHT EXPIRED";
         duration = 12;

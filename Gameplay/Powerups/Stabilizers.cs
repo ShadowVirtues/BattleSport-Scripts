@@ -22,6 +22,7 @@ public class Stabilizers : Powerup
 
     void Reset()
     {
+        type = Powerups.Stabilizers;
         MessageIn = "STABILIZERS";
         MessageOut = "STABILIZERS OFF";
         duration = 12;

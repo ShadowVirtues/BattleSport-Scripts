@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
+using TeamUtility.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,6 +22,8 @@ public class PlayerPowerup : MonoBehaviour
     public bool Invinsibility;
     public bool Stabilizers;
 
+    public GameObject blinder;                             
+
     [SerializeField] private Slider[] powerupSliders;
     [SerializeField] private Image[] backgrounds;
     [SerializeField] private Image[] fills;
@@ -28,8 +31,7 @@ public class PlayerPowerup : MonoBehaviour
     [HideInInspector] public Player player;
     [HideInInspector] public PlayerShooting playerShooting;
     [HideInInspector] public PlayerMovement playerMovement;
-
-    //private Dictionary<Powerups, IEnumerator> activePowerups;
+    
     private Dictionary<Powerups, Coroutine> activePowerups;
 
     void Awake()
@@ -37,8 +39,7 @@ public class PlayerPowerup : MonoBehaviour
         player = GetComponent<Player>();
         playerShooting = GetComponent<PlayerShooting>();
         playerMovement = GetComponent<PlayerMovement>();
-
-        //activePowerups = new Dictionary<Powerups, IEnumerator>(4);
+        
         activePowerups = new Dictionary<Powerups, Coroutine>(4);
 
         foreach (Slider slider in powerupSliders)
@@ -46,9 +47,9 @@ public class PlayerPowerup : MonoBehaviour
             slider.gameObject.SetActive(false);
         }
     }
-    //TODO Circular slider showing powerup remaining duration. Do it with vertical layout group, which will position powerups on screen in a column, collapsing when one powerup ends. 
-    //TODO Powerups will have to have the icon attached to each one, to replace it in the slider
-    //TODO Circle progressing is done with tween, when refreshing powerup duration, tween ID has to be set with dictionary key
+
+    //TODO Replace from blender DoubleDamage and TurboLazers
+    
 
     public void PickPowerup(Powerup powerup)
     {
@@ -59,43 +60,33 @@ public class PlayerPowerup : MonoBehaviour
         if (activePowerups.ContainsKey(powerup.type))
         {
             StopCoroutine(activePowerups[powerup.type]);
-            activePowerups[powerup.type] = StartCoroutine(pickPowerup(powerup));
-            DOTween.Restart(powerup.type);
-
-            //StopCoroutine(activePowerups[powerup.type]);
-            //StartCoroutine(activePowerups[powerup.type]);
-
+            activePowerups[powerup.type] = StartCoroutine(pickPowerup(powerup));           
+            DOTween.Restart(new { powerup.type, player });
+            
             print("Restarted " + powerup.type);
         }
         else
         {
             activePowerups.Add(powerup.type, StartCoroutine(pickPowerup(powerup)));
 
-            foreach (Slider slider in powerupSliders)
+            for (var i = 0; i < powerupSliders.Length; i++)
             {
+                Slider slider = powerupSliders[i];
                 if (slider.gameObject.activeSelf == false)
                 {
-                    
-                    slider.DOValue(0, powerup.duration).SetAutoKill(false).SetId(powerup.type)
-                        .OnStart(() =>
-                        {
-                            slider.gameObject.SetActive(true);
-                            slider.value = 1;
-                            slider.transform.SetAsLastSibling();
-                        })
-                    
-                        .OnComplete(() =>
-                        {
-                            slider.gameObject.SetActive(false);
-                        });
+                    backgrounds[i].sprite = powerup.icon;
+                    fills[i].sprite = powerup.icon;
+                    slider.gameObject.SetActive(true);
+                    slider.transform.SetAsLastSibling();
+                    slider.value = 1;
 
+                    slider.DOValue(0, powerup.duration).SetId(new { powerup.type, player })
+                        .OnComplete(() => { slider.gameObject.SetActive(false); });
+                    // new {powerup.type, player}
                     break;
                 }
             }
-
-            //activePowerups.Add(powerup.type, pickPowerup(powerup));
-            //StartCoroutine(activePowerups[powerup.type]);
-
+            
             print("Started " + powerup.type);
         }
         
@@ -118,12 +109,14 @@ public class PlayerPowerup : MonoBehaviour
         {
             player.ShowMessage(powerup.MessageOut);
         }
-        
+
+        activePowerups.Remove(powerup.type);
+        print("Removed " + powerup.type);
     }
 
-
-
-
+    
+    
+    
 
 
 }

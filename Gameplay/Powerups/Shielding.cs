@@ -22,6 +22,7 @@ public class Shielding : Powerup
 
     void Reset()
     {
+        type = Powerups.Shielding;
         MessageIn = "SHIELDING";
         MessageOut = "SHIELDING OFF";
         duration = 12;

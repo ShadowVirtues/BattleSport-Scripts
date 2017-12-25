@@ -22,6 +22,7 @@ public class FumbleProtection : Powerup
 
     void Reset()
     {
+        type = Powerups.FumbleProtection;
         MessageIn = "FUMBLE PROTECTION";
         MessageOut = "PROTECTION OFF";
         duration = 12;

@@ -89,13 +89,9 @@ public static class Message //Just a class container for all on-screen messages 
 
     public const string Overtime = "OVERTIME";
     public const string ScoreToWin = "SCORE TO WIN";
-    //TODO Add powerup messages
+    
     public const string ViolationOverridden = "VIOLATION OVERRIDDEN";
-
-    public const string Blinded = "BLINDED";
-    public const string EnemyBlinded = "ENEMY BLINDED";
-    public const string SightRestored = "SIGHT RESTORED";
-
+ 
 }
 
 [Serializable]
@@ -171,7 +167,7 @@ public class Player : MonoBehaviour
     private Rigidbody playerRigidbody;      //And in PlayerMovement custom drag when alive is implemented, so we apply the internal rigidbody drag when dead
     private PlayerMovement movement;        //Reference to disable it when dead
     [HideInInspector] public PlayerPowerup powerup;            //COMM
-    public GameObject blinder;                              //COMM
+    
     private Tank tank;                  //Reference to Tank component of attached tank to get its characteristics
     [Header("Other UI")]
     [SerializeField] private Text messageBox;   //Text box in the middle of the screen to show messages on for players
@@ -317,51 +313,6 @@ public class Player : MonoBehaviour
     {
         GameController.audioManager.Cloak();
         material.DOFade(1, 1);
-    }
-
-    public void Blind(bool yourself)    //COMM
-    {
-        if (yourself)
-        {
-            ShowMessage(Message.Blinded);
-            blinder.SetActive(true);
-        }
-        else
-        {
-            ShowMessage(Message.EnemyBlinded);
-            if (PlayerNumber == PlayerID.One)
-            {
-                GameController.Controller.PlayerTwo.ShowMessage(Message.Blinded);
-                GameController.Controller.PlayerTwo.blinder.SetActive(true);
-            }
-            else if (PlayerNumber == PlayerID.Two)
-            {
-                GameController.Controller.PlayerOne.ShowMessage(Message.Blinded);
-                GameController.Controller.PlayerOne.blinder.SetActive(true);
-            }
-        }
-    }
-
-    public void UnBlind(bool yourself)
-    {
-        if (yourself)
-        {
-            ShowMessage(Message.SightRestored);
-            blinder.SetActive(false);
-        }
-        else
-        {
-            if (PlayerNumber == PlayerID.One)
-            {
-                GameController.Controller.PlayerTwo.ShowMessage(Message.SightRestored);
-                GameController.Controller.PlayerTwo.blinder.SetActive(false);
-            }
-            else if (PlayerNumber == PlayerID.Two)
-            {
-                GameController.Controller.PlayerOne.ShowMessage(Message.SightRestored);
-                GameController.Controller.PlayerOne.blinder.SetActive(false);
-            }
-        }
     }
 
     private Vector3 FindRandomPosition()    //Algorithm for finding random position on the map for player to spawn after death
