@@ -264,6 +264,12 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    public void SetEverythingBack()
+    {
+        SetSuperSpeed(false);   //Set speed back
+        rigidbody.useGravity = true;    //Enable gravity
+    }
+
     //=======================HELPER FUNCTIONS===========================
 
 

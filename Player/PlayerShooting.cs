@@ -37,7 +37,7 @@ public class PlayerShooting : MonoBehaviour
     private const float defaultLaserSpeed = 60; //Same for lasers, except lasers don't push other players, so private
     private const float minimalLaserSpeed = 40;    //Laser minimal speed, so when the tank is moving back while shooting, laser isn't super slow
 
-    private readonly Vector3 rocketDirection = new Vector3(0,-0.02f,1);    //TEST with flight. Vector to shoot rocket to. It is 'forward' with slight drag down (kinda like gravity). In the game has a big effect when one player is flying, the other one can't hit him from longer range
+    private readonly Vector3 rocketDirection = new Vector3(0,-0.02f,1);    //Vector to shoot rocket to. It is 'forward' with slight drag down (kinda like gravity). In the game has a big effect when one player is flying, the other one can't hit him from longer range
     
     void Start()        //Since when loading the scene, we first spawn PlayerPrefab (which would INSTANTLY run Awake here) and only after that we get the Tank in, we have to get all references in Start, when the Tank has already been put in
     {

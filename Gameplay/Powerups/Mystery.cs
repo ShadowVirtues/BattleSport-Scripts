@@ -27,11 +27,7 @@ public class Mystery : MonoBehaviour    //Script that is attached to Mystery pow
     }
     //IT'S SUCH A SUPER FREAKING BADASS AND SMART IMPLEMENTATION OF MYSTERY POWERUP!!!!!!!!!!!!!!!!!!
 
-
-    //TEST OBVIOUSLY HEAVY
-    //TODO add other scripts to it
     
-
 
 
 

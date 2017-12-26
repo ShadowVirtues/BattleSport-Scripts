@@ -14,7 +14,7 @@ public class StartupController : MonoBehaviour
     
     public GameObject[] Tanks;      //StartupController has all the gameplay Tanks prefabs to inject chosen ones into loaded arena scene
     public GameObject[] Balls;      //Same for all balls
-    public GameObject[] Powerups;   //COMM
+    public GameObject[] Powerups;   //All powerups
     public GameObject PlayerPrefab; //And PlayerPrefab that also gets injected
 
     [SerializeField] private GameObject audioManagerPrefab;     //AudioManagerPrefab that also gets loaded into arena from here (to not have it referenced on each arena GameController
@@ -87,15 +87,15 @@ public class StartupController : MonoBehaviour
         GameObject ballCamera = Instantiate(ballCameraPrefab);      //Spawning ball camera under the map (for showing rotating ball on player UI)
         if (arena.ballType == Ball.BallType.Electric) ballCamera.GetComponent<Camera>().backgroundColor = new Color(49f / 256, 77f / 256, 121f / 256, 0);   //For electric ball, set the camera color, so it shows with proper colors on UI (render texture absence of proper particle shader workaround)
          
-        GameObject powerupContainer = new GameObject("Powerups");   //COMM
+        GameObject powerupContainer = new GameObject("Powerups");   //Make a container for powerups
 
-        if (arena.Powerups != null)
+        if (arena.Powerups != null) //If there are any powerups for the arena
         {
-            for (int i = 0; i < arena.Powerups.Length; i++)
+            for (int i = 0; i < arena.Powerups.Length; i++) //For all of them
             {
-                int powerupIndex = Array.FindIndex(Powerups, x => x.name == arena.Powerups[i].name);
-                gameController.Powerups.Add(Instantiate(Powerups[powerupIndex], powerupContainer.transform).GetComponent<Powerup>());
-                gameController.Powerups[i].gameObject.SetActive(false);
+                int powerupIndex = Array.FindIndex(Powerups, x => x.name == arena.Powerups[i].name);    //Find the index in StartupController powerup collection from the name in arena powerups array
+                gameController.Powerups.Add(Instantiate(Powerups[powerupIndex], powerupContainer.transform).GetComponent<Powerup>());   //Add to the list of powerups in gameController instantiated powerup with an index to the container, and get Powerup component. ALL. AT. THE. SAME. TIME. .
+                gameController.Powerups[i].gameObject.SetActive(false); //Disable all spawned powerups
             }
         }
         

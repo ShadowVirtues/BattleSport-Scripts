@@ -87,8 +87,7 @@ public class GameController : MonoBehaviour
         else     //DELETE. For testing in INJECTED arenas when StartupController doesn't exist
         {
             gameUI.gameObject.SetActive(false);
-            UnPause();
-            PowerupSpawningSequence();
+            UnPause();            
         }
             
     }
@@ -152,7 +151,7 @@ public class GameController : MonoBehaviour
 
     //========================
 
-    //TODO POWERUP SPAWNING
+    
     //GameController probably handles spawning powerups. 
     //The timer between powerup spawns is random between 8 and 16 seconds
     //It starts from the start of the round, then when the time comes it randomly picks powerup that isnt on the field or applied to some player and spawns it, then if some other powerup is due, starts the timer again.
@@ -177,7 +176,7 @@ public class GameController : MonoBehaviour
         
     }
 
-    private bool delayRunning = false;
+    private bool delayRunning = false; 
 
     private List<Powerup> toPickFrom = new List<Powerup>();
 
@@ -300,6 +299,14 @@ public class GameController : MonoBehaviour
         PlayerOne.GetComponent<PlayerShooting>().SetEverythingBack();   //Launch it on PlayerShooting as well
         PlayerTwo.GetComponent<PlayerShooting>().SetEverythingBack();
 
+        foreach (Powerup powerup in Powerups)   //Disable all powerups
+        {
+            powerup.gameObject.SetActive(false);
+        }
+        delayRunning = false;               //Set flag so no powerup delay is running
+        StopCoroutine(nameof(SpawnDelay));          //Stop spawn delay
+        PowerupSpawningSequence();              //Start spawn delay
+
         PeriodEnding = false;         //Set so period isn't ending
 
         if (replay == false)    //If its not a replay, set all the next perios stuff for scoreboard
@@ -323,10 +330,6 @@ public class GameController : MonoBehaviour
             audioManager.music.Play();      //Play and pause it for starting playing in the moment of period starting
             audioManager.music.Pause();
         }
-        
-
-        
-        //TODO Check what happens with powerups, if they remain in the same place or start spawning from none. Also check if effects persist on players
         
     }
 

@@ -16,15 +16,20 @@ using Random = UnityEngine.Random;
     
     Rebake lights in Arena 42 after Unity update (HOPE IT FRICKING FIXES IT!!!!)
     
-    Test all player messages with powerups overflow
+    
     Try steering wheel
+
+    
+
+    
+    Decoy goal/ball arenas
+    Goals may rotate with different speed
 
     Consider we have lowered Mixer menu volumes
 
-
     GENERAL THINGS TO DO:
     
-        Powerups  
+        
         Arena Preview (TUGUSH-TUGUSH)
         
         
@@ -692,11 +697,14 @@ public class Player : MonoBehaviour
 
         //=================POSSESSION============
 
-
+        material.color = Color.white;                   //Set default tank (if it was invisible)
         material.SetColor(emissionColor, Color.black);  //Set the tank color back if it was flashing
         scoreImage.SetActive(false);                    //Hide showing scores on screen if they were showing
         messageBox.text = string.Empty;                 //Clear message box
         
+        movement.SetEverythingBack();       //Set everything back in PlayerMovement and PlayerPowerup
+        powerup.SetEverythingBack();
+
     }
 
 

@@ -48,15 +48,12 @@ public class PlayerPowerup : MonoBehaviour  //Script is attached to the player, 
             slider.gameObject.SetActive(false);
         }
     }
-
-    //TODO Replace from blender DoubleDamage and TurboLazers
     
-
     public void PickPowerup(Powerup powerup)    //Function that gets run from OnTriggerEnter of powerup in the arena
     {
         player.pickup.Play();   //Play the pickup sound
         
-        GameController.Controller.StartPowerupCountdown();  //COMM
+        GameController.Controller.StartPowerupCountdown();  //After picking up the powerup, start the powerup delay countdown (doing it here, in case all powerups are spawned and delay countdown stopped runnning in GameController)
 
         if (activePowerups.ContainsKey(powerup.type))   //If the picked powerup is already running for this player (contains in the Dictionary)
         {
@@ -67,7 +64,6 @@ public class PlayerPowerup : MonoBehaviour  //Script is attached to the player, 
             //So the other thing that makes the ID unique would be the actual player, and there was no way of setting some single ID object from existing stuff, we would have to implement some other object
             //No idea how it works is because of 'new' keyword that should create a whole new object, but somehow it treats them as the same one
             
-            print("Restarted " + powerup.type); //DELETE
         }
         else    //Otherwise just run a new powerup
         {
@@ -90,9 +86,7 @@ public class PlayerPowerup : MonoBehaviour  //Script is attached to the player, 
                     
                     break;  //Don't look further for disabled sliders if we found one
                 }
-            }
-            
-            print("Started " + powerup.type);   //DELETE
+            }            
         }
         
         
@@ -115,13 +109,36 @@ public class PlayerPowerup : MonoBehaviour  //Script is attached to the player, 
             player.ShowMessage(powerup.MessageOut);
         }
 
-        activePowerups.Remove(powerup.type);    //If the powerup reached its duration till the end, remove it from the Dictionary
-        print("Removed " + powerup.type);       //DELETE
+        activePowerups.Remove(powerup.type);    //If the powerup reached its duration till the end, remove it from the Dictionary       
     }
 
-    
-    
-    
+
+
+    public void SetEverythingBack()
+    {
+        BallAttractor = false;  //Set all bools to false
+        BallGuidance = false;
+        DoubleDamage = false;
+        FlightSystem = false;
+        FumbleProtection = false;
+        Shielding = false;
+        Invisibility = false;
+        Invinsibility = false;
+        Stabilizers = false;
+        
+        playerShooting.laserFireRate = 0.25f;   //Set those back
+        blinder.SetActive(false);
+
+        activePowerups.Clear(); //Clear dictionary
+
+        foreach (Slider slider in powerupSliders)   //Disable all sliders 
+        {
+            slider.gameObject.SetActive(false);
+        }
+
+        //DOTween.CompleteAll is done in Player.cs
+        
+    }
 
 
 }

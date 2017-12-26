@@ -15,9 +15,7 @@ public class Invisibility : Powerup
         player.player.CloakDisengage(); //Unfade the material
         player.Invisibility = false;
     }
-
-    //TODO Test with SetEverythingBack
-
+    
 
 
 
