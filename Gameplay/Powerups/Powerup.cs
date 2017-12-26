@@ -5,7 +5,7 @@ using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
 
-public enum Powerups
+public enum Powerups    //enum with all powerup types - used in the Dictionary of active powerups to refresh their duration if the same powerup was picked
 {
     BallAttractor,
     BallGuidance,
@@ -24,49 +24,49 @@ public enum Powerups
     Mystery
 }
 
-public abstract class Powerup : MonoBehaviour
+public abstract class Powerup : MonoBehaviour   //Base abstract class for all powerups
 {
-    public Powerups type;
+    public Powerups type;   //enum type
 
-    public Sprite icon;
-        
-    public string MessageIn;
-    public string MessageOut;
+    public Sprite icon;     //icon sprite of the powerup to change it in the tooltip
+    //TODO Icon in TUGUSH and tooltip on player UI
+    public string MessageIn;    //Message player sees when picking the powerup
+    public string MessageOut;   //Message player sees when the powerup expires
 
-    public int duration;
-    public WaitForSeconds timer;
+    public int duration;        //Duration of powerup
+    public WaitForSeconds timer;//Caching this on depending on duration
     
-    protected abstract void ActionIn(PlayerPowerup player);
-    protected abstract void ActionOut(PlayerPowerup player);
+    protected abstract void ActionIn(PlayerPowerup player); //Abstract method, implemented in all powerup children classes. Action to execute when picked the powerup
+    protected abstract void ActionOut(PlayerPowerup player);//And when the powerup expires. PlayerPowerup is a paramater, because this is the class which handles all the functions needed to be executed (we need to get to it somehow from powerup code)
     
-    public Action<PlayerPowerup> actionIn;
-    public Action<PlayerPowerup> actionOut;
+    public Action<PlayerPowerup> actionIn;  //This was the first implementation, where we needed to pass the Action<> as a parameter, now we pass the powerup instance itself with its ActionIn/ActionOut voids, so this is not really necessary
+    public Action<PlayerPowerup> actionOut; //So to not change all ActionIn/Outs to "public" in all derived classes, I'm leaving this implementation, when only Action<> is public and gets invoked from other scripts, it kinda brings incapsulation anyway tho
 
     void Awake()
     {
-        actionIn = ActionIn;
+        actionIn = ActionIn;    //Assign actions
         actionOut = ActionOut;
-        timer = new WaitForSeconds(duration);
+        timer = new WaitForSeconds(duration);   //Cache the duration
     }
 
     
-    protected virtual void OnTriggerEnter(Collider other)
+    protected virtual void OnTriggerEnter(Collider other)   //When some player enters the powerup trigger (virtual is overridden for BlindEnemy, when we make it like the other player picked "BlindYourself" powerup)
     {
-        if (this.enabled == false) return;
+        if (this.enabled == false) return;  //OnTriggerEnter runs on disabled scripts (which we have a load on Mystery powerup), so only run this if the script is actually enabled
 
-        PlayerPowerup player = other.GetComponentInParent<PlayerPowerup>();
-        player.PickPowerup(this);
+        PlayerPowerup player = other.GetComponentInParent<PlayerPowerup>(); //Get the PlayerPowerup component of triggered player. Not caching it, because it doesn't happen all that often (compared to laser/rocket hitting, say)
+        player.PickPowerup(this);   //Execute PickPowerup function on PlayerPowerup side, passing the whole powerup object to the function
         
-        gameObject.SetActive(false);
+        gameObject.SetActive(false);    //Disable powerup, so it gets enabled ("spawned") later
     }
 
-    protected virtual void FixedUpdate()
+    protected virtual void FixedUpdate()    //Overridden for some powerups that have more internal moving parts like SuperSpeed or DoubleDamage
     {
-        transform.Rotate(Vector3.up, 5);
+        transform.Rotate(Vector3.up, 5);    //Spinning the powerup
     }
 
 
-
+    //TODO POWERUP SPAWNING
     //GameController probably handles spawning powerups. 
     //The timer between powerup spawns is random between 8 and 16 seconds
     //It starts from the start of the round, then when the time comes it randomly picks powerup that isnt on the field or applied to some player and spawns it, then if some other powerup is due, starts the timer again.

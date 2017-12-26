@@ -6,12 +6,12 @@ public class BlindYourself : Powerup
 {
     protected override void ActionIn(PlayerPowerup player)
     {
-        player.blinder.SetActive(true);
+        player.blinder.SetActive(true);     //Enable blinder on yourself
     }
 
     protected override void ActionOut(PlayerPowerup player)
     {
-        player.blinder.SetActive(false);
+        player.blinder.SetActive(false);     //Disable blinder on yourself
     }
 
 

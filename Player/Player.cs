@@ -152,7 +152,7 @@ public class Player : MonoBehaviour
     private float ballShootForce;           //Dependant on tank parameter BallHandling
     private float pickupTime;               //The time moment in seconds from the start of the game the ball got picked up (to count the PossessionTime for stats)
 
-    public AudioSource pickup;    //"Self-interruptible" audioSource player the pickup sound (ball shot is the same sound as well)  //COMM why public
+    public AudioSource pickup;    //"Self-interruptible" audioSource of player to play the pickup sound (ball shot is the same sound as well). Public, because we play it from PlayerPowerup script when picking the powerup
 
     [SerializeField] private GameObject ballClock;      //Reference to Shot Clock UI Image to disable/enable it when have or don't have the ball
     [SerializeField] private Text ballClockText;        //Reference to text timer on the Shot Clock UI
@@ -166,7 +166,7 @@ public class Player : MonoBehaviour
     //Reference for being able to smoothly stop the exploding tank with setting its drag (we disable PlayerMovement script when dead, so the player can't move dead ship...
     private Rigidbody playerRigidbody;      //And in PlayerMovement custom drag when alive is implemented, so we apply the internal rigidbody drag when dead
     private PlayerMovement movement;        //Reference to disable it when dead
-    [HideInInspector] public PlayerPowerup powerup;            //COMM
+    [HideInInspector] public PlayerPowerup powerup;            //Reference to PlayerPowerup script component
     
     private Tank tank;                  //Reference to Tank component of attached tank to get its characteristics
     [Header("Other UI")]
@@ -277,13 +277,13 @@ public class Player : MonoBehaviour
     }
     
     private readonly WaitForSeconds tankFlashTime = new WaitForSeconds(0.05f); //Tank flashes for this time when taking damage
-    private readonly WaitForSeconds cloakTankFlashTime = new WaitForSeconds(0.025f); //Tank flashes for this time when taking damage    //COMM
+    private readonly WaitForSeconds cloakTankFlashTime = new WaitForSeconds(0.025f); //Tank flashes for this time when taking damage being in cloak
 
     private IEnumerator flashTank()     //Flash tank on hit
     {        
         if (DOTween.IsTweening(material) == false)      //If the tank material is already flashing from picking up the ball, don't flash it from being hit
         {
-            if (powerup.Invisibility == false)
+            if (powerup.Invisibility == false)  //If player is not invisible
             {
                 const float fin = 0.35f;
                 Color final = new Color(fin, fin, fin); //Flash the tank to this color
@@ -291,27 +291,27 @@ public class Player : MonoBehaviour
                 yield return tankFlashTime;             //Wait
                 material.SetColor(emissionColor, Color.black);   //Set the color back
             }
-            else                            //COMM
+            else                            //Reveal the tank for a moment if it was hit being invisible
             {
                 const float fin = 1f;
                 Color final = new Color(1, 1, 1, fin); //Flash the tank to this color
                 material.color = final;
                 yield return cloakTankFlashTime;             //Wait
-                material.color = new Color(1, 1, 1, 0); //Set the color back
+                material.color = new Color(1, 1, 1, 0); //Set the color back to transparent
             }
            
         }       
     }
 
-    public void CloakEngage()       //COMM
+    public void CloakEngage()       //Engage the invisibility
     {
-        GameController.audioManager.Cloak();
+        GameController.audioManager.Cloak();    //Play cloak sound and fade the material to 0
         material.DOFade(0, 1);
     }
 
     public void CloakDisengage()
     {
-        GameController.audioManager.Cloak();
+        GameController.audioManager.Cloak();    //Play cloak sound and fade the material back to 1
         material.DOFade(1, 1);
     }
 
@@ -417,7 +417,7 @@ public class Player : MonoBehaviour
             yield return secondOfDeath;     //Wait a second between changing timer values
             playerStats.PossessionTime++;   //Count every second into the PossessionTime of this player
         }
-        if (powerup.FumbleProtection)   //COMM
+        if (powerup.FumbleProtection)   //If the player has FumbleProtection, then show message that violation is overridden and not lose the ball
         {
             ShowMessage(Message.ViolationOverridden);
         }
@@ -447,8 +447,8 @@ public class Player : MonoBehaviour
     {
         float damage = (160 - tank.Armor) / 250 * firePower;    //Bullshit formula, but that's the closest I could decypher actual game's damage system
 
-        if (powerup.Shielding) damage /= 2;         //COMM
-        if (powerup.Invinsibility) damage = 0;
+        if (powerup.Shielding) damage /= 2;         //Half the damage if the player got Shielding
+        if (powerup.Invinsibility) damage = 0;      //Zero the damage if the player got Invinsibility, all the rest of the function still runs, having the ability to get fumbled and flashing on hit
 
         Health -= damage;   //Decrease health
 
@@ -481,7 +481,7 @@ public class Player : MonoBehaviour
             
             //TODO Maybe make some part deattach from a tank
 
-            if (possession && weapon == Weapon.Rocket && powerup.FumbleProtection == false)  //If player had a ball and got hit by a rocket //COMM
+            if (possession && weapon == Weapon.Rocket && powerup.FumbleProtection == false)  //If player had a ball and got hit by a rocket, not being Fumble Protected
             {
                 float chance = (firePower - tank.Armor * 0.2f) * 0.01f;  //The chance of fumble is "FirePowerOfShootingTank - ArmorOfReceivingTank/5"
                 float random = Random.value;                        //Random value (0,1)

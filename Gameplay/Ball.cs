@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using DG.Tweening;
 using TeamUtility.IO;
 using UnityEngine;
@@ -12,6 +12,10 @@ public class Ball : MonoBehaviour
 
     private Goal goal;          //To cache shorter reference to goal
     private Transform goalTransform;    //Reference to goal transform (the child object of actual Goal object), position from it gets taken every frame when the ball is flying towards the goal being shot by the player
+
+    private Transform playerOne;        //Transforms of players to calculate the attractionVector to attract the ball if they have BallAttractor
+    private Transform playerTwo;
+
     private Collider ballTrigger;   //To disable ball trigger collider for 5 seconds after scoring (so it can't get picked up)
     private Material ballMaterial;  //To be able to make the ball transparent during 5 second delay after scoring
     private float originalAlpha;    //Different balls have different original alpha, we set it to the fraction of original when ball scores
@@ -23,6 +27,9 @@ public class Ball : MonoBehaviour
         BallAngularDrag = rigidbody.angularDrag;    //Store the ball's default angular drag so we can set it back when it gets into arena
 
         goal = GameController.Controller.goal;
+        playerOne = GameController.Controller.PlayerOne.transform; 
+        playerTwo = GameController.Controller.PlayerTwo.transform;
+
         goalTransform = goal.ballCollider;        //The child object of goal is the one that is actually moving     
         ballTrigger = GetComponent<Collider>();                                                                     //Getting dose references
         ballMaterial = GetComponentInChildren<Renderer>().material;
@@ -30,7 +37,7 @@ public class Ball : MonoBehaviour
     }
     
     //TODO [HideInInspector]    
-    //I would refactor this to have "playerOne.possessed", "playerOne.ballShot", but in the current state it works so great without any bugs, I feel like if I refactor, some stuff will break,and it's not gonna simplify a lot of stuff anyway
+    //I would refactor this to have "playerOne.possessed", "playerOne.ballShot", but in the current state it works so great without any bugs, I feels like if I refactor, some stuff will surely break, and refactoring is not gonna simplify a lot of stuff anyway
     public bool firstPlayerShot;        //This represents if and which player shot the ball for scoring and interceptions (only applies until the ball hits some geometry)
     public bool secondPlayerShot;
 
@@ -231,16 +238,52 @@ public class Ball : MonoBehaviour
 
     public Vector3 additionalGravity;       //To make the ball itself and different balls have different gravity
 
+    private float attractingForce = 10;  //Force, that gets applied to the ball when attracting to the player
+    private float attractingAngle = 0.006f; //Max angle that ball redirects to per frame when attracting
+
+    private float guideForce = 10;  //Same stuff for guiding to the goal
+    private float guideAngle = 0.006f;
+
     void FixedUpdate()
     {
-        //print(rigidbody.velocity.magnitude);
+        if (PlayerRadar.ballPossession == false)    //If the ball is in the arena (not possessed)   
+        {
+            rigidbody.AddForce(additionalGravity, ForceMode.Acceleration);    //Constantly applying additional gravity
+            //TODO TEST ON OTHER ARENAS
+            if (GameController.Controller.PlayerOne.powerup.BallAttractor && firstPlayerShot == false && GameController.Controller.PlayerOne.Health != 0)   //Attract to the player only if this particular player didn't shoot the ball to the goal and is alive
+            {
+                AttractBall(playerOne.position, attractingForce, attractingAngle);
+            }
 
-        if (PlayerRadar.ballPossession == false) rigidbody.AddForce(additionalGravity, ForceMode.Acceleration);    //Constantly applying additional gravity if the ball is in the arena (not possessed)
+            if (GameController.Controller.PlayerTwo.powerup.BallAttractor && secondPlayerShot == false && GameController.Controller.PlayerTwo.Health != 0)
+            {
+                AttractBall(playerTwo.position, attractingForce, attractingAngle);            
+            }
+
+            if (GameController.Controller.PlayerOne.powerup.BallGuidance && firstPlayerShot)    //Guide the ball to the goal for this particular player only if this player shot the ball to the goal
+            {
+                AttractBall(goalTransform.position + Vector3.up * 0.8f, guideForce, guideAngle);
+            }
+
+            if (GameController.Controller.PlayerTwo.powerup.BallGuidance && secondPlayerShot)
+            {
+                AttractBall(goalTransform.position + Vector3.up * 0.8f, guideForce, guideAngle);
+            }
+            
+        }
 
         if (firstPlayerShot || secondPlayerShot)    //We need to remember the ball previous velocity when some player actually shoots the ball         
         { 
             prevVel = rigidbody.velocity;
         }
+    }
+
+    private void AttractBall(Vector3 target, float attractForce, float attractAngle)    //Function to run when attracting to the player or to the goal, target - to attract to
+    {
+        Vector3 attractVector = (target - transform.position).normalized;   //Calculate a normalizer attraction vector by subtracting
+        rigidbody.AddForce(attractVector * attractForce, ForceMode.Force);  //Add force to the ball in the direction of attraction
+        //If we only add force, the ball could get the the point it would literally spin around the player, not being able to properly get to him, so we need to redirect the ball to the direction of the target as well
+        rigidbody.velocity = Vector3.RotateTowards(rigidbody.velocity, attractVector, attractAngle, 0); //Last parameter is for changing the vector depending on the difference between current and target, which we don't need, so 0
     }
 
     private readonly WaitForSeconds scoreDelay = new WaitForSeconds(5); //5 second delay after scoring during which players can't pick up the ball

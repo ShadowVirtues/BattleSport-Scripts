@@ -23,7 +23,7 @@ public class PlayerShooting : MonoBehaviour
     private Rigidbody[] laserRigidbody;    //Array of rididbodies of pooled lasers
     private Laser[] laser;                //Array of Laser components of pooled lasers
 
-    public float laserFireRate { private get; set; } = 0.25f;    //COMM
+    public float laserFireRate { private get; set; } = 0.25f;    //Setter is public to set the fire rate when picked TurboLazers, getter is private cuz *incapsulation*
     private int laserCount;
     private int playerRocketCount;          //Variable to hold rocket count of the player
     private const string rocketButtonName = "Rocket";        //Input for rocket shooting is handled here so caching this

@@ -14,19 +14,18 @@ public class SuperSpeed : Powerup
         player.playerMovement.SetSuperSpeed(false);
     }
 
-    [SerializeField] private Transform fans;
+    [SerializeField] private Transform fans;    //Has rotating fans inside
 
     protected override void FixedUpdate()
-    {        
-        
-        if (fans != null)
+    {               
+        if (fans != null)   //If there are fans
         {
-            transform.Rotate(Vector3.up, 3);
-            fans.Rotate(Vector3.right, 5);  
+            transform.Rotate(Vector3.up, 3);    //Rotate the whole powerup with 3 speed
+            fans.Rotate(Vector3.right, 5);      //Rotate the fans
         }
         else
-        {
-            base.FixedUpdate();
+        {   
+            base.FixedUpdate();     //If there is no fans, which means it's Mystery, rotate with normal speed
         }
         
     }

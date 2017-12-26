@@ -50,7 +50,7 @@ public class Rocket : MonoBehaviour
             
             if (otherPlayerLayer == 8)           //PlayerOne layer, then hit player one (getting the reference from GameController)
             {
-                if (GameController.Controller.PlayerOne.powerup.Stabilizers == false)   //COMM
+                if (GameController.Controller.PlayerOne.powerup.Stabilizers == false)   //Only add force if player doesn't have Stabilizers powerup effect
                 {
                     other.rigidbody.AddForce(forceVector * FirePower * forceCoeff, ForceMode.VelocityChange);   //Add force to the other player combined with a vector
                 }
@@ -60,7 +60,7 @@ public class Rocket : MonoBehaviour
             }
             else if (otherPlayerLayer == 9)     //PlayerTwo layer 
             {
-                if (GameController.Controller.PlayerTwo.powerup.Stabilizers == false)
+                if (GameController.Controller.PlayerTwo.powerup.Stabilizers == false)   //Only add force if player doesn't have Stabilizers powerup effect
                 {
                     other.rigidbody.AddForce(forceVector * FirePower * forceCoeff, ForceMode.VelocityChange);   //Add force to the other player combined with a vector
                 }

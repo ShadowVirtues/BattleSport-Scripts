@@ -49,8 +49,8 @@ public class GameController : MonoBehaviour
             audioManagerObject = Instantiate(audioManagerPrefab);
             NumberOfPeriods = 3;
             isPlayToScore = false;
-            ShotClock = 5;
-            PeriodTime = 180;
+            ShotClock = 35;
+            PeriodTime = 1800;
             ArenaDimension = 100;      
             PlayerOne.PlayerName = "PLAYER 1";
             PlayerTwo.PlayerName = "PLAYER 2";

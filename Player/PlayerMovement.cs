@@ -11,7 +11,7 @@ public class PlayerMovement : MonoBehaviour
 
     private float acceleration;  //Acceleration to apply (gets calculated from tanks characteristic)
     private float maxSpeed;      //Same for Max Speed  
-    private float initialSpeed; //COMM
+    private float initialSpeed; //Save initial speed, so we can get it back to it when SuperSpeed powerup expires
     private float dragCoeff = 15;     //Coefficient of linear drag that all tanks stop from (like air friction)
 
     private float rotationSpeed = 125; //Rotation speed when turning the tank with A-D or equivalent on gamepad
@@ -20,7 +20,7 @@ public class PlayerMovement : MonoBehaviour
     private new Rigidbody rigidbody;    //Caching rigidbody
 
     private bool grounded = false;      //Variable to check for if grounded to be able to jump
-    public bool airbourne = false;    //COMM
+    public bool airbourne = false;    //Bool to play "He's Airbourne" once after player starts flying from picking up FlightSystem powerup
 
     private const string throttleAxisName = "Throttle";
     private const string strafingAxisName = "Strafing";    //Caching axis names for input
@@ -42,8 +42,8 @@ public class PlayerMovement : MonoBehaviour
         Tank tank = GetComponentInChildren<Tank>();
 
         acceleration = tank.Acceleration * 0.41f + 8.6f;   //Calculate movement parameters from tank characteristics
-        initialSpeed = tank.TopSpeed * 0.2f + 6;        //COMM
-        maxSpeed = initialSpeed;    //Why those formulas? Cuz.
+        initialSpeed = tank.TopSpeed * 0.2f + 6;        //Saving initial speed. Why those formulas? Cuz.
+        maxSpeed = initialSpeed;    //Setting the speed to initial
 
         AxisConfiguration jump = InputManager.GetAxisConfiguration(playerNumber, jumpButtonName);   //Check control configuration for the player to see if there is one- or two-button jumping
         if (jump.positive != KeyCode.None)  //If some button is bound to "Jump", then it's one-button jumping
@@ -143,42 +143,37 @@ public class PlayerMovement : MonoBehaviour
 
         //print($"{rigidbody.velocity.x} {rigidbody.velocity.y} {rigidbody.velocity.z} {rigidbody.velocity.magnitude} {rigidbody.velocity.sqrMagnitude}");
 
-
-        //if (grounded && InputManager.GetButton(jumpButtonName, PlayerNumber))    //We can jump only if we are on the ground
-        //{
-        //    rigidbody.velocity = new Vector3(rigidbody.velocity.x, jumpVelocity, rigidbody.velocity.z);     //Just apply the Y velocity to jump      
-        //}
-
         
-	    if (player.powerup.FlightSystem)
+        
+	    if (player.powerup.FlightSystem)    //If the player has FlightSystem powerup
 	    {
 	        if (jumpSingleButton)   //If "Jump" button is defined - use it
 	        {
 	            if (InputManager.GetButton(jumpButtonName, playerNumber))
 	            {
-	                if (rigidbody.velocity.y <= 0)
+	                if (rigidbody.velocity.y <= 0)  //Player can engage flying only at the moments he is falling down from gravity
 	                {
-	                    rigidbody.velocity = new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z);
-	                    if (airbourne == false)
+	                    rigidbody.velocity = new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z);    //Set vertical velocity of player to 0, making him hover
+	                    if (airbourne == false) //If the bool is false, play "He's Airbourne" and set it to true so for this powerup duration it doesn't get spelled
 	                    {
 	                        GameController.audioManager.HesAirbourne();
 	                        airbourne = true;
 	                    }
-	                    rigidbody.useGravity = false;
+	                    rigidbody.useGravity = false;   //Without disabling gravity, zeroing vertical velocity would still drag the player down a bit
 	                }
                     else
                     {
-                        rigidbody.useGravity = true;
+                        rigidbody.useGravity = true;    //If player is not falling, apply gravity
                     }
                 }
-	            else
+	            else        //If player is not holding jump button while flying, also apply gravity
 	            {
 	                rigidbody.useGravity = true;
-	            }
+	            }                                   //If the player was flying when the powerup ended, we make sure gravity gets enabled back in the 'ActionOut' of expiring FlightSystem powerup
             }
 	        else    //Otherwise use LB+RB (can be overridden manually editing control config XML if needed)
 	        {
-	            if (InputManager.GetButton(LB, playerNumber) && InputManager.GetButton(RB, playerNumber))
+	            if (InputManager.GetButton(LB, playerNumber) && InputManager.GetButton(RB, playerNumber))   //Same stuff for two-button controls
 	            {
 	                if (rigidbody.velocity.y <= 0)
 	                {
@@ -255,8 +250,9 @@ public class PlayerMovement : MonoBehaviour
     {
         GroundCheck(other);
     }
+    
 
-    public void SetSuperSpeed(bool set) //COMM
+    public void SetSuperSpeed(bool set) //Setting SuperSpeed like this, if bool is true - setting, if false - unsetting
     {
         if (set)
         {
@@ -295,35 +291,5 @@ public class PlayerMovement : MonoBehaviour
 
     float sqrMagnitude2D(Vector3 vector) => vector.x * vector.x + vector.z * vector.z;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //Vector3 ClampMagnitude2D(Vector3 vector, float maxLength)   //Not needed now, to clamp only the magnitude along X and Z components
-    //{
-    //    Vector3 result;
-    //    if (vector.x * vector.x + vector.z * vector.z > maxLength * maxLength)
-    //    {
-    //        float magnigude2D = Mathf.Sqrt(vector.x * vector.x + vector.z * vector.z);
-
-    //        result.x = vector.x / magnigude2D * maxLength;
-    //        result.z = vector.z / magnigude2D * maxLength;
-    //        result.y = vector.y;
-    //    }
-    //    else
-    //    {
-    //        result = vector;
-    //    }
-    //    return result;
-    //}
+    
 }
