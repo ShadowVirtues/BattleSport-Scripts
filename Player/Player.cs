@@ -241,7 +241,7 @@ public class Player : MonoBehaviour
         cameraAnim.enabled = false;     //Camera animation returns to its initial position after some animation time, so to make sure it had the time to return, disable animator only after the death timer
         
         explosion.SetActive(false);     //Explosion quasi-animation (particle system) goes on for the whole time of death (tank is smoking), that's why disable it at the very end
-        transform.position = FindRandomPosition();  //Find random position on the map by checking the cylinder where tank can fall from "the sky" to the ground without anything interrupting
+        transform.position = GameController.FindRandomPosition(10, 2, 5, spawnCheckColliders, new Vector3(0, 20, 0));  //Find random position on the map by checking the cylinder where tank can fall from "the sky" to the ground without anything interrupting
         transform.rotation = Quaternion.Euler(0, Random.Range(0,4) * 90, 0);    //Set tank rotation to random between 0,90,180,270 degrees (perpendicular to walls)
 
         movement.enabled = true;        //Enable player ability to move
@@ -313,43 +313,6 @@ public class Player : MonoBehaviour
     {
         GameController.audioManager.Cloak();    //Play cloak sound and fade the material back to 1
         material.DOFade(1, 1);
-    }
-
-    private Vector3 FindRandomPosition()    //Algorithm for finding random position on the map for player to spawn after death
-    {
-        //The algorithm is checking the cylinder from the ground to the highest point of the arena where there is some object in the random X-Z point 
-        //of the arena if this cylinder has something but the floor in it, if it has, then find another point where there is only a floor in the cylinder
-        //We use OverlapCapsuleNonAlloc for this, which requires the Collider[] array to store found colliders in this cylinder being checked
-        
-        int offset = 4;             //Offset from the arena border so player doesn't spawn right next to a wall
-        float levelDimension = GameController.Controller.ArenaDimension / 2;  //Get arena dimension (total X=Y length) from GameController, to convert it into max coordinate need to divide by 2
-
-        int iter = 0;   //A way to stop the infinite loop of finding the random spawn point if we can't find it
-
-        while (true)    //There is the infinite loop
-        {
-            Array.Clear(spawnCheckColliders, 0, spawnCheckColliders.Length);    //Clear the array of colliders just in case before performing the next check 
-
-            Vector2 coord = new Vector2(Random.Range(-levelDimension + offset, levelDimension - offset), Random.Range(-levelDimension + offset, levelDimension - offset)); //Get random point of the map with RNG
-            //Capsule starts from Y=0 (floor) to 10 (highest point where arena objects are) TODO increase this when made the highest arena
-            Physics.OverlapCapsuleNonAlloc(new Vector3(coord.x, 0, coord.y), new Vector3(coord.x, 10, coord.y), 2, spawnCheckColliders, ~0, QueryTriggerInteraction.Ignore);
-            for (int i = 0; i < 2; i++) //The spawnCheckColliders array has only the length of 2, because the condition when there is only the floor found is when its the first collider found and the second collider is null
-            {                           //If the first collider isn't the floor, or second collider isn't the floor as well, then its the wrong condition
-                if (spawnCheckColliders[0].gameObject.layer == 14 && spawnCheckColliders[1] == null)
-                {
-                    return new Vector3(coord.x, 5, coord.y);    //Return position to spawn tank at. Y=5 is the height from where the tank drops
-                }               
-            }
-            iter++;
-            if (iter > 100)
-            {
-                Debug.LogError("Couldn't find the spawn site"); //If we performed 100 checks and haven't found a spawn site, there must be something wrong
-                return new Vector3(0, 20, 0);
-            }
-
-                
-        }
-      
     }
     
     public void Possession()        //Function that is getting run from Ball.cs when picking up the ball

@@ -56,6 +56,8 @@ public class PlayerPowerup : MonoBehaviour  //Script is attached to the player, 
     {
         player.pickup.Play();   //Play the pickup sound
         
+        GameController.Controller.StartPowerupCountdown();  //COMM
+
         if (activePowerups.ContainsKey(powerup.type))   //If the picked powerup is already running for this player (contains in the Dictionary)
         {
             StopCoroutine(activePowerups[powerup.type]);    //Stop its already running coroutine

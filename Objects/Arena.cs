@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -16,6 +16,6 @@ public class Arena : ScriptableObject
     public Ball.BallType ballType;
 
     public AudioClip Music;
-    //public Powerup[] PowerUps
-    
+    public Powerup[] Powerups;
+
 }

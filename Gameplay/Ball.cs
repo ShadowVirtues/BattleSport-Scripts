@@ -236,7 +236,7 @@ public class Ball : MonoBehaviour
 
     [HideInInspector] public Vector3 prevVel; //Velocity of the ball in the previous frame to be able to "pass" the ball through the collider after it actually collides with it
 
-    public Vector3 additionalGravity;       //To make the ball itself and different balls have different gravity
+    public Vector3Int additionalGravity;       //To make the ball itself and different balls have different gravity
 
     private float attractingForce = 10;  //Force, that gets applied to the ball when attracting to the player
     private float attractingAngle = 0.006f; //Max angle that ball redirects to per frame when attracting

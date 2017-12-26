@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
@@ -62,6 +62,8 @@ public class Goal : MonoBehaviour
     private readonly WaitForSeconds teleportDelay = new WaitForSeconds(9);  //Goal teleports every 10 seconds, 9 seconds nothing happens, then over 1 second it fades out and appears somewhere else
     private readonly WaitForSeconds fadeDelay = new WaitForSeconds(1);
 
+    private Collider[] spawnCheckColliders = new Collider[2];   //Array where raycast would yield the results
+
     IEnumerator Teleporting()   //A sequence of teleporting
     {
         while (teleporting) //Not sure if this is needed, maybe will be useful in period switching idk
@@ -71,52 +73,13 @@ public class Goal : MonoBehaviour
             goalMaterial.DOFade(0, 1);          //Start fading tween over 1 second
             yield return fadeDelay;             //Wait one second
             goalMaterial.color = Color.white;   //Set the color back to opaque
-            Vector2 rand = FindRandomPosition();    //Launch function to find random position on the map where we could insert the goal
+            Vector3 rand = GameController.FindRandomPosition(10, 2, 0, spawnCheckColliders);    //Launch function to find random position on the map where we could insert the goal
 
-            transform.position = new Vector3(rand.x, transform.position.y, rand.y); //Place the goal to this position on it's initial height (Y component)
+            transform.position = new Vector3(rand.x, transform.position.y, rand.z); //Place the goal to this position on it's initial height (Y component)
 
         }
 
     }
-
-    private Collider[] spawnCheckColliders = new Collider[2];   //Array where raycast would yield the results
-
-    Vector3 FindRandomPosition()    //Function to find random position on the map where we could insert the goal (pretty much the same as for when we respawn the player)
-    {
-        //The algorithm is checking the cylinder from the ground to the highest point of the arena where there is some object in the random X-Z point 
-        //of the arena if this cylinder has something but the floor in it, if it has, then find another point where there is only a floor in the cylinder
-        //We use OverlapCapsuleNonAlloc for this, which requires the Collider[] array to store found colliders in this cylinder being checked
-
-        int offset = 4;             //Offset from the arena border so goal doesn't spawn right next to a wall
-        float levelDimension = GameController.Controller.ArenaDimension / 2;  //Get arena dimension (total X=Y length) from GameController, to convert it into max coordinate need to divide by 2
-
-        int iter = 0;   //A way to stop the infinite loop of finding the random spawn point if we can't find it
-
-        while (true)    //There is the infinite loop
-        {
-            Array.Clear(spawnCheckColliders, 0, spawnCheckColliders.Length);    //Clear the array of colliders just in case before performing the next check 
-
-            Vector2 coord = new Vector2(Random.Range(-levelDimension + offset, levelDimension - offset), Random.Range(-levelDimension + offset, levelDimension - offset)); //Get random point of the map with RNG
-            //Capsule starts from Y=0 (floor) to 10 (highest point where arena objects are) TODO increase this when made the highest arena          
-            Physics.OverlapCapsuleNonAlloc(new Vector3(coord.x, 0, coord.y), new Vector3(coord.x, 10, coord.y), 2, spawnCheckColliders, ~0, QueryTriggerInteraction.Ignore);   
-            for (int i = 0; i < 2; i++) //The spawnCheckColliders array has only the length of 2, because the condition when there is only the floor found is when its the first collider found and the second collider is null
-            {                           //If the first collider isn't the floor, or second collider isn't the floor as well, then its the wrong condition
-                if (spawnCheckColliders[0].gameObject.layer == 14 && spawnCheckColliders[1] == null)
-                {
-                    return new Vector2(coord.x, coord.y);    //Return position to spawn goal at
-                }
-            }
-            iter++;
-            if (iter > 100)
-            {
-                Debug.LogError("Couldn't find the spawn site"); //If we performed 100 checks and haven't found a spawn site, there must be something wrong
-                return new Vector2(0, 0);   //Spawn the goal in the middle if there is an error finding
-            }
-
-
-        }
-    }
-
     
     public void SetEverythingBack() //Another one of those for goal
     {

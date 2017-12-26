@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TeamUtility.IO;
 using UnityEngine;
 
@@ -22,6 +23,7 @@ public class GameController : MonoBehaviour
     public Player PlayerOne;
     public Player PlayerTwo;
     public Ball ball;
+    public List<Powerup> Powerups;
 
     public int ShotClock;
     public int PeriodTime;
@@ -63,7 +65,7 @@ public class GameController : MonoBehaviour
     }
 
     void Start()    //Stuff we need to do when all Awakes has executed
-    {       
+    {               
         if (isPlayToScore == false)   //After ScoreBoard's Awake has executed initializing it, fill all its stuff
         {
             GameTime = PeriodTime;
@@ -76,6 +78,8 @@ public class GameController : MonoBehaviour
         
         StartCoroutine(nameof(GameTimeCounter));    //Launch corouting to count overall game time for the stats (we could get it from period lengths, but there are no periods in case of score-based game)
 
+        PowerupSpawningSequence();          //Start spawning powerups
+
         if (StartupController.Controller != null)   //DELETE. For testing in INJECTED arenas when StartupController doesn't exist
         {
             StartCoroutine(Countdown());    
@@ -84,6 +88,7 @@ public class GameController : MonoBehaviour
         {
             gameUI.gameObject.SetActive(false);
             UnPause();
+            PowerupSpawningSequence();
         }
             
     }
@@ -140,11 +145,121 @@ public class GameController : MonoBehaviour
         gameUI.GameFader.color = Color.clear;        //In the end of countdown, instantly make GameFader transparent (show the game)
         Destroy(gameUI.CountdownPanel);             //We don't need countdown panel anymore, so destroy it
         gameUI.gameObject.SetActive(false);         //Disable game UI
+        
         GC.Collect();   //Collect all garbage before starting the game
         UnPause();        //Unpause the game and players proceed to play
     }
+
+    //========================
+
+    //TODO POWERUP SPAWNING
+    //GameController probably handles spawning powerups. 
+    //The timer between powerup spawns is random between 8 and 16 seconds
+    //It starts from the start of the round, then when the time comes it randomly picks powerup that isnt on the field or applied to some player and spawns it, then if some other powerup is due, starts the timer again.
+    //Triggers to start powerup countdown: arena start, spawned powerup, powerup effect ended
+    //If some of those occur, start countdown only if it isn't running already
+
+    private void PowerupSpawningSequence()
+    {
+        if (Powerups.Count != 0)
+        {
+            StartPowerupCountdown();
+        }
+
+    }
     
-    //public bool paused = false;    //Flag to know if the game is paused (for other scripts to know) 
+    public void StartPowerupCountdown()
+    {
+        if (delayRunning == false)
+        {
+            StartCoroutine(nameof(SpawnDelay));
+        }
+        
+    }
+
+    private bool delayRunning = false;
+
+    private List<Powerup> toPickFrom = new List<Powerup>();
+
+    private IEnumerator SpawnDelay()
+    {
+        delayRunning = true;
+
+        int randomDelay = UnityEngine.Random.Range(8, 25);
+        yield return new WaitForSeconds(randomDelay);
+
+        delayRunning = false;
+
+        toPickFrom.Clear();
+
+        toPickFrom = Powerups.Where(x => x.gameObject.activeSelf == false).ToList();
+
+        if (toPickFrom.Count == 0)
+        {
+            Debug.LogError("None of them are disabled???");
+        }
+        else
+        {
+            int random = UnityEngine.Random.Range(0, toPickFrom.Count);
+
+            SpawnPowerup(toPickFrom[random]); 
+        }
+
+        
+    }
+
+    private void SpawnPowerup(Powerup powerup)
+    {
+        powerup.transform.position = FindRandomPosition(1, 0.5f, 0, spawnCheckColliders);
+        powerup.gameObject.SetActive(true);
+
+        if (Powerups.Any(x => x.gameObject.activeSelf == false))
+        {
+            StartPowerupCountdown();
+        }
+    }
+
+    private Collider[] spawnCheckColliders = new Collider[2];   //Premade array of colliders to not have any garbage allocated when checking where to spawn a powerup after death with "CheckCapsule"
+
+    public static Vector3 FindRandomPosition(float height, float radius, float heightToSpawn, Collider[] spawnCheckColliders, Vector3 defaultSpawn = default(Vector3))    //Algorithm for finding random position on the map for player to spawn after death
+    {
+        //The algorithm is checking the cylinder from the ground to the highest point of the arena where there is some object in the random X-Z point 
+        //of the arena if this cylinder has something but the floor in it, if it has, then find another point where there is only a floor in the cylinder
+        //We use OverlapCapsuleNonAlloc for this, which requires the Collider[] array to store found colliders in this cylinder being checked
+
+        int offset = 4;             //Offset from the arena border so player doesn't spawn right next to a wall
+        float levelDimension = GameController.Controller.ArenaDimension / 2;  //Get arena dimension (total X=Y length) from GameController, to convert it into max coordinate need to divide by 2
+
+        int iter = 0;   //A way to stop the infinite loop of finding the random spawn point if we can't find it
+
+        while (true)    //There is the infinite loop
+        {
+            Array.Clear(spawnCheckColliders, 0, spawnCheckColliders.Length);    //Clear the array of colliders just in case before performing the next check 
+
+            Vector2 coord = new Vector2(UnityEngine.Random.Range(-levelDimension + offset, levelDimension - offset), UnityEngine.Random.Range(-levelDimension + offset, levelDimension - offset)); //Get random point of the map with RNG
+            //Capsule starts from Y=0 (floor) to 10 (highest point where arena objects are) TODO increase this when made the highest arena
+            Physics.OverlapCapsuleNonAlloc(new Vector3(coord.x, 0, coord.y), new Vector3(coord.x, height, coord.y), radius, spawnCheckColliders, ~0, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < 2; i++) //The spawnCheckColliders array has only the length of 2, because the condition when there is only the floor found is when its the first collider found and the second collider is null
+            {                           //If the first collider isn't the floor, or second collider isn't the floor as well, then its the wrong condition
+                if (spawnCheckColliders[0].gameObject.layer == 14 && spawnCheckColliders[1] == null)
+                {
+                    return new Vector3(coord.x, heightToSpawn, coord.y);    //Return position to spawn tank at. Y=5 is the height from where the tank drops
+                }
+            }
+            iter++;
+            if (iter > 100)
+            {
+                Debug.LogError("Couldn't find the spawn site"); //If we performed 100 checks and haven't found a spawn site, there must be something wrong
+                return defaultSpawn;
+            }
+
+
+        }
+
+    }
+
+
+    //=========================
 
     public void Pause()             //Function that pauses and unpauses the game
     {
@@ -167,24 +282,7 @@ public class GameController : MonoBehaviour
         gameUI.gameObject.SetActive(true);      //Enable UI Canvas with all non-player UI
         gameUI.PauseMenu();               //Run a function on the side of GameUI to hide all panels and shot pause menu panel
     }
-
-    void LateUpdate()   //DELETE
-    {
-        if (Input.GetKeyDown(KeyCode.O))
-        {
-            string[] asdf = InputManager.GetJoystickNames();
-            for (int i = 0; i < asdf.Length; i++)
-            {
-                Debug.LogError(i + ". " + asdf[i]);
-            }
-
-
-
-        }
-
-    }
-
-
+    
     public void SetEverythingBack(bool overtime = false, bool replay = false) //Function that is implemented in all scripts that needs resetting when new period starts. If 'overtime' is "true", means we are setting it for overtime
     {                                                                         //if 'replay' is true, means we are getting the game completely to initial state
         PlayerOne.transform.position = PlayerOneSpawn.position;

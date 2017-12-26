@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TeamUtility.IO;
@@ -14,6 +14,7 @@ public class StartupController : MonoBehaviour
     
     public GameObject[] Tanks;      //StartupController has all the gameplay Tanks prefabs to inject chosen ones into loaded arena scene
     public GameObject[] Balls;      //Same for all balls
+    public GameObject[] Powerups;   //COMM
     public GameObject PlayerPrefab; //And PlayerPrefab that also gets injected
 
     [SerializeField] private GameObject audioManagerPrefab;     //AudioManagerPrefab that also gets loaded into arena from here (to not have it referenced on each arena GameController
@@ -85,6 +86,27 @@ public class StartupController : MonoBehaviour
 
         GameObject ballCamera = Instantiate(ballCameraPrefab);      //Spawning ball camera under the map (for showing rotating ball on player UI)
         if (arena.ballType == Ball.BallType.Electric) ballCamera.GetComponent<Camera>().backgroundColor = new Color(49f / 256, 77f / 256, 121f / 256, 0);   //For electric ball, set the camera color, so it shows with proper colors on UI (render texture absence of proper particle shader workaround)
+         
+        GameObject powerupContainer = new GameObject("Powerups");   //COMM
+
+        if (arena.Powerups != null)
+        {
+            for (int i = 0; i < arena.Powerups.Length; i++)
+            {
+                int powerupIndex = Array.FindIndex(Powerups, x => x.name == arena.Powerups[i].name);
+                gameController.Powerups.Add(Instantiate(Powerups[powerupIndex], powerupContainer.transform).GetComponent<Powerup>());
+                gameController.Powerups[i].gameObject.SetActive(false);
+            }
+        }
+        
+
+        
+
+
+
+
+
+
 
         CustomInputModule.Instance.Menu = false;    //Disabling universal input when in game
         CustomInputModule.Instance.Enabled = true;  //Enabling flag so when universal input does get enabled (in controls menu), we don't have to set it
