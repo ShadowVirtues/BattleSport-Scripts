@@ -29,5 +29,7 @@ public class TurboLasers : Powerup
         MessageIn = "TURBO LASERS";
         MessageOut = "TURBO LASERS OFF";
         duration = 12;
+
+        name = MessageIn;
     }
 }

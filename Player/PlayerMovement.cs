@@ -105,7 +105,7 @@ public class PlayerMovement : MonoBehaviour
         //Rotating with rigidbody.MoveRotation in Update, because this was the only was I could make rotating and moving the tank not have jitter (because of 50fps FixedUpdate and 144- fps Update)
         
         //Next commented line was making smooth rotation and smooth interpolated movement, but it would make rigidbody stop when rotating the tank
-        //transform.Rotate(0, InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed * Time.deltaTime, 0); //CHECK THIS AFTER UNITY UPDATE IF IT STILL STOPS MOVING OF INTERPOLATED RIGIDBODY
+        //transform.Rotate(0, InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed * Time.deltaTime, 0); //CHECK THIS AFTER UNITY UPDATE IF IT STILL STOPS MOVING OF INTERPOLATED RIGIDBODY. 2017.3 - NOPE
 
         //if (playerNumber == PlayerID.Two) print(rigidbody.velocity.magnitude);
         

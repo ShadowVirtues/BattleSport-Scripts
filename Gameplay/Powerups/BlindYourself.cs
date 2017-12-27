@@ -26,5 +26,7 @@ public class BlindYourself : Powerup
         MessageIn = "BLINDED";
         MessageOut = "SIGHT RESTORED";
         duration = 6;
+
+        name = "BLIND ENEMY";
     }
 }

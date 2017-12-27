@@ -1,7 +1,8 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening.Plugins;
 using UnityEngine;
+using UnityEngine.Experimental.Audio.Google;
 
 public class Announcer : MonoBehaviour
 {
@@ -18,6 +19,9 @@ public class Announcer : MonoBehaviour
     [SerializeField] private AudioClip fumble;
     [SerializeField] private AudioClip[] kill;
     [SerializeField] private AudioClip violation;
+
+    [Header("Loading Sounds")]
+    [SerializeField] private AudioClip[] loadingComments;
  
     [Header("Audio Sources")]
     [SerializeField] private AudioSource announcerSource;       //Interruptible announcer source
@@ -86,6 +90,29 @@ public class Announcer : MonoBehaviour
         announcerSource.Play();
     }
 
+    public void LoadingCommentAny()
+    {
+        announcerSource.clip = loadingComments[Random.Range(0, loadingComments.Length)];
+        announcerSource.Play();        
+    }
+
+    public void LoadingCommentShort()
+    {
+        announcerSource.clip = loadingComments[Random.Range(0, 5)];
+        announcerSource.PlayDelayed(0.5f);
+        
+    }
+
+    public void LoadingCommentLongest() //DELETE
+    {
+        announcerSource.clip = loadingComments[5];
+        announcerSource.Play();        
+    }
+
+    public void Stop()
+    {
+        announcerSource.Stop();
+    }
 
     [Header("Period Sounds")]
     [SerializeField] private AudioClip[] periodSound;       //Sounds during periods UI how many periods left, sound is different if the score is tied

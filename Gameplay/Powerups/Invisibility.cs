@@ -29,5 +29,7 @@ public class Invisibility : Powerup
         MessageIn = "CLOAK ENGAGED";
         MessageOut = "CLOAK DISENGAGED";
         duration = 12;
+
+        name = "INVISIBILITY";
     }
 }

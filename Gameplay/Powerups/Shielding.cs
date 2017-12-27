@@ -26,5 +26,7 @@ public class Shielding : Powerup
         MessageIn = "SHIELDING";
         MessageOut = "SHIELDING OFF";
         duration = 12;
+
+        name = MessageIn;
     }
 }

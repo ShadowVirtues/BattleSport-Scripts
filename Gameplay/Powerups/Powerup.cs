@@ -28,8 +28,9 @@ public abstract class Powerup : MonoBehaviour   //Base abstract class for all po
 {
     public Powerups type;   //enum type
 
-    public Sprite icon;     //icon sprite of the powerup to change it in the tooltip
-    //TODO Icon in TUGUSH and tooltip on player UI
+    public Sprite tooltip;     //icon sprite of the powerup to change it in the tooltip
+    public Sprite icon;         //Icon for countdown panel
+    
     public string MessageIn;    //Message player sees when picking the powerup
     public string MessageOut;   //Message player sees when the powerup expires
 
@@ -41,6 +42,8 @@ public abstract class Powerup : MonoBehaviour   //Base abstract class for all po
     
     public Action<PlayerPowerup> actionIn;  //This was the first implementation, where we needed to pass the Action<> as a parameter, now we pass the powerup instance itself with its ActionIn/ActionOut voids, so this is not really necessary
     public Action<PlayerPowerup> actionOut; //So to not change all ActionIn/Outs to "public" in all derived classes, I'm leaving this implementation, when only Action<> is public and gets invoked from other scripts, it kinda brings incapsulation anyway tho
+
+    public string Name; //Name in countdown panel
 
     void Awake()
     {

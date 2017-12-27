@@ -75,8 +75,8 @@ public class PlayerPowerup : MonoBehaviour  //Script is attached to the player, 
                 {
                     Slider slider = powerupSliders[i];  //Cache the slider for shorter reference, and also make it a separate variable, just i case the OnComplete lambda in the tween doesn't get some random slider with random 'i' of this loop
 
-                    backgrounds[i].sprite = powerup.icon;   //Replace the sprite of backround and fill in the slider
-                    fills[i].sprite = powerup.icon;
+                    backgrounds[i].sprite = powerup.tooltip;   //Replace the sprite of backround and fill in the slider
+                    fills[i].sprite = powerup.tooltip;
                     slider.gameObject.SetActive(true);      //Enable slider
                     slider.transform.SetAsLastSibling();    //Set it as last sibling in the hierarchy, so the tooltip appears last in the list (and also that Vertical Layout Group actually refreshes)
                     slider.value = 1;                       //Set the starting value of the tweening slider to 1

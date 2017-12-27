@@ -130,15 +130,15 @@ public class GameController : MonoBehaviour
 
     }
 
-    IEnumerator Countdown() //Initial countdown when starting the game
+    IEnumerator Countdown() //Initial countdown when starting the game  //TODO Probably launch from CountdownPanel
     {
         gameUI.GameFader.color = Color.black;   //Setting gameFader to have black color just in case
         gameUI.CountdownPanel.SetActive(true);  //Enabling countdown panel if it was disabled
-        int count = 3;  //How many seconds to count
+        int count = 18;  //How many seconds to count
          
         for (int i = count; i >= 0; i--)
         {           
-            gameUI.Countdown.text = $"GAME STARTING IN {i}";            
+            gameUI.Countdown.text = $"{i}";            
             yield return new WaitForSecondsRealtime(1);         //Since the game is paused at that point, use unscaled time
         }
         gameUI.GameFader.color = Color.clear;        //In the end of countdown, instantly make GameFader transparent (show the game)

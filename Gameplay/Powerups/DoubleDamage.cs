@@ -32,5 +32,7 @@ public class DoubleDamage : Powerup
         MessageIn = "DOUBLE DAMAGE";
         MessageOut = "NORMAL DAMAGE";
         duration = 12;
+
+        name = MessageIn;
     }
 }

@@ -37,5 +37,7 @@ public class SuperSpeed : Powerup
         MessageIn = "SUPER SPEED";
         MessageOut = "NORMAL SPEED";
         duration = 12;
+
+        name = MessageIn;
     }
 }

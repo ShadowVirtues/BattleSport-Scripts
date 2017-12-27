@@ -26,5 +26,7 @@ public class BallGuidance : Powerup
         MessageIn = "BALL GUIDANCE";
         MessageOut = "GUIDANCE EXPIRED";
         duration = 12;
+
+        name = MessageIn;
     }
 }

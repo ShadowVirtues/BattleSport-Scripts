@@ -26,5 +26,7 @@ public class Stabilizers : Powerup
         MessageIn = "STABILIZERS";
         MessageOut = "STABILIZERS OFF";
         duration = 12;
+
+        name = MessageIn;
     }
 }

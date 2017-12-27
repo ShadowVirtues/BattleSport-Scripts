@@ -26,5 +26,7 @@ public class FlightSystem : Powerup
         MessageIn = "FLIGHT SYSTEM";
         MessageOut = "FLIGHT EXPIRED";
         duration = 12;
+
+        name = MessageIn;
     }
 }

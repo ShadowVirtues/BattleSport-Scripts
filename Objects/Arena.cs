@@ -14,6 +14,7 @@ public class Arena : ScriptableObject
     public Goal.GoalType goalType;
     public string goalDescription;
     public Ball.BallType ballType;
+    public string ballDescription;
 
     public AudioClip Music;
     public Powerup[] Powerups;

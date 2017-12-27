@@ -26,5 +26,7 @@ public class Invinsibility : Powerup
         MessageIn = "INVINSIBILITY";
         MessageOut = "INVINSIBILITY OFF";
         duration = 12;
+
+        name = MessageIn;
     }
 }

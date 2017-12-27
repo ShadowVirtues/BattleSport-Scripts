@@ -26,5 +26,7 @@ public class BallAttractor : Powerup
         MessageIn = "BALL ATTRACTOR";
         MessageOut = "ATTRACTOR OFF";
         duration = 12;
+
+        name = MessageIn;
     }
 }

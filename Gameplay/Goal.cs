@@ -11,6 +11,8 @@ public class Goal : MonoBehaviour
 
     public GoalType goalType;   //Variable for each goal
 
+    public Sprite Icon;         //Icon for countdown panel
+
     [HideInInspector] public Collider ballSolidCollider;    //When the ball hits score-registering parts of the goal, we need to pass that ball through the goal, that' why we disable goal's collider for the ball (collider for the player still works)
 
     private Material goalMaterial;  //To flash the goal on score

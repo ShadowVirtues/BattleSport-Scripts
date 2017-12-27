@@ -14,13 +14,13 @@ using Random = UnityEngine.Random;
     
     DO NEXT:       
     
-    Rebake lights in Arena 42 after Unity update (HOPE IT FRICKING FIXES IT!!!!)
+    Rebake lights in Arena 42
     
     
     Try steering wheel
 
     
-
+    Fix ball texture
     
     Decoy goal/ball arenas
     Goals may rotate with different speed
@@ -36,7 +36,7 @@ using Random = UnityEngine.Random;
         10 Levels > Props, Skyboxes
         Visually redesign Main Menu   
         2 Player Exhibition (Maybe make an arena screenshot showing, rotating video or whatever)
-        
+        Compress all textures
 
 
     ADDITIONAL IDEAS:

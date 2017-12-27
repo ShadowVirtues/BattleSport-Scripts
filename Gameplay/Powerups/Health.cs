@@ -41,5 +41,7 @@ public class Health : Powerup
         MessageIn = "HEALTH RESTORED";
         MessageOut = "";
         duration = 0;
+
+        name = "HEALTH";
     }
 }

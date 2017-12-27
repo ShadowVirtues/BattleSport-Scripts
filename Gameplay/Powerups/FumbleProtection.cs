@@ -26,5 +26,7 @@ public class FumbleProtection : Powerup
         MessageIn = "FUMBLE PROTECTION";
         MessageOut = "PROTECTION OFF";
         duration = 12;
+
+        name = MessageIn;
     }
 }
