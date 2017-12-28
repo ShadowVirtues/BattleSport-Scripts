@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using TeamUtility.IO;
@@ -30,8 +30,6 @@ public class GameUI : MonoBehaviour
     [SerializeField] private RectTransform pauseMenu;   //Pause menu panel. RectTransform, because we change the position of the menu, depending on which player paused the game
     
     private GameObject[] periodCircles;     //Red period circles reference array to enable them each period
-
-    //TODO Starting Sequence (TUGUSH)
     
     void Start()
     {

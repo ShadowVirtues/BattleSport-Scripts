@@ -38,6 +38,8 @@ public class GameController : MonoBehaviour
 
     public static AudioManager audioManager;        //Static reference for AudioManager component to produce sound from various sources in scripts
 
+    #region Starting The Arena
+
     void Awake()            //This runs very first when arena scene is loaded
     {
         Controller = this;  //Set static reference of GameController to 'this'
@@ -82,7 +84,8 @@ public class GameController : MonoBehaviour
 
         if (StartupController.Controller != null)   //DELETE. For testing in INJECTED arenas when StartupController doesn't exist
         {
-            StartCoroutine(Countdown());    
+            gameUI.GameFader.color = Color.black;   //Setting gameFader to have black color just in case
+            gameUI.CountdownPanel.SetActive(true);  //Enabling countdown panel if it was disabled            
         }
         else     //DELETE. For testing in INJECTED arenas when StartupController doesn't exist
         {
@@ -91,12 +94,26 @@ public class GameController : MonoBehaviour
         }
             
     }
-   
+
+    public void StartGame() //Function to start the game, gets launched from CountdownPanel
+    {
+        gameUI.GameFader.color = Color.clear;        //In the end of countdown, instantly make GameFader transparent (show the game)
+        Destroy(gameUI.CountdownPanel);             //We don't need countdown panel anymore, so destroy it
+        gameUI.gameObject.SetActive(false);         //Disable game UI
+
+        GC.Collect();   //Collect all garbage before starting the game
+        UnPause();        //Unpause the game and players proceed to play
+    }
+    
+    #endregion
+
+    #region Controlling the game
+
     public int GameTime;        //Variable indicating current time left until end of the period, counts down in Coroutine
     public int TotalGameTime;   //Indicates total game time for end-game stats
     public int CurrentPeriod;   //Number of current period
 
-    private readonly WaitForSeconds second = new WaitForSeconds(1); //One second of period time
+    private readonly WaitForSeconds second = new WaitForSeconds(1); //One second of period time and game time
 
     public bool PeriodEnding;   //Bool to get player scripts to know its <20 seconds of period time, so UI shows the countdown
 
@@ -130,136 +147,6 @@ public class GameController : MonoBehaviour
 
     }
 
-    IEnumerator Countdown() //Initial countdown when starting the game  //TODO Probably launch from CountdownPanel
-    {
-        gameUI.GameFader.color = Color.black;   //Setting gameFader to have black color just in case
-        gameUI.CountdownPanel.SetActive(true);  //Enabling countdown panel if it was disabled
-        int count = 18;  //How many seconds to count
-         
-        for (int i = count; i >= 0; i--)
-        {           
-            gameUI.Countdown.text = $"{i}";            
-            yield return new WaitForSecondsRealtime(1);         //Since the game is paused at that point, use unscaled time
-        }
-        gameUI.GameFader.color = Color.clear;        //In the end of countdown, instantly make GameFader transparent (show the game)
-        Destroy(gameUI.CountdownPanel);             //We don't need countdown panel anymore, so destroy it
-        gameUI.gameObject.SetActive(false);         //Disable game UI
-        
-        GC.Collect();   //Collect all garbage before starting the game
-        UnPause();        //Unpause the game and players proceed to play
-    }
-
-    //========================
-
-    
-    //GameController probably handles spawning powerups. 
-    //The timer between powerup spawns is random between 8 and 16 seconds
-    //It starts from the start of the round, then when the time comes it randomly picks powerup that isnt on the field or applied to some player and spawns it, then if some other powerup is due, starts the timer again.
-    //Triggers to start powerup countdown: arena start, spawned powerup, powerup effect ended
-    //If some of those occur, start countdown only if it isn't running already
-
-    private void PowerupSpawningSequence()
-    {
-        if (Powerups.Count != 0)
-        {
-            StartPowerupCountdown();
-        }
-
-    }
-    
-    public void StartPowerupCountdown()
-    {
-        if (delayRunning == false)
-        {
-            StartCoroutine(nameof(SpawnDelay));
-        }
-        
-    }
-
-    private bool delayRunning = false; 
-
-    private List<Powerup> toPickFrom = new List<Powerup>();
-
-    private IEnumerator SpawnDelay()
-    {
-        delayRunning = true;
-
-        int randomDelay = UnityEngine.Random.Range(8, 25);
-        yield return new WaitForSeconds(randomDelay);
-
-        delayRunning = false;
-
-        toPickFrom.Clear();
-
-        toPickFrom = Powerups.Where(x => x.gameObject.activeSelf == false).ToList();
-
-        if (toPickFrom.Count == 0)
-        {
-            Debug.LogError("None of them are disabled???");
-        }
-        else
-        {
-            int random = UnityEngine.Random.Range(0, toPickFrom.Count);
-
-            SpawnPowerup(toPickFrom[random]); 
-        }
-
-        
-    }
-
-    private void SpawnPowerup(Powerup powerup)
-    {
-        powerup.transform.position = FindRandomPosition(1, 0.5f, 0, spawnCheckColliders);
-        powerup.gameObject.SetActive(true);
-
-        if (Powerups.Any(x => x.gameObject.activeSelf == false))
-        {
-            StartPowerupCountdown();
-        }
-    }
-
-    private Collider[] spawnCheckColliders = new Collider[2];   //Premade array of colliders to not have any garbage allocated when checking where to spawn a powerup after death with "CheckCapsule"
-
-    public static Vector3 FindRandomPosition(float height, float radius, float heightToSpawn, Collider[] spawnCheckColliders, Vector3 defaultSpawn = default(Vector3))    //Algorithm for finding random position on the map for player to spawn after death
-    {
-        //The algorithm is checking the cylinder from the ground to the highest point of the arena where there is some object in the random X-Z point 
-        //of the arena if this cylinder has something but the floor in it, if it has, then find another point where there is only a floor in the cylinder
-        //We use OverlapCapsuleNonAlloc for this, which requires the Collider[] array to store found colliders in this cylinder being checked
-
-        int offset = 4;             //Offset from the arena border so player doesn't spawn right next to a wall
-        float levelDimension = GameController.Controller.ArenaDimension / 2;  //Get arena dimension (total X=Y length) from GameController, to convert it into max coordinate need to divide by 2
-
-        int iter = 0;   //A way to stop the infinite loop of finding the random spawn point if we can't find it
-
-        while (true)    //There is the infinite loop
-        {
-            Array.Clear(spawnCheckColliders, 0, spawnCheckColliders.Length);    //Clear the array of colliders just in case before performing the next check 
-
-            Vector2 coord = new Vector2(UnityEngine.Random.Range(-levelDimension + offset, levelDimension - offset), UnityEngine.Random.Range(-levelDimension + offset, levelDimension - offset)); //Get random point of the map with RNG
-            //Capsule starts from Y=0 (floor) to 10 (highest point where arena objects are) TODO increase this when made the highest arena
-            Physics.OverlapCapsuleNonAlloc(new Vector3(coord.x, 0, coord.y), new Vector3(coord.x, height, coord.y), radius, spawnCheckColliders, ~0, QueryTriggerInteraction.Ignore);
-            for (int i = 0; i < 2; i++) //The spawnCheckColliders array has only the length of 2, because the condition when there is only the floor found is when its the first collider found and the second collider is null
-            {                           //If the first collider isn't the floor, or second collider isn't the floor as well, then its the wrong condition
-                if (spawnCheckColliders[0].gameObject.layer == 14 && spawnCheckColliders[1] == null)
-                {
-                    return new Vector3(coord.x, heightToSpawn, coord.y);    //Return position to spawn tank at. Y=5 is the height from where the tank drops
-                }
-            }
-            iter++;
-            if (iter > 100)
-            {
-                Debug.LogError("Couldn't find the spawn site"); //If we performed 100 checks and haven't found a spawn site, there must be something wrong
-                return defaultSpawn;
-            }
-
-
-        }
-
-    }
-
-
-    //=========================
-
     public void Pause()             //Function that pauses and unpauses the game
     {
         Time.timeScale = 0;     //Set timescale to 0        
@@ -281,7 +168,114 @@ public class GameController : MonoBehaviour
         gameUI.gameObject.SetActive(true);      //Enable UI Canvas with all non-player UI
         gameUI.PauseMenu();               //Run a function on the side of GameUI to hide all panels and shot pause menu panel
     }
+
+
+    #endregion
+
+    #region Powerups
+
+    //GameController handles spawning powerups. 
+    //The timer between powerup spawns is random between 8 and 24 seconds
+    //It starts from the start of the round, then when the time comes it randomly picks powerup that isnt on the field and spawns it, then if some other powerup is due, starts the timer again.
+    //Triggers to start powerup countdown: arena start, spawned powerup, powerup picked by player
+    //If some of those occur, start countdown only if it isn't running already
+
+    private void PowerupSpawningSequence()  //Function that initially starts the powerup spawning in the start of the arena
+    {
+        if (Powerups.Count != 0)    //If there are powerups assigned to the arena
+        {
+            StartPowerupCountdown();    //Start the countdown to spawn them
+        }
+    }
+
+    private bool delayRunning = false;
+
+    public void StartPowerupCountdown()
+    {
+        if (delayRunning == false)  //If the delay/countdown for next powerup is not already running (happens only in the start of the arena, or when all powerups are already spawned)
+        {
+            StartCoroutine(nameof(SpawnDelay)); //Start it
+        }       
+    }
     
+    private List<Powerup> toPickFrom = new List<Powerup>(); //List to fill with powerups that are not spawned, to pick a random one from (that are in disabled state)
+
+    private IEnumerator SpawnDelay()
+    {
+        delayRunning = true;    //In the beginning, set that we are running the coroutine already
+
+        int randomDelay = UnityEngine.Random.Range(8, 25);  //Pick a random delay in spawning the powerup
+        yield return new WaitForSeconds(randomDelay);   //Since the delay is random, creating new WaitForSeconds every time D:
+
+        delayRunning = false;   //After the delay, set that we are not running the delay anymore
+
+        toPickFrom.Clear();     //Clear the list of powerups to pick from from previous spawn
+
+        toPickFrom = Powerups.Where(x => x.gameObject.activeSelf == false).ToList();    //Fill the list with the powerups that are not spawned
+
+        if (toPickFrom.Count == 0)  //The situation of runtime reaching this condition shouldn't occur, there must be some error if this happens
+        {
+            Debug.LogError("No powerups are disabled???");  //So log error
+        }
+        else
+        {
+            int random = UnityEngine.Random.Range(0, toPickFrom.Count); //Get a random powerup from disabled ones
+            SpawnPowerup(toPickFrom[random]);   //Spawn it
+        }
+        
+    }
+
+    private void SpawnPowerup(Powerup powerup)  
+    {
+        powerup.transform.position = FindRandomPosition(1, 0.5f, 0, spawnCheckColliders);   //Find random position for powerup and put it there
+        powerup.gameObject.SetActive(true); //Enable it
+
+        if (Powerups.Any(x => x.gameObject.activeSelf == false))    //If there are disabled powerups (not all of them are spawned), run a countdown for the next powerup
+        {
+            StartPowerupCountdown();
+        }
+    }
+
+    private Collider[] spawnCheckColliders = new Collider[2];   //Premade array of colliders to not have any garbage allocated when checking where to spawn a powerup after death with "CheckCapsule"
+
+    public static Vector3 FindRandomPosition(float height, float radius, float heightToSpawn, Collider[] spawnCheckColliders, Vector3 defaultSpawn = default(Vector3))    //Algorithm for finding random position on the map to spawn whatever (dead player, teleporting goal, powerup)
+    {
+        //The algorithm is checking the cylinder from the ground to the [height] parameter of the function. There IS some object in the random X-Z point 
+        //of the arena if this cylinder has something but the floor in it, and if it has, then try again and find another point where there is only a floor in the cylinder
+        //We use OverlapCapsuleNonAlloc for this, which requires the Collider[] array to store found colliders in this cylinder being checked
+
+        int offset = 4;             //Offset from the arena border so player doesn't spawn right next to a wall
+        float levelDimension = GameController.Controller.ArenaDimension / 2;  //Get arena dimension (total X=Y length) from GameController. To convert it into max coordinate, need to divide by 2
+
+        int iter = 0;   //A way to stop the infinite loop of finding the random spawn point if we can't find it
+
+        while (true)    //There is the infinite loop
+        {
+            Array.Clear(spawnCheckColliders, 0, spawnCheckColliders.Length);    //Clear the array of colliders just in case before performing the next check 
+
+            Vector2 coord = new Vector2(UnityEngine.Random.Range(-levelDimension + offset, levelDimension - offset), UnityEngine.Random.Range(-levelDimension + offset, levelDimension - offset)); //Get random point of the map with RNG
+            //Capsule starts from Y=0 (floor) to [height] parameter of this function (highest point to check)
+            Physics.OverlapCapsuleNonAlloc(new Vector3(coord.x, 0, coord.y), new Vector3(coord.x, height, coord.y), radius, spawnCheckColliders, ~0, QueryTriggerInteraction.Ignore);   //Igonre triggers (in our case - RocketHeightTrigger)
+            for (int i = 0; i < 2; i++) //The spawnCheckColliders array has only the length of 2, because the condition when there is only the floor found is when its the first collider found and the second collider is null
+            {                           //If the first collider isn't the floor, or second collider isn't the floor as well, then its the wrong condition
+                if (spawnCheckColliders[0].gameObject.layer == 14 && spawnCheckColliders[1] == null)
+                {
+                    return new Vector3(coord.x, heightToSpawn, coord.y);    //Return position to spawn whatever object at
+                }
+            }
+            iter++;
+            if (iter > 100)
+            {
+                Debug.LogError("Couldn't find the spawn site"); //If we performed 100 checks and haven't found a spawn site, there must be something wrong
+                return defaultSpawn;
+            }
+        }
+    }
+
+    #endregion
+    
+    #region Resetting the arena
+
     public void SetEverythingBack(bool overtime = false, bool replay = false) //Function that is implemented in all scripts that needs resetting when new period starts. If 'overtime' is "true", means we are setting it for overtime
     {                                                                         //if 'replay' is true, means we are getting the game completely to initial state
         PlayerOne.transform.position = PlayerOneSpawn.position;
@@ -376,16 +370,6 @@ public class GameController : MonoBehaviour
 
     }
 
-    //void Awake()
-    //{
-    //    if (Controller == null)
-    //    {
-    //        DontDestroyOnLoad(gameObject);    //SINGLETON SHIT
-    //        Controller = this;
-    //    }
-    //    else if (Controller != this)
-    //    {
-    //        Destroy(gameObject);
-    //    }
-    //}
+#endregion
+    
 }

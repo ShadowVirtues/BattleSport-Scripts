@@ -20,8 +20,6 @@ using Random = UnityEngine.Random;
     Try steering wheel
 
     
-    Fix ball texture
-    
     Decoy goal/ball arenas
     Goals may rotate with different speed
 
@@ -29,8 +27,6 @@ using Random = UnityEngine.Random;
 
     GENERAL THINGS TO DO:
     
-        
-        Arena Preview (TUGUSH-TUGUSH)
         
         
         10 Levels > Props, Skyboxes
@@ -42,27 +38,9 @@ using Random = UnityEngine.Random;
     ADDITIONAL IDEAS:
     Maybe recover balls position after scoring to get rid of that jitter, using bounds stuff?
     When hit, slider slowly going down with red trail like in LOL
-    When picked powerup, there should be a tooltip with circular “slider” going representing the time left for it.
+    
 
-
-    ARENA PARAMETERS (for prefab, ScriptableObject):
-    1. Size -> GameController.Controller.arenaDimension
-    2. Number
-    3. Name (includes number, for the end levels without number)
-    4. Actual scene with the arena
-    5. Powerups??? (or they will be injected into scene already)
-    6. GoalType,BallType?? (it will be injected, yes, but for the arena selection in the menu)
-
-    WHEN REPLACING SOMETHING LIKE BALL OR GOAL:
-    1. SET THE GameController REFERENCE!!!
-
-    THINGS TO DO WHEN "INJECTING" ALL THE STUFF IN THE ARENA:
-    1. Inject player tanks:
-        a) Set camera viewports and UI panel RectTransform 
-        b) Set PlayerX layer on injected tanks
-        c) Disable PlayerX for PlayerX in Camera Culling mask
-        
-
+    
     THINGS TO CONSIDER WHEN MAKING NEW ARENA
     1. Set all the stuff to "static", Colliders for props!!!
     2. Set light, set skybox
@@ -70,11 +48,8 @@ using Random = UnityEngine.Random;
     4. Set all layers to geometry and all interactibles:
         a) Walls (LevelGeometry)
         b) Floor (Floor)
-        c) Static Props (LevelGeometry)
-        d) Players (PlayerOne/Two)
-        e) PlayerExplosion
-        f) BallTrigger, BallCollider
-        g) GoalSolid, GoalBallSolid
+        c) Static Props (LevelGeometry)        
+        d) GoalSolid, GoalBallSolid
     5. Rocket Height Trigger
     6. PlayerOne/Two/Ball Spawns
     7. GameController References
@@ -83,7 +58,7 @@ using Random = UnityEngine.Random;
 
 */
 
-public static class Message //Just a class container for all on-screen messages for players
+public static class Message //Just a class container for all on-screen messages for players (powerup messages are stored in powerups themselves)
 {
     public const string Score = "SCORE";
     public const string Possession = "POSSESSION";
@@ -96,7 +71,6 @@ public static class Message //Just a class container for all on-screen messages 
     public const string ScoreToWin = "SCORE TO WIN";
     
     public const string ViolationOverridden = "VIOLATION OVERRIDDEN";
- 
 }
 
 [Serializable]
@@ -246,6 +220,7 @@ public class Player : MonoBehaviour
         cameraAnim.enabled = false;     //Camera animation returns to its initial position after some animation time, so to make sure it had the time to return, disable animator only after the death timer
         
         explosion.SetActive(false);     //Explosion quasi-animation (particle system) goes on for the whole time of death (tank is smoking), that's why disable it at the very end
+        // TODO increase height when made the highest arena
         transform.position = GameController.FindRandomPosition(10, 2, 5, spawnCheckColliders, new Vector3(0, 20, 0));  //Find random position on the map by checking the cylinder where tank can fall from "the sky" to the ground without anything interrupting
         transform.rotation = Quaternion.Euler(0, Random.Range(0,4) * 90, 0);    //Set tank rotation to random between 0,90,180,270 degrees (perpendicular to walls)
 
@@ -670,7 +645,8 @@ public class Player : MonoBehaviour
         cameraAnim.enabled = false;     //Disable animator (with exploding camera animation)
 
         explosion.SetActive(false);     //Disable explosion 
-        
+        explodedTime = 2;               //Set death timer
+
         movement.enabled = true;        //Enable player ability to move if it was disabled due to explosion
         playerRigidbody.drag = 0;       //Disable rigidbody's drag we used for stopping the player after exploding
 

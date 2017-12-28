@@ -90,26 +90,19 @@ public class Announcer : MonoBehaviour
         announcerSource.Play();
     }
 
-    public void LoadingCommentAny()
+    public void LoadingComment()    //Some comment when the countdown sequence is going
     {
         announcerSource.clip = loadingComments[Random.Range(0, loadingComments.Length)];
         announcerSource.Play();        
     }
-
-    public void LoadingCommentShort()
-    {
-        announcerSource.clip = loadingComments[Random.Range(0, 5)];
-        announcerSource.PlayDelayed(0.5f);
-        
-    }
-
+    
     public void LoadingCommentLongest() //DELETE
     {
         announcerSource.clip = loadingComments[5];
         announcerSource.Play();        
     }
 
-    public void Stop()
+    public void Stop()      //Stop the announcer talking (used when skipping the countdown sequence)
     {
         announcerSource.Stop();
     }
