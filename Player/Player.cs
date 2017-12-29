@@ -32,7 +32,9 @@ using Random = UnityEngine.Random;
         10 Levels > Props, Skyboxes
         Visually redesign Main Menu   
         2 Player Exhibition (Maybe make an arena screenshot showing, rotating video or whatever)
+        Make all skyboxe textures Clamp instead of Repeat
         Compress all textures
+
 
 
     ADDITIONAL IDEAS:
@@ -226,6 +228,7 @@ public class Player : MonoBehaviour
 
         movement.enabled = true;        //Enable player ability to move
         playerRigidbody.drag = 0;       //Disable rigidbody's drag we used for stopping the player after exploding
+        playerRigidbody.useGravity = true;  //COMM
 
         SetHealth(100);
 

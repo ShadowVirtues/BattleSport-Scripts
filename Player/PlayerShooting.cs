@@ -69,14 +69,14 @@ public class PlayerShooting : MonoBehaviour
             foreach (Transform t in Rockets[i].transform)
             {
                 t.gameObject.layer = layerToSet;
-            }
+            }                                                   //TODO Make this layer mask too after making sure everything works properly with it
             rocket[i].otherPlayerLayer = playerNumber == PlayerID.One ? 9 : 8;  //(Hardcoded for now) Assign this so rockets know what player to do damage to. 9 - "PlayerTwo", 8 - "PlayerOne"
 
         }
 
         //=============================LASERS===========================
 
-        laserCount = 9;                         //9 laser instances are enough so you are able to shoot without running out of lasers with TurboLazers powerup
+        laserCount = 11;                         //9 laser instances are enough so you are able to shoot without running out of lasers with TurboLazers powerup
         Lasers = new GameObject[laserCount];
         laserRigidbody = new Rigidbody[laserCount]; //Initializing arrays
         laser = new Laser[laserCount];
@@ -95,7 +95,7 @@ public class PlayerShooting : MonoBehaviour
             {
                 t.gameObject.layer = layerToSet;
             }
-            laser[i].otherPlayerLayer = playerNumber == PlayerID.One ? 9 : 8;       //(Hardcoded for now) Assign this so rockets know what player to do damage to. 9 - "PlayerTwo", 8 - "PlayerOne"
+            laser[i].otherPlayerLayer = playerNumber == PlayerID.One ? 1 << 9 : 1 << 8;     //(Hardcoded for now) Assign layerMask so lasers know what player to do damage to. 9 - "PlayerTwo", 8 - "PlayerOne"
         }
         
     }

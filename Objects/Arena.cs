@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public enum ArenaSize { Tiny, Small = 60, MidSized = 75, Large, Humongous = 100 }
+public enum ArenaSize { Tiny, Small = 60, MidSized = 75, Large = 90, Humongous = 100 }
 
 public class Arena : ScriptableObject
 {

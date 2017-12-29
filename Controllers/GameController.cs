@@ -89,6 +89,7 @@ public class GameController : MonoBehaviour
         }
         else     //DELETE. For testing in INJECTED arenas when StartupController doesn't exist
         {
+            Destroy(gameUI.CountdownPanel);
             gameUI.gameObject.SetActive(false);
             UnPause();            
         }
@@ -289,6 +290,8 @@ public class GameController : MonoBehaviour
         PlayerTwo.SetEverythingBack();  //Launch specific functions like this on all of them and goal
         ball.SetEverythingBack();
         goal.SetEverythingBack();
+
+        Messenger.Broadcast(Turret.SetEverythingBackTurret);    //COMM
 
         PlayerOne.GetComponent<PlayerShooting>().SetEverythingBack();   //Launch it on PlayerShooting as well
         PlayerTwo.GetComponent<PlayerShooting>().SetEverythingBack();

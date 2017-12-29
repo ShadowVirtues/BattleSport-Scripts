@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,7 +9,7 @@ public class Laser : MonoBehaviour
     private readonly WaitForSeconds explosionTime = new WaitForSeconds(0.5f);   //Explosion duration
 
     public float FirePower; //Laser parameter for damage to apply. Gets set in PlayerShooting when pressing a laser button
-    public int otherPlayerLayer;    //To decide in OnCollisionEnter if we should run public Hit function on other player
+    public int otherPlayerLayer;    //LayerMask to see which player can be hit. By using it decide in OnCollisionEnter if we should run public Hit function on other player
 
     private new Rigidbody rigidbody; //Cache rockets rigidbody to set its velocity to zero when the laser hits
 
@@ -29,13 +29,13 @@ public class Laser : MonoBehaviour
     {
         StopCoroutine(nameof(LifeTime));    //If we hit something, stop the countdown to fade the laser after some time
 
-        if (other.gameObject.layer == otherPlayerLayer) //If the collided object is other player
-        {
-            if (otherPlayerLayer == 8)  //PlayerOne layer, then hit player one (getting the reference from GameController)
+        if (otherPlayerLayer == (otherPlayerLayer | (1 << other.gameObject.layer))) //Not-mine elegant solution to check if layer is in layerMask
+        {   
+            if (other.gameObject.layer == 8)  //PlayerOne layer, then hit player one (getting the reference from GameController)
             {
                 GameController.Controller.PlayerOne.Hit(FirePower / 6, Weapon.Laser);
             }
-            else if (otherPlayerLayer == 9) //PlayerTwo layer
+            else if (other.gameObject.layer == 9) //PlayerTwo layer
             {
                 GameController.Controller.PlayerTwo.Hit(FirePower / 6, Weapon.Laser);
             }
