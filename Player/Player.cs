@@ -19,8 +19,8 @@ using Random = UnityEngine.Random;
     
     Try steering wheel
 
-    
-    Decoy goal/ball arenas
+    Test on laptop
+   
     Goals may rotate with different speed
 
     Consider we have lowered Mixer menu volumes
@@ -228,7 +228,7 @@ public class Player : MonoBehaviour
 
         movement.enabled = true;        //Enable player ability to move
         playerRigidbody.drag = 0;       //Disable rigidbody's drag we used for stopping the player after exploding
-        playerRigidbody.useGravity = true;  //COMM
+        playerRigidbody.useGravity = true;  //So when you die standing on the ramp (which disables gravity), it get set back properly when you revive
 
         SetHealth(100);
 
@@ -529,7 +529,7 @@ public class Player : MonoBehaviour
     {
         playerStats.Fumbles++;          //We are counting fumbles for end-stats from normal fumbles, violations and deaths with ball
 
-        float fumbleBallforce = 100;    //TODO Adjust the value maybe     
+        float fumbleBallforce = 100;   
         Vector2 randDirCircle = Random.insideUnitCircle.normalized;    //Get random direction in the cirle lying in the horizontal plane of the player
         Vector3 ballDirection = new Vector3(randDirCircle.x, 0, randDirCircle.y);   //Transform Vector2 to Vector3       
         ball.transform.rotation = Quaternion.LookRotation(ballDirection);   //Set ball rotation to this random direction

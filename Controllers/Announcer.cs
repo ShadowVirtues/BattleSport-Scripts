@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening.Plugins;
 using UnityEngine;
-using UnityEngine.Experimental.Audio.Google;
 
 public class Announcer : MonoBehaviour
 {
@@ -96,12 +95,6 @@ public class Announcer : MonoBehaviour
         announcerSource.Play();        
     }
     
-    public void LoadingCommentLongest() //DELETE
-    {
-        announcerSource.clip = loadingComments[5];
-        announcerSource.Play();        
-    }
-
     public void Stop()      //Stop the announcer talking (used when skipping the countdown sequence)
     {
         announcerSource.Stop();

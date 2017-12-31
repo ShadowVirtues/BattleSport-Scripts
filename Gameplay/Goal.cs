@@ -17,6 +17,9 @@ public class Goal : MonoBehaviour
 
     private Material goalMaterial;  //To flash the goal on score
 
+    private DecoyGoalController decoyGoal;  //References to DecoyGoalController and DecoyBallController if they exist
+    private DecoyBallController decoyBall;
+
     [HideInInspector] public Transform ballCollider; //Reference to child object of goal "BallCollider", which changes its position for the moving goal (the parent with this script remains at the same place)
     //We need it in PlayerRadar.cs for position, in Ball.cs to get where it is facing and to calculate misses, in Player.cs to get how far from the goal the player shot the ball
 
@@ -29,11 +32,17 @@ public class Goal : MonoBehaviour
 
         ballSolidCollider = ballCollider.GetComponent<Collider>();       //Getting dose references  
         goalMaterial = ballCollider.GetComponent<Renderer>().material;  //(Parent goal object has only the script component attached)
+
+        decoyGoal = GetComponent<DecoyGoalController>();  //Try getting those if they exist
+        decoyBall = GetComponent<DecoyBallController>();  
     }
 
     
     public void FlashGoalOnScore()
     {
+        if (decoyGoal != null) decoyGoal.Scored();  //If DecoyBallController or DecoyGoal controller exist on the goal object, then launch the function when we score the ball
+        if (decoyBall != null) decoyBall.Scored();  
+
         goalMaterial.EnableKeyword(emissionKeyword);    //We enable and disable emission in hopes that it actually improves performance
 
         float init = 0.1f;

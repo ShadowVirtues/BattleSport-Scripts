@@ -205,7 +205,7 @@ public class CountdownPanel : MonoBehaviour
    
     void Update()
     {
-        if (skipped == false && (InputManager.GetButtonDown("Start", PlayerID.One) || InputManager.GetButtonDown("Start", PlayerID.Two)) || Input.GetMouseButtonDown(0))    //If we haven't skipped and someone pressed Start button or left mouse button
+        if (skipped == false && (InputManager.GetButtonDown("Start", PlayerID.One) || InputManager.GetButtonDown("Start", PlayerID.Two) || Input.GetMouseButtonDown(0)))    //If we haven't skipped and someone pressed Start button or left mouse button
         {
             skipped = true; //Set the flag so we have skipped
             seq.Complete(true); //Complete the countdown sequence

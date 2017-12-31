@@ -240,8 +240,8 @@ public class Ball : MonoBehaviour
 
     public Vector3Int additionalGravity;       //To make the ball itself and different balls have different gravity
 
-    private float attractingForce = 10;  //Force, that gets applied to the ball when attracting to the player
-    private float attractingAngle = 0.006f; //Max angle that ball redirects to per frame when attracting
+    public float attractingForce = 10;  //Force, that gets applied to the ball when attracting to the player    //public, so we can get those to set the same values to DecoyBall
+    public float attractingAngle = 0.006f; //Max angle that ball redirects to per frame when attracting
 
     private float guideForce = 10;  //Same stuff for guiding to the goal
     private float guideAngle = 0.006f;
@@ -251,7 +251,7 @@ public class Ball : MonoBehaviour
         if (PlayerRadar.ballPossession == false)    //If the ball is in the arena (not possessed)   
         {
             rigidbody.AddForce(additionalGravity, ForceMode.Acceleration);    //Constantly applying additional gravity
-            //TODO TEST ON OTHER ARENAS
+            
             if (GameController.Controller.PlayerOne.powerup.BallAttractor && firstPlayerShot == false && GameController.Controller.PlayerOne.Health != 0)   //Attract to the player only if this particular player didn't shoot the ball to the goal and is alive
             {
                 AttractBall(playerOne.position, attractingForce, attractingAngle);
@@ -288,7 +288,7 @@ public class Ball : MonoBehaviour
         rigidbody.velocity = Vector3.RotateTowards(rigidbody.velocity, attractVector, attractAngle, 0); //Last parameter is for changing the vector depending on the difference between current and target, which we don't need, so 0
     }
 
-    private readonly WaitForSeconds scoreDelay = new WaitForSeconds(5); //5 second delay after scoring during which players can't pick up the ball
+    public static readonly WaitForSeconds scoreDelay = new WaitForSeconds(5); //5 second delay after scoring during which players can't pick up the ball
 
     private IEnumerator BallScore()     //Coroutine of disabling-enabling colliders to introduce 5 sec delay after scoring
     {
@@ -373,6 +373,9 @@ public class Ball : MonoBehaviour
     private void Score()    //Function that runs when someone scores
     {
         GameController.announcer.Score();       //Let announcer say "Score"
+
+        StartCoroutine(BallScore());        //Coroutine for disabling-enabling ball and score colliders in 5 sec delay after scoring    //TEST ORDER
+
         goal.FlashGoalOnScore();                //Run a public flash function on the goal
         
         if (firstPlayerShot)                    //Add the score to respective player
@@ -398,7 +401,7 @@ public class Ball : MonoBehaviour
             }
         }
         
-        StartCoroutine(BallScore());        //Coroutine for disabling-enabling ball and score colliders in 5 sec delay after scoring
+        
 
     }
 

@@ -205,7 +205,7 @@ public class GameController : MonoBehaviour
     {
         delayRunning = true;    //In the beginning, set that we are running the coroutine already
 
-        int randomDelay = UnityEngine.Random.Range(8, 25);  //Pick a random delay in spawning the powerup
+        int randomDelay = UnityEngine.Random.Range(8, 25);  //Pick a random delay in spawning the powerup 
         yield return new WaitForSeconds(randomDelay);   //Since the delay is random, creating new WaitForSeconds every time D:
 
         delayRunning = false;   //After the delay, set that we are not running the delay anymore
@@ -274,8 +274,10 @@ public class GameController : MonoBehaviour
     }
 
     #endregion
-    
+
     #region Resetting the arena
+
+    public const string SetEverythingBackMessage = "SetEverythingBackMessage";
 
     public void SetEverythingBack(bool overtime = false, bool replay = false) //Function that is implemented in all scripts that needs resetting when new period starts. If 'overtime' is "true", means we are setting it for overtime
     {                                                                         //if 'replay' is true, means we are getting the game completely to initial state
@@ -291,7 +293,7 @@ public class GameController : MonoBehaviour
         ball.SetEverythingBack();
         goal.SetEverythingBack();
 
-        Messenger.Broadcast(Turret.SetEverythingBackTurret);    //COMM
+        Messenger.Broadcast(SetEverythingBackMessage);    //Broadcast the message for all stuff that we don't have reference to in GameController
 
         PlayerOne.GetComponent<PlayerShooting>().SetEverythingBack();   //Launch it on PlayerShooting as well
         PlayerTwo.GetComponent<PlayerShooting>().SetEverythingBack();

@@ -33,7 +33,7 @@ public class PlayerShooting : MonoBehaviour
     [SerializeField] private AudioSource laserSource;      
 
     public const float defaultRocketSpeed = 35; //Rocket speed is getting set here, it is getting amplified by player velocity in Z direction (it is used in Rocket.cs to calculate the rocket flight vector)
-    private const float minimalRocketSpeed = 25;    //Rocket minimal speed, so when the tank is moving back while shooting, rocket isn't super slow
+    private const float minimalRocketSpeed = 20;    //Rocket minimal speed, so when the tank is moving back while shooting, rocket isn't super slow
     private const float defaultLaserSpeed = 60; //Same for lasers, except lasers don't push other players, so private
     private const float minimalLaserSpeed = 40;    //Laser minimal speed, so when the tank is moving back while shooting, laser isn't super slow
 
@@ -130,12 +130,13 @@ public class PlayerShooting : MonoBehaviour
                     //Set rocket velocity. Tank's turrets point slightly inside, and we have gravity on rockets injected in "rocketDirection", 
                     //so multiply turret rotation Quaternion by rocketDirection, to get global Vector3 of turret rotation in direction of rocketDirection  + inherit tanks Z velocity                                   
                     rocketRigidbody[i].velocity = defaultRocketSpeed * (tank.RocketSpawnPoints[turretNumber].rotation * rocketDirection) + playerVelocityZGlobal;
-
-                    if (rocketRigidbody[i].velocity.magnitude < minimalRocketSpeed) //Rocket minimal speed is 25, if after inheriting tanks speed it's less then minimal, make it minimal speed
-                    {
-                        rocketRigidbody[i].velocity = rocketRigidbody[i].velocity.normalized * minimalRocketSpeed;
+                    
+                    if (Vector3.Dot(rocketRigidbody[i].velocity, transform.TransformDirection(Vector3.forward)) < minimalRocketSpeed) //Rocket minimal speed is 20, if after inheriting tanks speed it's less then minimal, make it minimal speed
+                    {       
+                        rocketRigidbody[i].velocity = minimalRocketSpeed * (tank.RocketSpawnPoints[turretNumber].rotation * rocketDirection);
                     }
-                        
+                    
+                    //==========
                     rocketRigidbody[i].angularVelocity = transform.TransformDirection(Vector3.forward) * 20;    //Set angular velocity so the rocket rotates along its local Z axis for cool looking rocket.
 
                     rocketSource.Play();    //Play rocket shot sound that would interrupt itself if played in quick succession
