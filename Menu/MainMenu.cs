@@ -39,7 +39,6 @@ public class MainMenu : MonoBehaviour
         Cursor.visible = true;
 
         EventSystem.current.SetSelectedGameObject(firstSelected);  //Select some button
-
         
     }
 

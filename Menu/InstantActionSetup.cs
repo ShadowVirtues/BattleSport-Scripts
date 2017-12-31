@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TeamUtility.IO;
@@ -114,19 +114,19 @@ public class InstantActionSetup : MonoBehaviour
         arenaSelector.SetIndex(PlayerPrefs.GetInt(InstAction_Arena, 1));            //First arena is in index 1
         playerOneSelector.SetIndex(PlayerPrefs.GetInt(InstAction_PlayerOne, 0));
         playerTwoSelector.SetIndex(PlayerPrefs.GetInt(InstAction_PlayerTwo, 0));        //All the others set to 0, if no key
-        numberOfPeriodsSelector.SetIndex(PlayerPrefs.GetInt(InstAction_NumberPeriods, 0));        
-        shotClockSelector.SetIndex(PlayerPrefs.GetInt(InstAction_ShotClock, 0));
+        numberOfPeriodsSelector.SetIndex(PlayerPrefs.GetInt(InstAction_NumberPeriods, 3));        
+        shotClockSelector.SetIndex(PlayerPrefs.GetInt(InstAction_ShotClock, 2));
         if (numberOfPeriodsSelector.GetIndex == 0)      //If "Number Of Periods" is set to 0, means we show "Play To Score"
         {
             isPlayToScore = true;
-            periodTimeSelector.SetIndex(PlayerPrefs.GetInt(InstAction_PlayToScore, 0));      //Get PlayToScore save and put it into periodTimeSelector (both "Period (Minutes)" and "Play To Score" are shown there)
-            previousPeriodTime = PlayerPrefs.GetInt(InstAction_PeriodTime, 0);               //Set previousPeriodTime to what PeriodTime was before in case we switch to it
+            periodTimeSelector.SetIndex(PlayerPrefs.GetInt(InstAction_PlayToScore, 14));      //Get PlayToScore save and put it into periodTimeSelector (both "Period (Minutes)" and "Play To Score" are shown there)
+            previousPeriodTime = PlayerPrefs.GetInt(InstAction_PeriodTime, 2);               //Set previousPeriodTime to what PeriodTime was before in case we switch to it
         }
         else
         {
             isPlayToScore = false;
-            periodTimeSelector.SetIndex(PlayerPrefs.GetInt(InstAction_PeriodTime, 0));       //The opposite     
-            previousPlayToScore = PlayerPrefs.GetInt(InstAction_PlayToScore, 0);
+            periodTimeSelector.SetIndex(PlayerPrefs.GetInt(InstAction_PeriodTime, 2));       //The opposite     
+            previousPlayToScore = PlayerPrefs.GetInt(InstAction_PlayToScore, 14);
         }
 
         

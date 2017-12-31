@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using TeamUtility.IO;
 using UnityEngine;
@@ -279,7 +279,7 @@ public class SettingsMenu : PauseMenu
         windowed.SetIndex(Screen.fullScreen ? 1 : 0);   //Set selector to "Windowed" or "Borderless" (which Unity deems as fullscreen), depending on the window actual state
 
         vSync.SetIndex(PlayerPrefs.GetInt(VideoSettings_VSync, 1));     //0 - no vsync, 1 - vsync
-        aa.SetIndex(PlayerPrefs.GetInt(VideoSettings_AntiAliasing, 1)); //Anti-Aliasing
+        aa.SetIndex(PlayerPrefs.GetInt(VideoSettings_AntiAliasing, 3)); //Anti-Aliasing
         runInBackground.SetIndex(PlayerPrefs.GetInt(VideoSettings_RunInBackground, 0)); //0 - not run, 1 - run        
     }
 

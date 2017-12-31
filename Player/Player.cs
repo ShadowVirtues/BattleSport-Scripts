@@ -16,10 +16,6 @@ using Random = UnityEngine.Random;
     
     Rebake lights in Arena 42
     
-    
-    Try steering wheel
-
-    Test on laptop
    
     Goals may rotate with different speed
 
