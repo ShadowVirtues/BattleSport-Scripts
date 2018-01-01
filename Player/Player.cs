@@ -35,7 +35,7 @@ using Random = UnityEngine.Random;
 
     ADDITIONAL IDEAS:
     Maybe recover balls position after scoring to get rid of that jitter, using bounds stuff?
-    When hit, slider slowly going down with red trail like in LOL
+    Teleporters. Jump pressure plates. Unpenetrable walls for players, that balls go through
     
 
     

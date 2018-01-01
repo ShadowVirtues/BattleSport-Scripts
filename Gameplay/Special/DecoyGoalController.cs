@@ -39,24 +39,14 @@ public class DecoyGoalController : MonoBehaviour
 
             if (random) //If random goal placement
             {
-                RandomizeGoal(i);   //Put a goal in random spot with random movement vector
-
-                decoyGoals[i].speed = speed;    //Set the movement speed of the goal
+                RandomizeGoal(i);   //Put a goal in random spot with random movement vector                
             }
             else    //Otherwise, goal movement along defined lines
             {
-                int randomGuide = Random.Range(0, guides.Length);   //Pick random guide number (if one guide, it will obviously be picked for all goals)
-                int randomDirection = Random.Range(0, 2) * 2 - 1;   //Way of generating either "-1" or "1" number for random direction of goal movement
-                float randomOnLength = Random.Range(-length, length);     //Generate a number on a length of the guide
-
-                decoyGoalObjects[i].transform.position = guides[randomGuide].TransformPoint(Vector3.forward * randomOnLength);  //Put a goal in position on a line of a guide
-                decoyGoals[i].speed = speed;    //Set goal movement speed
-
-                Vector3 movement = guides[randomGuide].TransformDirection(Vector3.forward * randomDirection);   //Generate decoy goal movement vector to either of two directions
-                
-                decoyGoals[i].movement = movement.normalized;   //Set it in the DecoyGoal component, vector should be generated normalized initially, normalizing again just in case
-                
+                RandomizeGoalGuide(i);
             }
+
+            decoyGoals[i].speed = speed;    //Set goal movement speed
 
         }
         
@@ -74,6 +64,20 @@ public class DecoyGoalController : MonoBehaviour
         decoyGoals[i].movement = movement.normalized;//Since generated point on a sphere was normalized, zeroing the Y component will make the the magnitude less than 0, so normalize it back and assign to movement direction of the decoy goal
     }
 
+    private void RandomizeGoalGuide(int i)   //We use the same code in 3 places, so make it into function
+    {
+        int randomGuide = Random.Range(0, guides.Length);   //Pick random guide number (if one guide, it will obviously be picked for all goals)
+        int randomDirection = Random.Range(0, 2) * 2 - 1;   //Way of generating either "-1" or "1" number for random direction of goal movement
+        float randomOnLength = Random.Range(-length, length);     //Generate a number on a length of the guide
+
+        decoyGoalObjects[i].transform.position = guides[randomGuide].TransformPoint(Vector3.forward * randomOnLength);  //Put a goal in position on a line of a guide
+
+        Vector3 movement = guides[randomGuide].TransformDirection(Vector3.forward * randomDirection);   //Generate decoy goal movement vector to either of two directions
+
+        decoyGoals[i].movement = movement.normalized;   //Set it in the DecoyGoal component, vector should be generated normalized initially, normalizing again just in case
+
+    }
+
     public void Scored()    //Function that runs from Goal.cs when scoring, so we get back all goals that got disabled from throwing ball into them
     {       
         //TODO Return them back after testing
@@ -89,25 +93,43 @@ public class DecoyGoalController : MonoBehaviour
             }
         }
         
-        if (random) //If random goal spawning
+        //if (random) //If random goal spawning
+        //{
+        //    for (int i = 0; i < decoyGoalCount; i++)
+        //    {
+        //        if (decoyGoalObjects[i].activeSelf == false)    //Only do something for disabled goals
+        //        {
+        //            RandomizeGoal(i);    //Put a goal in random spot with random movement vector
+                    
+        //            decoyGoalObjects[i].SetActive(true);    //Finally enable the goal back
+        //        }
+        //    }
+        //}
+        //else    //If goals-on-lines
+        //{
+        //    for (int i = 0; i < decoyGoalCount; i++)
+        //    {               
+        //        decoyGoalObjects[i].SetActive(true);            //Just enable back all decoy goals      
+        //    }
+        //}
+        
+        for (int i = 0; i < decoyGoalCount; i++)
         {
-            for (int i = 0; i < decoyGoalCount; i++)
+            if (decoyGoalObjects[i].activeSelf == false)    //Only do something for disabled goals
             {
-                if (decoyGoalObjects[i].activeSelf == false)    //Only do something for disabled goals
+                if (random)
                 {
                     RandomizeGoal(i);    //Put a goal in random spot with random movement vector
-                    
-                    decoyGoalObjects[i].SetActive(true);    //Finally enable the goal back
                 }
+                else
+                {
+                    RandomizeGoalGuide(i);
+                }
+                
+                decoyGoalObjects[i].SetActive(true);    //Finally enable the goal back
             }
         }
-        else    //If goals-on-lines
-        {
-            for (int i = 0; i < decoyGoalCount; i++)
-            {               
-                decoyGoalObjects[i].SetActive(true);            //Just enable back all decoy goals      
-            }
-        }
+
 
     }
     
@@ -123,7 +145,11 @@ public class DecoyGoalController : MonoBehaviour
             if (random)     //If random spawning, then for all goals, generate random positions again
             {
                 RandomizeGoal(i);  
-            }          
+            }
+            else
+            {
+                RandomizeGoalGuide(i);
+            }
 
             decoyGoalObjects[i].SetActive(true);    //Enable all goals, even if not random
         }
