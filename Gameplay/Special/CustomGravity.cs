@@ -16,15 +16,25 @@ public class CustomGravity : MonoBehaviour
     //    Physics.gravity = Vector3.down * 20;
     //}
 
-    void Start()
+    //void Start()
+    //{
+    //    GameController.Controller.ball.additionalGravity = Vector3Int.zero;
+    //    GameController.Controller.ball.rigidbody.mass = 0.75f;
+    //    GameController.Controller.ball.rigidbody.drag = 0;
+
+    //}
+
+
+
+    void Update()
     {
-        GameController.Controller.ball.additionalGravity = Vector3Int.zero;
-        GameController.Controller.ball.rigidbody.mass = 0.75f;
-        GameController.Controller.ball.rigidbody.drag = 0;
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            ScreenCapture.CaptureScreenshot("ASDF.png", 2);
+
+
+        }
+
 
     }
-
-
-
-
 }

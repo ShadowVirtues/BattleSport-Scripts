@@ -7,7 +7,7 @@ using Random = UnityEngine.Random;
 
 public class Goal : MonoBehaviour
 {    
-    public enum GoalType { OneSided, TwoSided, FourSided }  //GoalType to decide score/reject detection by normals when the ball collides with the goal
+    public enum GoalType { OneSided, TwoSided, FourSided, TwoSidedPhantom }  //GoalType to decide score/reject detection by normals when the ball collides with the goal
 
     public GoalType goalType;   //Variable for each goal
 

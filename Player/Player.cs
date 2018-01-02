@@ -14,10 +14,7 @@ using Random = UnityEngine.Random;
     
     DO NEXT:       
     
-    Rebake lights in Arena 42
     
-   
-    Goals may rotate with different speed
 
     Consider we have lowered Mixer menu volumes
 
@@ -25,15 +22,15 @@ using Random = UnityEngine.Random;
     
         
         
-        10 Levels > Props, Skyboxes
+        
         Visually redesign Main Menu   
-        2 Player Exhibition (Maybe make an arena screenshot showing, rotating video or whatever)
-        Make all skyboxe textures Clamp instead of Repeat
+        
         Compress all textures
 
 
 
     ADDITIONAL IDEAS:
+    Maybe change the camera rects depending on aspect ratio
     Maybe recover balls position after scoring to get rid of that jitter, using bounds stuff?
     Teleporters. Jump pressure plates. Unpenetrable walls for players, that balls go through
     

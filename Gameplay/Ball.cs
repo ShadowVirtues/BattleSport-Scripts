@@ -323,7 +323,7 @@ public class Ball : MonoBehaviour
                 {
                     Score();        //Run a function to count the score to the player and flash the goal
                 }
-                else if (goal.goalType == Goal.GoalType.TwoSided)
+                else if (goal.goalType == Goal.GoalType.TwoSided || goal.goalType == Goal.GoalType.TwoSidedPhantom)
                 {
                     Vector3 normal = other.contacts[0].normal;  //Normal to the contact point of the goal
                     Vector3 goalFacing = goal.ballCollider.TransformDirection(Vector3.forward);    //The direction where the goal is facing 

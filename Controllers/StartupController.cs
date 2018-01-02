@@ -99,15 +99,6 @@ public class StartupController : MonoBehaviour
             }
         }
         
-
-        
-
-
-
-
-
-
-
         CustomInputModule.Instance.Menu = false;    //Disabling universal input when in game
         CustomInputModule.Instance.Enabled = true;  //Enabling flag so when universal input does get enabled (in controls menu), we don't have to set it
     }

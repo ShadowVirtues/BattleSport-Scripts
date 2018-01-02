@@ -70,7 +70,7 @@ public class CountdownPanel : MonoBehaviour
         {
             goalDescription.text = "1 SIDED\r\n";   //Depending on goal type, set the first line of goal description
         }
-        else if (arena.goalType == Goal.GoalType.TwoSided)
+        else if (arena.goalType == Goal.GoalType.TwoSided || arena.goalType == Goal.GoalType.TwoSidedPhantom)
         {
             goalDescription.text = "2 SIDED\r\n";
         }
