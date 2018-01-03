@@ -27,7 +27,7 @@ public class GameUI : MonoBehaviour
     [SerializeField] private Text PlayerOneScore;   
     [SerializeField] private Text PlayerTwoScore;   //Player scores in Periods UI
     
-    [SerializeField] private RectTransform pauseMenu;   //Pause menu panel. RectTransform, because we change the position of the menu, depending on which player paused the game
+    public PauseMenu pauseMenu;   //Pause menu reference. Public, so we can access it from SettingsMenu when changing splitscreen type
     
     private GameObject[] periodCircles;     //Red period circles reference array to enable them each period
     
@@ -229,7 +229,7 @@ public class GameUI : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(time);  //Wait until it fades
 
-        pauseMenu.GetComponent<PauseMenu>().eventSystem.enabled = true; //Enable EventSystem when the menu fully fades so players can control it
+        pauseMenu.eventSystem.enabled = true; //Enable EventSystem when the menu fully fades so players can control it
         CustomInputModule.Instance.PlayerOne = true;
         CustomInputModule.Instance.PlayerTwo = true;  //Set so both players can control this menu
         Cursor.lockState = CursorLockMode.None;       //Enable cursor in the end-menu

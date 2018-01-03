@@ -50,7 +50,28 @@ public class InstantActionSetup : MonoBehaviour
         CustomInputModule.Instance.Enabled = true;      //Enable input from disabling it for 0.5 before switching the scene
         EventSystem.current.SetSelectedGameObject(arenaSelector.gameObject);    //Set arena selector as first selected in the start of the scene
     }
-    
+
+    void Update()   //Pressing any Cancel button would go to the previous menu
+    {
+        if (CustomInputModule.Instance.Enabled == false) return;    //If the input is disabled, don't process
+
+        bool pressed = false;   //Flag to fill in true if some button got pressed
+
+        pressed |= InputManager.GetKeyDown(KeyCode.Escape); //Evaluating all Cancel buttons
+        pressed |= InputManager.GetKeyDown(KeyCode.Backspace);
+        pressed |= InputManager.GetKeyDown(KeyCode.Joystick1Button6);
+        if (CustomInputModule.joyNum > 1)   //And for additional joysticks, if any
+        {
+            for (int i = 1; i < CustomInputModule.joyNum; i++)
+            {
+                pressed |= InputManager.GetKeyDown((KeyCode)(356 + i * 20));    //And additional joysticks if there are any
+            }
+        }
+
+        if (pressed) BACKButtonPress(); //In the end if some Cancel button got pressed, invoke Back button
+
+    }
+
     public void ScoreBased()    //This function is linked to Left and Right buttons on "Number Of Periods" selector and gets called whenever user presses them (or corresponding left-right keys)
     {
         if (numberOfPeriodsSelector.GetIndex == 0)              //If set number of periods is 0

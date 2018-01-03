@@ -161,6 +161,7 @@ public class GameController : MonoBehaviour
     }
 
     public PlayerID PausedPlayer;   //Player number that paused the game (so MenuSelectors can use it to only process a single player input)
+    public bool IsSplitScreenVertical = true;   //Flag to know what split screen type is set so we know where to position pause menu
 
     public void PauseMenu(PlayerID player)  //Function that gets called from Player.cs when pressing "Pause" button
     {

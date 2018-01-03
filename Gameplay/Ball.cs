@@ -374,7 +374,7 @@ public class Ball : MonoBehaviour
     {
         GameController.announcer.Score();       //Let announcer say "Score"
 
-        StartCoroutine(BallScore());        //Coroutine for disabling-enabling ball and score colliders in 5 sec delay after scoring    //TEST ORDER
+        StartCoroutine(BallScore());        //Coroutine for disabling-enabling ball and score colliders in 5 sec delay after scoring
 
         goal.FlashGoalOnScore();                //Run a public flash function on the goal
         

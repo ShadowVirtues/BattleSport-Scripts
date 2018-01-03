@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TeamUtility.IO;
@@ -20,7 +20,7 @@ public class DeviceSelector : StringSelector
                 Options[i] = "{Unplugged}"; //State that on the selector if it gets selected (you won't be able to save the device for the player tho)
             }
 
-            if (Options[i].Contains(" (Controller)"))  //For my controller, there was this suffix, which just takes too much space, the selector Option just overflows //TEST with other controllers
+            if (Options[i].Contains(" (Controller)"))  //For my controller, there was this suffix, which just takes too much space, the selector Option just overflows
             {
                 Options[i] = Options[i].Remove(Options[i].Length - 13); //Remove the amount of characters from the string
             }

@@ -14,7 +14,11 @@ using Random = UnityEngine.Random;
     
     DO NEXT:       
     
+    Quick action
+
+    test default values
     
+    test on two monitors
 
     Consider we have lowered Mixer menu volumes
 
@@ -23,14 +27,13 @@ using Random = UnityEngine.Random;
         
         
         
-        Visually redesign Main Menu   
         
         Compress all textures
 
 
 
     ADDITIONAL IDEAS:
-    Maybe change the camera rects depending on aspect ratio
+    
     Maybe recover balls position after scoring to get rid of that jitter, using bounds stuff?
     Teleporters. Jump pressure plates. Unpenetrable walls for players, that balls go through
     
@@ -625,6 +628,48 @@ public class Player : MonoBehaviour
         }
     }
 
+    public void SplitScreenType(bool vertical)  //Setting split screen Vertical or Horizontal dependion on a bool (gets launched from SettingsMenu when applying type)
+    {        
+        RectTransform playerHUD = camera.transform.GetChild(0).GetChild(0).GetComponent<RectTransform>();   //Get PlayerPanel UI RectTransform to set its rect
+
+        if (PlayerNumber == PlayerID.One)   //If the value selected for PlayerNumber field is "One"
+        {
+            if (vertical)   //If its vertical split-screen
+            {
+                camera.rect = new Rect(0, 0, 0.5f, 1);    //Set camera rect            
+
+                playerHUD.anchorMin = new Vector2(0, 0);         //Set player UI RectTransform
+                playerHUD.anchorMax = new Vector2(0.5f, 1);
+            }
+            else
+            {
+                camera.rect = new Rect(0, 0.5f, 1, 1);    //Set camera rect            
+
+                playerHUD.anchorMin = new Vector2(0, 0.5f);         //Set player UI RectTransform
+                playerHUD.anchorMax = new Vector2(1, 1);
+            }            
+        }
+        else if (PlayerNumber == PlayerID.Two)  //All the same stuff for player two
+        {
+            if (vertical)
+            {
+                camera.rect = new Rect(0.5f, 0, 0.5f, 1);
+
+                playerHUD.anchorMin = new Vector2(0.5f, 0);
+                playerHUD.anchorMax = new Vector2(1, 1);
+            }
+            else
+            {
+                camera.rect = new Rect(0, 0, 1, 0.5f);
+
+                playerHUD.anchorMin = new Vector2(0, 0);
+                playerHUD.anchorMax = new Vector2(1, 0.5f);
+            }
+
+            
+        }
+        
+    }
     
 
     public void SetEverythingBack()

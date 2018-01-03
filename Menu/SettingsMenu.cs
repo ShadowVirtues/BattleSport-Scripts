@@ -36,6 +36,7 @@ public class SettingsMenu : PauseMenu
     [SerializeField] private StringSelector aa;
     [SerializeField] private StringSelector runInBackground;
     [SerializeField] private ValueSelector fov;
+    [SerializeField] private StringSelector splitScreen;
 
     [Header("Audio")]
     [SerializeField] private AudioMixer mixer;          //AudioMixer to set volumes for it
@@ -69,6 +70,7 @@ public class SettingsMenu : PauseMenu
             ApplyRadarIconsScale();
             ApplyRadarOpacity();
             ApplyFOV();
+            ApplySplitScreen(false);    //Applying split screen type, without positioning menu (because we don't have a reference to it at this point)
         }
         
         ApplyMasterVolume();            //Those sound settings get appied both in game and in menu
@@ -119,7 +121,7 @@ public class SettingsMenu : PauseMenu
 
     public void LoadGameSettingsValues()    //Load settings from PlayerPrefs and set selector values to them
     {
-        UIScale.SetValue(PlayerPrefs.GetInt(GameSettings_UIScale, 200));
+        UIScale.SetValue(PlayerPrefs.GetInt(GameSettings_UIScale, 150));
         radarScale.SetValue(PlayerPrefs.GetInt(GameSettings_RadarScale, 100));
         iconsScale.SetValue(PlayerPrefs.GetInt(GameSettings_IconsScale, 100));
         opacity.SetValue(PlayerPrefs.GetInt(GameSettings_Opacity, 100));
@@ -272,6 +274,7 @@ public class SettingsMenu : PauseMenu
     public const string VideoSettings_AntiAliasing = "VideoSettings_AntiAliasing";     //PlayerPrefs keys and AudioMixer exposed parameters (I made so they have same names)
     public const string VideoSettings_RunInBackground = "VideoSettings_RunInBackground";
     public const string VideoSettings_FOV = "VideoSettings_FOV";
+    public const string VideoSettings_SplitScreen = "VideoSettings_SplitScreen";
 
     public void LoadVideoSettings()     //Load video settings when entering respective settings menu
     {
@@ -302,14 +305,32 @@ public class SettingsMenu : PauseMenu
         GameController.Controller.PlayerTwo.camera.fieldOfView = fov.Option;
     }
 
+    public void ApplySplitScreen(bool inPause)  //Function that runs when user changes splitscreen-type selector value (bool so we dont reposotion the menu when we just apply settings before starting the game)
+    {
+        bool type = splitScreen.GetIndex != 0;  //Convert 0-1 to false-true
+
+        GameController.Controller.IsSplitScreenVertical = type; //Set bool in GameController, so we know how to position pause menu next time we invoke it
+
+        if (inPause)    //If we are changing selector, instantly apply the position
+        {            
+            GameController.Controller.gameUI.pauseMenu.SetPauseMenuPosition();
+        }
+
+        GameController.Controller.PlayerOne.SplitScreenType(type);    //Set camera rect and HUD rect for players
+        GameController.Controller.PlayerTwo.SplitScreenType(type);
+    }
+
     public void LoadFOVValue()
     {
         fov.SetValue(PlayerPrefs.GetInt(VideoSettings_FOV, 60));       //Loads selector value from PlayerPrefs, 60 is default FOV
+        splitScreen.SetIndex(PlayerPrefs.GetInt(VideoSettings_SplitScreen, 1));     //Load split screen type as well, 1 is default for vertical  
+
     }
 
     public void SaveFOVValue()
     {
         PlayerPrefs.SetInt(VideoSettings_FOV, fov.Option);  //Saves FOV Value when backing from settings
+        PlayerPrefs.SetInt(VideoSettings_SplitScreen, splitScreen.GetIndex);    //Saves split screen type as well
     }
 
     //Key bindings are handled in its own script

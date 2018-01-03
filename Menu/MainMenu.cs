@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
-    [SerializeField] private GameObject firstSelected;  //Whatever first selected button we choose to be when the scene load
+    [SerializeField] private GameObject firstSelected;  //Whatever first selected button we choose to be when the scene loads
 
     [SerializeField] private AudioSource music; //Reference to music audiosource of Main Menu
     
@@ -23,15 +23,16 @@ public class MainMenu : MonoBehaviour
     {
         settingsMenu.SetActive(true);               //Enable settings menu panel, so its children actually get awaken       
         settingsMenu.SetActive(false);      //Disable it after
-        
+        mainMenu.SetActive(true);
+
         if (firstLaunch) ApplySettingsOnStartup();  //Only if the game is initially launched, apply the settings
         
         Time.timeScale = 1;         //Just in case, set timeScale to 1, if we didn't do it while quitting the game (that gets paused)
 
         blockInputPanel.SetActive(false);   //Disable it in case if was active for some reason
         Destroy(GameObject.Find(nameof(StartupController)));    //Destroy StartupController of this scene (cuz it gets DontDestroyOnLoad in its Awake). We only need to destroy it when we go back to main menu
-       
-        music.Play();           //Play the music 
+              
+        StartCoroutine(DelayMusic());            //Play music with delay, because for some reason it doesn't instantly apply the volume of it, for a few frames it would play at 100% volume
 
         CustomInputModule.Instance.Enabled = true;          //Make sure Menu input is enabled after we disable it for 0.5 delay after pressing some button
         CustomInputModule.Instance.GetComponent<EventSystem>().enabled = true;  //Enable event system if it was disabled for some reason. Before we get back to a menu from game, we disable event system (for 0.5 delay)
@@ -42,21 +43,14 @@ public class MainMenu : MonoBehaviour
         
     }
 
-    void Update()       //DELETE
+    IEnumerator DelayMusic()
     {
-        if (Input.GetKeyDown(KeyCode.Alpha0))
-        {
-
-            //string[] asdf = Input.GetJoystickNames();
-            //for (int i = 0; i < asdf.Length; i++)
-            //{
-            //    Debug.LogError(i + ". " + asdf[i]);
-            //}
-            
-        }
-        
+        yield return null;
+        yield return null;
+        yield return null;
+        music.Play();
     }
-
+    
     public void InstantActionSetup()    //When pressed "Instant Action Setup"
     {      
         StartCoroutine(MenuSelect());

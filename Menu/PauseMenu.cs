@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using TeamUtility.IO;
 using UnityEngine;
@@ -40,17 +40,17 @@ public class PauseMenu : MonoBehaviour
     {
         if (GameController.Controller.PausedPlayer == PlayerID.One) //If it was player one who paused the game
         {
-            rectTransform.anchoredPosition = new Vector2(-480, 0);  //Place the pause menu on his side of the screen
             CustomInputModule.Instance.PlayerOne = true;  //Disable player2 input and enable player1 input through EventSystem
             CustomInputModule.Instance.PlayerTwo = false;
         }
         else if (GameController.Controller.PausedPlayer == PlayerID.Two)    //Same, but opposite
         {
-            rectTransform.anchoredPosition = new Vector2(480, 0);
             CustomInputModule.Instance.PlayerOne = false;
             CustomInputModule.Instance.PlayerTwo = true;
         }
         
+        SetPauseMenuPosition(); //Position pause menu
+
         eventSystem.enabled = true;     //Enable event system, so players can navigate the menu
         Cursor.lockState = CursorLockMode.None;       //Enable cursor when entering a pause menu
         Cursor.visible = true;
@@ -65,6 +65,44 @@ public class PauseMenu : MonoBehaviour
         SetCurrentBackButton(resume);       //Set so when pressing "Cancel" on keyboard or joystick, it "presses" resume button
 
         System.GC.Collect();        //Collect garbage when pressed pause
+    }
+
+    public void SetPauseMenuPosition()  //Function positioning pause menu dependion on which player invoked it and what splitscreen type is set. Public, because we invoke it when changing the splitscreen type from SettingsMenu
+    {        
+        if (GameController.Controller.PausedPlayer == PlayerID.One) //If it was player one who paused the game
+        {
+            if (GameController.Controller.IsSplitScreenVertical)    //If vertical split-screen
+            {
+                rectTransform.anchorMin = new Vector2(0.5f, 0.5f);  //Set anchor in the middle of the screen
+                rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+
+                rectTransform.anchoredPosition = new Vector2(-480, 0);  //Position menu to the left of the middle
+            }
+            else            //If horizontal
+            {
+                rectTransform.anchorMin = new Vector2(0.5f, 1);     //For player one, set anchor to top of the screen
+                rectTransform.anchorMax = new Vector2(0.5f, 1);
+
+                rectTransform.anchoredPosition = new Vector2(0, -340);  //Set position relative to top of the screen
+            }           
+        }
+        else if (GameController.Controller.PausedPlayer == PlayerID.Two)    //Same, but opposite
+        {
+            if (GameController.Controller.IsSplitScreenVertical)
+            {
+                rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+                rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+
+                rectTransform.anchoredPosition = new Vector2(480, 0);  //To the right
+            }
+            else
+            {
+                rectTransform.anchorMin = new Vector2(0.5f, 0);     //Anchor to botton
+                rectTransform.anchorMax = new Vector2(0.5f, 0);
+
+                rectTransform.anchoredPosition = new Vector2(0, 340);  //Relative to bottom  
+            }
+        }
     }
 
     private const string cancelButton = "Pause";        //Caching string
