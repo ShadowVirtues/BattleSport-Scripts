@@ -1,7 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 public class FumbleProtection : Powerup
 {
     protected override void ActionIn(PlayerPowerup player)

@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using TeamUtility.IO;
 using TeamUtility.IO.Examples;
 using UnityEngine;

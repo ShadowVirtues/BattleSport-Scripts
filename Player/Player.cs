@@ -1,7 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Xml;
 using DG.Tweening;
 using TeamUtility.IO;
 using UnityEngine;
@@ -14,28 +12,24 @@ using Random = UnityEngine.Random;
     
     DO NEXT:       
     
-    Quick action
+    Quick action    
+    Make 5 sec > 60
+    Arena with stairs - fumble protection
+    no invis on dark maps
+    Compress all textures
 
-    test default values
-    
-    test on two monitors
+
 
     Consider we have lowered Mixer menu volumes
-
-    GENERAL THINGS TO DO:
     
         
-        
-        
-        
-        Compress all textures
 
 
 
     ADDITIONAL IDEAS:
     
     Maybe recover balls position after scoring to get rid of that jitter, using bounds stuff?
-    Teleporters. Jump pressure plates. Unpenetrable walls for players, that balls go through
+    
     
 
     

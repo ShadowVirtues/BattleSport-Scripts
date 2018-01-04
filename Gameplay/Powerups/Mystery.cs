@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Mystery : MonoBehaviour    //Script that is attached to Mystery powerup along with ALL other powerup scripts

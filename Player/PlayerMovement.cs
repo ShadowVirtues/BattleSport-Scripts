@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using TeamUtility.IO;
 using UnityEngine;
 
@@ -79,9 +77,14 @@ public class PlayerMovement : MonoBehaviour
 
 #if UNITY_EDITOR
         //QualitySettings.vSyncCount = 0;  // Tests for different fps
-        //Application.targetFrameRate = 60;
+        //Application.targetFrameRate = 250;
 #endif
     }
+
+    //private float accum = 0;
+    //private bool isAxisInUse = false; //Stuff for testing turning speed
+    //private float pressDownTime = 0;
+    //private bool triggered = false;
 
     void Update()
     {
@@ -92,23 +95,64 @@ public class PlayerMovement : MonoBehaviour
 
         if (analogTurning == 1) //If we are controlling with keyboard or d-pad, get only -1,0,1 values from the axis, so using Math.Sign for that
         {
-            rotationY = Math.Sign(InputManager.GetAxis(turningAxisName, playerNumber)) * rotationSpeed * Time.deltaTime;     // * (0.0025f / Time.deltaTime + 0.75f); //To rotate depending on input axis (rotation around Y axis)
+            rotationY = Math.Sign(InputManager.GetAxis(turningAxisName, playerNumber)) * rotationSpeed * Time.deltaTime;     //To rotate depending on input axis (rotation around Y axis)
         }
         else    //For stick and mouse controls there are intermediate axis values, which we lead to appropriate values with "analogTurning"
         { 
-            rotationY = InputManager.GetAxis(turningAxisName, playerNumber) * rotationSpeed * analogTurning * Time.deltaTime;     // * (0.0025f / Time.deltaTime + 0.75f);
+            rotationY = InputManager.GetAxis(turningAxisName, playerNumber) * rotationSpeed * analogTurning * Time.deltaTime;  
         }
         
-        float tankRotation = transform.localEulerAngles.y + rotationY;      //Add the rotation to current rotation of the tank  
+        float tankRotation = transform.localEulerAngles.y + rotationY * FPSModifier();      //Add the rotation to current rotation of the tank  
 
         rigidbody.MoveRotation(Quaternion.Euler(0, tankRotation, 0));   //Apply this rotation (X=0, Z=0 constraint the tank to not tilt when hitting objects)     
-        //Rotating with rigidbody.MoveRotation in Update, because this was the only was I could make rotating and moving the tank not have jitter (because of 50fps FixedUpdate and 144- fps Update)
-        
+                                                                        //Rotating with rigidbody.MoveRotation in Update, because this was the only was I could make rotating and moving the tank not have jitter (because of 50fps FixedUpdate and 144- fps Update)
+
         //Next commented line was making smooth rotation and smooth interpolated movement, but it would make rigidbody stop when rotating the tank
         //transform.Rotate(0, InputManager.GetAxisRaw(turningAxisName, playerNumber) * rotationSpeed * Time.deltaTime, 0); //CHECK THIS AFTER UNITY UPDATE IF IT STILL STOPS MOVING OF INTERPOLATED RIGIDBODY. 2017.3 - NOPE
 
         //if (playerNumber == PlayerID.Two) print(rigidbody.velocity.magnitude);
+
+        //================CODE FOR TESTING TURNING SPEED=============
+
+        //float axis = InputManager.GetAxis(turningAxisName, PlayerID.Two);
+
+        //if (axis != 0)  //If axis is actually pressed
+        //{
+        //    if (isAxisInUse == false) //Here be manage the initial button press (so we can still quick tap the button to switch)
+        //    {                
+        //        pressDownTime = Time.unscaledTime;  //Remember the time button got held down
+
+        //        accum = transform.rotation.eulerAngles.y + 180;
+
+        //        isAxisInUse = true; //Until we release the axis button, this will remain true
+        //    }
+        //    else if (triggered == false)
+        //    {
+        //        //accum += rotationY;
+        //        if (transform.rotation.eulerAngles.y > accum)
+        //        {
+        //            Debug.LogError("Time: " + (Time.unscaledTime - pressDownTime) + ". FPS: " + (1.0f / Time.deltaTime));
+        //            triggered = true;
+        //        }
+        //    }
+            
+        //}
+        //if (axis == 0)  //And if the button is not pressed, or when it gets released
+        //{           
+        //    isAxisInUse = false;    //Set the flag so the next press will switch the item
+        //    triggered = false;
+        //    accum = 0;
+        //}
         
+    }
+
+    float FPSModifier() //Hence our bullshit with setting  to rotate rigidbody in Update, turning speed would depend on FPS (good thing that linearly), so we multiply the turning speed by the factor, linearly depending on fps 
+    {
+        if (Time.deltaTime > 0.0088f)   //Below ~120 fps, the turning speed is ok, very noticeable for 300+ fps
+        {
+            return 1;
+        }
+        return 0.0016f * 1 / Time.deltaTime + 0.818f;
     }
 
     void FixedUpdate () 

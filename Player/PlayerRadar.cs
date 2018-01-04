@@ -1,5 +1,3 @@
-﻿using System.Collections;
-using System.Collections.Generic;
 using TeamUtility.IO;
 using UnityEngine;
 using UnityEngine.UI;

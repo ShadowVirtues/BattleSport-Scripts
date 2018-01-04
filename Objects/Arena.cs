@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.Video;
 
 public enum ArenaSize { Tiny = 50, Small = 60, MidSized = 75, Large = 90, Humongous = 100 }

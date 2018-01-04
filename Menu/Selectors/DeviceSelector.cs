@@ -1,8 +1,5 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using TeamUtility.IO;
-using UnityEngine;
 
 public class DeviceSelector : StringSelector
 {

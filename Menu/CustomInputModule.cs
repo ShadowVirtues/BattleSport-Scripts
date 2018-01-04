@@ -28,7 +28,6 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 #if UNITY_EDITOR
-using UnityEditor;
 #endif
 using System;
  

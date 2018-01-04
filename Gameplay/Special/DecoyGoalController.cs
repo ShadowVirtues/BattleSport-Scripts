@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 //Script that gets attached to the goal object in the arena, handles bogus/decoy goals

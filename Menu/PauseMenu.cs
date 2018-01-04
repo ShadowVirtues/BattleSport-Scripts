@@ -1,10 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using TeamUtility.IO;
 using UnityEngine;
-using UnityEngine.Audio;
 using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class PauseMenu : MonoBehaviour

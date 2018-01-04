@@ -1,9 +1,5 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
 using UnityEngine;
-using UnityEngine.UI;
 
 public enum Powerups    //enum with all powerup types - used in the Dictionary of active powerups to refresh their duration if the same powerup was picked
 {
