@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using TeamUtility.IO;
 using UnityEngine;
@@ -28,7 +29,7 @@ public class MainMenu : MonoBehaviour
         Time.timeScale = 1;         //Just in case, set timeScale to 1, if we didn't do it while quitting the game (that gets paused)
 
         blockInputPanel.SetActive(false);   //Disable it in case if was active for some reason
-        Destroy(GameObject.Find(nameof(StartupController)));    //Destroy StartupController of this scene (cuz it gets DontDestroyOnLoad in its Awake). We only need to destroy it when we go back to main menu
+        //Destroy(GameObject.Find(nameof(StartupController)));    //Destroy StartupController of this scene (cuz it gets DontDestroyOnLoad in its Awake). We only need to destroy it when we go back to main menu
               
         StartCoroutine(DelayMusic());            //Play music with delay, because for some reason it doesn't instantly apply the volume of it, for a few frames it would play at 100% volume
 
@@ -39,6 +40,7 @@ public class MainMenu : MonoBehaviour
 
         EventSystem.current.SetSelectedGameObject(firstSelected);  //Select some button
         
+        //PlayerPrefs.DeleteAll();
     }
 
     IEnumerator DelayMusic()
@@ -49,12 +51,21 @@ public class MainMenu : MonoBehaviour
         music.Play();
     }
     
-    public void InstantActionSetup()    //When pressed "Instant Action Setup"
+    public void InstantActionSetup()    //Function attached to Main Menu button "Match Setup"
     {      
-        StartCoroutine(MenuSelect());
+        StartCoroutine(MenuSelect(() => SceneManager.LoadScene("InstantActionSetup"))); //Load setup scene
     }
 
-    private IEnumerator MenuSelect()    //This launches when pressed TODO any menu maybe
+    public void InstantAction()    //Function attached to Main Menu button "Quick Match"
+    {
+        StartCoroutine(MenuSelect(() =>
+        {
+            StartupController.Controller.QuickMatch();      //Genarete random game
+            StartupController.Controller.GAMEButtonPress(); //Load arena scene
+        }));
+    }
+
+    private IEnumerator MenuSelect(Action action)    //This launches when pressed some button in the menu leading to the game (not "options" or "exit)
     {
         music.Stop();       //Stop the music playing
         
@@ -62,9 +73,8 @@ public class MainMenu : MonoBehaviour
         disableInput();
 
         yield return new WaitForSecondsRealtime(0.5f);  //Wait 
-
-        SceneManager.LoadScene("InstantActionSetup");
-
+       
+        action();   //Execute passed function of which scene to load
     }
 
     private void disableInput() //Function to disable player input after he clicked some button to go to next menu (since we have a small delay after pressing this button, when we don't want player to select something else)

@@ -59,6 +59,8 @@ public class CountdownPanel : MonoBehaviour
     {
         arena = StartupController.Controller.arena;
 
+        Destroy(StartupController.Controller.gameObject);   //After getting the arena reference from StartupController, we no longer need it, so destroy it
+
         arenaText.text = "ARENA " + arena.Number;   //Getting all the stuff into the panel, before running the animation (all fields still remain disabled). Getting the values for all the stuff from arena object in StartupController
         
         string ballDesc = arena.ballDescription == String.Empty ? "NORMAL" : arena.ballDescription; //Generating the second line of ball description, which is "Normal" if the description is empty, if not, getting the actual description

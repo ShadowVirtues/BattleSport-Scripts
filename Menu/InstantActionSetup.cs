@@ -109,7 +109,8 @@ public class InstantActionSetup : MonoBehaviour
         CustomInputModule.Instance.PlaySelect();           //Play 'select' sound
         disableInput();             //Disable input
         
-        StartupController startup = FindObjectOfType<StartupController>();  //Find StartupController in our scene (In some menus it can be transfered over from previous scene, so we can't have a set reference to it in all cases)
+        StartupController startup = StartupController.Controller;   //Shorter reference
+
 
         startup.arena = arenaSelector.Option;
         startup.PlayerOneTank = playerOneSelector.Option;
@@ -134,7 +135,7 @@ public class InstantActionSetup : MonoBehaviour
         playerOneSelector.SetIndex(PlayerPrefs.GetInt(InstAction_PlayerOne, 0));
         playerTwoSelector.SetIndex(PlayerPrefs.GetInt(InstAction_PlayerTwo, 0));        //All the others set to 0, if no key
         numberOfPeriodsSelector.SetIndex(PlayerPrefs.GetInt(InstAction_NumberPeriods, 3));        
-        shotClockSelector.SetIndex(PlayerPrefs.GetInt(InstAction_ShotClock, 2));
+        shotClockSelector.SetIndex(PlayerPrefs.GetInt(InstAction_ShotClock, 10));
         if (numberOfPeriodsSelector.GetIndex == 0)      //If "Number Of Periods" is set to 0, means we show "Play To Score"
         {
             isPlayToScore = true;

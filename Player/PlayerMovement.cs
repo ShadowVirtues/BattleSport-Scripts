@@ -2,6 +2,13 @@ using System;
 using TeamUtility.IO;
 using UnityEngine;
 
+public partial class Const  //Auxiliary class to keep constants in (partial, because some stuff is valuable only for specific scripts in which the constants are defined)
+{
+    public const float MouseFactor = 0.6f;  //Factors to lead the "sensitivity" of stick and mouse to appropriate values
+    public const float ButtonFactor = 1;
+    public const float JoystickFactor = 4;
+}
+
 public class PlayerMovement : MonoBehaviour
 {
     private Player player; //Reference to Player component
@@ -29,7 +36,7 @@ public class PlayerMovement : MonoBehaviour
     private const string RB = "RB";
 
     public bool jumpSingleButton;           //If true, jumping with single button specified in controls, depends on if this single button is bound, if not - two button controls that Joystick users use by default
-    public float analogTurning = 1;           // = 1 if digital turning, = 2 if analog
+    public float analogTurning = Const.ButtonFactor;           // = 1 if digital turning, = 0.6 or 4 if analog
     
     void Start()    //Again, no Awake, cuz no references
     {
@@ -44,7 +51,7 @@ public class PlayerMovement : MonoBehaviour
         maxSpeed = initialSpeed;    //Setting the speed to initial
 
         AxisConfiguration jump = InputManager.GetAxisConfiguration(playerNumber, jumpButtonName);   //Check control configuration for the player to see if there is one- or two-button jumping
-        if (jump.positive != KeyCode.None)  //If some button is bound to "Jump", then it's one-button jumping
+        if (jump.positive != KeyCode.None || jump.axis != 0)  //If some button is bound to "Jump", or axis for jump isn't set to default 0 (for default left trigger jumping scheme) then it's one-button jumping
         {
             jumpSingleButton = true;
         }
@@ -56,21 +63,21 @@ public class PlayerMovement : MonoBehaviour
 
         if (device.description == "Keyboard")   //If player device is Keyboard
         {
-            analogTurning = 1;          //Set controls sensitivity modifier to 1
+            analogTurning = Const.ButtonFactor;          //Set controls sensitivity modifier to 1
         }
         else if (device.description == "Keyboard+Mouse")
         {
-            analogTurning = 0.2f;       //If mouse, it's 0.2
+            analogTurning = Const.MouseFactor;       //If mouse, it's 0.6
         }
         else
         {
             if (turning.axis == 5)  //D-Pad
             {
-                analogTurning = 1;
+                analogTurning = Const.ButtonFactor;
             }
-            else if (turning.axis == 0) //Stick
+            else if (turning.axis == 0 || turning.axis == 3) //Left or right stick X axis
             {
-                analogTurning = 3;      //3 for stick
+                analogTurning = Const.JoystickFactor;      //3 for stick
             }
         }
 

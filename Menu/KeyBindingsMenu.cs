@@ -5,6 +5,13 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+public partial class Const  //Auxiliary class to keep constants in (partial, because some stuff is valuable only for specific scripts in which the constants are defined)
+{
+    public const int DefaultMouseSens = 10;
+    public const int DefaultStickSens = 25; //Default selector values for controls
+    public const int DefaultDeadZone = 1;
+}
+
 //Disregarding script caching in the whole script here, because we GC.Collect every time we unpause the game 
 public class KeyBindingsMenu : MonoBehaviour
 {
@@ -31,14 +38,12 @@ public class KeyBindingsMenu : MonoBehaviour
     [SerializeField] private Text submitButtonMouse;
     
     [Header("Gamepad Panel")]           //For gamepad
-    [SerializeField] private StringSelector turningThrottling;
+    [SerializeField] private StringSelector scheme;  
     [SerializeField] private ValueSelector sensitivityStick;
     [SerializeField] private ValueSelector deadZone;
-    [SerializeField] private Text throttlingValue;
-
-    [SerializeField] private GameObject[] stickSelectors;   //This is DeadZone and Sensitivity text fields to enable-disable them when switching D-Pad and Stick on selector
-    [SerializeField] private ValueSelector[] stickSelectables;      //Along with disabling text fields, disabling ValueSelector script components so they can't be selected with mouse
-
+    [SerializeField] private Image currentSchemePicture;    //Picture of joystick with lines with text pointing to each button of the scheme
+    [SerializeField] private Sprite[] schemePictures;       //Different scheme pictures, each index corresponds to respective scheme selector index
+    
     [Header("Bottom")]              //References to bottom side of the menu buttons
     [SerializeField] private Selectable defaultWASD;
     [SerializeField] private Selectable defaultArrows;
@@ -111,6 +116,7 @@ public class KeyBindingsMenu : MonoBehaviour
         AxisConfiguration playerDevice = InputManager.GetAxisConfiguration(PausedPlayer, "DEVICE");   //Getting those AxisConfigurations throughout the script, not gonna comment them
         //First parameter is the player for which to get the config, second is the "axis", which may be just a field like "DEVICE", or single button ((((Unity input system is absolute shit))))
         AxisConfiguration turningAxis = InputManager.GetAxisConfiguration(PausedPlayer, "Turning");
+        AxisConfiguration throttlingAxis = InputManager.GetAxisConfiguration(PausedPlayer, "Throttle");
 
         if (playerDevice.description == "Keyboard")     //The line says it clear
         {
@@ -119,12 +125,12 @@ public class KeyBindingsMenu : MonoBehaviour
         else if (playerDevice.description == "Keyboard+Mouse")
         {
             device.SetIndex(1);                 //Setting device selector index
-            turningThrottling.SetIndex(0);      //Setting default index for selector if used decides to switch to it 
-            sensitivityStick.SetValue(25);      //We basically need to set all selectors, so they get operated appropriately, setting their index and the value they show
-            deadZone.SetValue(0);
+            scheme.SetIndex(0);      //Setting default index for selector if used decides to switch to it 
+            sensitivityStick.SetValue(Const.DefaultStickSens);      //We basically need to set all selectors, so they get operated appropriately, setting their index and the value they show
+            deadZone.SetValue(Const.DefaultDeadZone);
             sensitivityMouse.SetValue(Mathf.RoundToInt((turningAxis.sensitivity - 0.1f) * 100));    //For mouse sensitivity get it from value set in controls config (the 0-100 sensitivity is 0.1-1.1 sensitivity in config, so 0 sensitivity would move the mouse at all)
         }
-        else
+        else        //Gamepad
         {
             int selectedJoystick = 0;    //Declaring variable
             try
@@ -138,29 +144,44 @@ public class KeyBindingsMenu : MonoBehaviour
                 return;                 //Returning, cuz if error occured, we don't want to use the unassigned "selectedJoystick"
             }
             
-            if (Input.GetJoystickNames().Length - 1 < selectedJoystick)  //If specified joystick index in the config is largher than the amount of joysticks 
+            if (Input.GetJoystickNames().Length - 1 < selectedJoystick)  //If specified joystick index in the config is larger than the amount of joysticks 
             {                                                           //(this gets invoked only when entering key bindings, so when entered game, player can freely connect the joystick and play without reconfiguring anything)
                 defaultDevice();        //Setting to default device, which is keyboard     
             }
             else    //If we are still in range of connected joysticks
             {
-                device.SetIndex(2 + selectedJoystick);  //Set index to a correcponding joysticks (joysticks are numbered from 0, but their device index from 2)
+                device.SetIndex(2 + selectedJoystick);  //Set index to a corresponding joystick (joysticks are numbered from 0, but their device index from 2)
                 
+                //Depending on which axis is set for "Turning"
                 if (turningAxis.axis == 5)  //D-Pad
                 {
-                    turningThrottling.SetIndex(1);  //If D-Pad is set in config, set its index in selector
-                    sensitivityStick.SetValue(25);  //And set default values for all other selectors
-                    deadZone.SetValue(0);
-                    sensitivityMouse.SetValue(25);
+                    scheme.SetIndex(0);  //If D-Pad is set in config, set its index in selector
+                    sensitivityStick.SetValue(Const.DefaultStickSens);  //And set default values for all other selectors
+                    deadZone.SetValue(Const.DefaultDeadZone);
+                    sensitivityMouse.SetValue(Const.DefaultMouseSens);
                 }                  
-                else if (turningAxis.axis == 0) //Stick
+                else if (turningAxis.axis == 0) //Left Stick
                 {
-                    turningThrottling.SetIndex(0);  //Set it on selector
+                    scheme.SetIndex(1);  //Set it on selector
                     sensitivityStick.SetValue(Mathf.RoundToInt((turningAxis.sensitivity - 0.5f) * 100));    //Get sensitivity from config (0-100 is 0.5-1.5 in config)
                     deadZone.SetValue(Mathf.RoundToInt(turningAxis.deadZone * 100));                        //Get deadZone from config (0-100 is 0-1 in config)
-                    sensitivityMouse.SetValue(25);
+                    sensitivityMouse.SetValue(Const.DefaultMouseSens);
                 }
-                  
+                else if (turningAxis.axis == 3) //Right Stick
+                {
+                    if (throttlingAxis.axis == 6)   //For right stick turning setting there are two different throttling settings. This one is "D-pad"
+                    {
+                        scheme.SetIndex(2);  //If D-Pad is set in config, set its index in selector                        
+                    }
+                    else if (throttlingAxis.axis == 1)  //Left Stick
+                    {
+                        scheme.SetIndex(3);  //Set it on selector                       
+                    }
+                    sensitivityStick.SetValue(Mathf.RoundToInt((turningAxis.sensitivity - 0.5f) * 100));    //Get sensitivity from config (0-100 is 0.5-1.5 in config)
+                    deadZone.SetValue(Mathf.RoundToInt(turningAxis.deadZone * 100));                        //Get deadZone from config (0-100 is 0-1 in config)
+                    sensitivityMouse.SetValue(Const.DefaultMouseSens);
+                }
+
                 TurningThrottlingChange();      //Run a function that depending on a selector state, changes some menu fields/selectors
             }
         }
@@ -172,10 +193,10 @@ public class KeyBindingsMenu : MonoBehaviour
     private void defaultDevice()        //Used a couple of times here, so get this all in a function
     {
         device.SetIndex(0);             //Set device selector to Keyboard
-        turningThrottling.SetIndex(0);  //So when some player with joystick sets their turning, it doesnt transfer to keyboard player when he switches to gamepad (so for keyboard player default option is "Stick", and not whatever 'joystick player' set last)
-        sensitivityStick.SetValue(25);  //Set default values for joystick panel, so when the player switched to them, they are not the last selected
-        deadZone.SetValue(0);           
-        sensitivityMouse.SetValue(25);  
+        scheme.SetIndex(0);  //So when some player with joystick sets their turning, it doesnt transfer to keyboard player when he switches to gamepad (so for keyboard player default option is "Stick", and not whatever 'joystick player' set last)
+        sensitivityStick.SetValue(Const.DefaultStickSens);  //Set default values for joystick panel, so when the player switched to them, they are not the last selected
+        deadZone.SetValue(Const.DefaultDeadZone);           
+        sensitivityMouse.SetValue(Const.DefaultMouseSens);  
     }
 
     public void ChangeDevice()
@@ -238,8 +259,8 @@ public class KeyBindingsMenu : MonoBehaviour
             defaultWASD.gameObject.SetActive(false);        //Disable botton buttons for binding default keyboard keys
             defaultArrows.gameObject.SetActive(false);
 
-            setSelectableDown(deviceSelectable, turningThrottling);
-            setSelectableUp(back, turningThrottling);
+            setSelectableDown(deviceSelectable, scheme);
+            setSelectableUp(back, scheme);
             
             TurningThrottlingChange();      //Change joystick panel depending on if D-Pad or stick is selected
         }
@@ -248,40 +269,29 @@ public class KeyBindingsMenu : MonoBehaviour
 
     public void TurningThrottlingChange()       //Yeah, this function
     {
-        if (turningThrottling.GetIndex == 0)    //Stick
+        if (scheme.GetIndex == 0)    //D-pad turning
         {
-            //We don't want to disable whole selectors when switching between D-Pad and Stick, because that would move Vertical Layout group layout, so we are leaving objects in there, but disabling it visually and interactibly
-            foreach (GameObject text in stickSelectors) //Enable text fields of sensitivity and deadZone selectors
-            {
-                text.SetActive(true);
-            }
-            foreach (ValueSelector selectable in stickSelectables)  //Enable script components which handle their selection with mouse
-            {
-                selectable.enabled = true;
-            }
+            //Disabling selectors, because no sensitivity and dead zone for d-pad turning
+            sensitivityStick.gameObject.SetActive(false);
+            deadZone.gameObject.SetActive(false);
 
-            setSelectableDown(turningThrottling.GetComponent<Selectable>(), sensitivityStick);  //Set navigation
+            setSelectableDown(scheme.GetComponent<Selectable>(), back);  //Set navigation
+            setSelectableUp(back, scheme);
+            
+        }
+        else if (scheme.GetIndex == 1 || scheme.GetIndex == 2 || scheme.GetIndex == 3)   //Left or Right Stick turning
+        {
+            //Enabling sensitivity and dead zone selectors
+            sensitivityStick.gameObject.SetActive(true);
+            deadZone.gameObject.SetActive(true);
+
+            setSelectableDown(scheme.GetComponent<Selectable>(), sensitivityStick);  //Set navigation
             setSelectableUp(back, deadZone);
+            
+        }       
 
-            throttlingValue.text = "LEFT STICK Y Axis"; //Write that throttling is controlled by Stick
-        }
-        else if (turningThrottling.GetIndex == 1)   //D-Pad
-        {
-            foreach (GameObject text in stickSelectors) //Disable text fields of sensitivity and deadZone selectors
-            {
-                text.SetActive(false);
-            }
-            foreach (ValueSelector selectable in stickSelectables)  //Disable script components which handle their selection with mouse
-            {
-                selectable.enabled = false;
-            }
+        currentSchemePicture.sprite = schemePictures[scheme.GetIndex];   //Change picture of joystick bindings depending on selector index
 
-            setSelectableDown(turningThrottling.GetComponent<Selectable>(), back);  //Set navigation
-            setSelectableUp(back, turningThrottling);
-
-            throttlingValue.text = "D-PAD UP/DOWN";     //Write that throttling is controlled by D-Pad
-        }
-        
     }
     
     public void ApplyControls()     //Function that runs when successfully gone back from keybindings menu
@@ -334,14 +344,14 @@ public class KeyBindingsMenu : MonoBehaviour
             playerDevice.description = "Keyboard";
             setPlayerDevice(0);             //Setting player device in CustomInputModule
             setJumpSingleButton(true);      //Setting if jumping is handled with one button in PlayerMovement 
-            setAnalogTurning(1);            //Setting so sensitivity saved in config gets lead to appropriate values depending on the device 
+            setAnalogTurning(Const.ButtonFactor);            //Setting so sensitivity saved in config gets lead to appropriate values depending on the device 
 
             if (device.GetIndex == 1)       //All written before was the same for both keyboard and keyboard+mouse, so if the device is mouse, override some settings
             {
                 turning.ClearCompletely();  //Means clear the whole axis
                 turning.type = InputType.MouseAxis; //Set type to mouse
                 turning.axis = 0;       //Set X axis (left-right)
-                setAnalogTurning(0.2f); //Set factor for turning, so mouse is appropriately sensitive
+                setAnalogTurning(Const.MouseFactor); //Set factor for turning, so mouse is appropriately sensitive
                 turning.sensitivity = 0.1f + sensitivityMouse.Option / 100f;        //Convert from 0-100 to 0.1-1.1 that gets saved in config
                 
                 playerDevice.description = "Keyboard+Mouse";    //Set device
@@ -384,52 +394,108 @@ public class KeyBindingsMenu : MonoBehaviour
             playerDevice.description = "Joystick" + joystickIndex;  //Yeah, this one, combining with an index
             setPlayerDevice(joystickIndex + 2);     //Set device starting from 2 for joysticks
 
-            if (turningThrottling.GetIndex == 0)    //Stick
+            if (scheme.GetIndex == 0 || scheme.GetIndex == 1)    //D-Pad or left stick turning
             {
-                throttling.type = InputType.AnalogAxis; //For stick set analog axis (digital one means positive-negative buttons)
-                throttling.axis = 1;        //Y axis for throttling
-                throttling.invert = true;   //Not sure why, but stick Y axis is inverted by default, so invert it back
+                if (scheme.GetIndex == 0)    //D-Pad turning
+                {
+                    throttling.type = InputType.AnalogAxis;     //For d-pad set analog axis (digital one means using positive-negative buttons)
+                    throttling.axis = 6;        //6 axis is 'Y axis' on D-Pad
+                    throttling.invert = false;  //No built-in invertage on that one
+
+                    turning.type = InputType.AnalogAxis;    //Turning 
+                    turning.axis = 5;                   //'X axis' on D-Pad
+
+                    setAnalogTurning(Const.ButtonFactor);    //Set default factor for turning
+                }
+                else if(scheme.GetIndex == 1)    //Stick turning
+                {
+                    throttling.type = InputType.AnalogAxis; //For stick set analog axis
+                    throttling.axis = 1;        //Y axis on left stick for throttling
+                    throttling.invert = true;   //Not sure why, but stick Y axis is inverted by default, so invert it back
+
+                    turning.type = InputType.AnalogAxis;    //Set turning to analog as well
+                    turning.axis = 0;           //X axis (left stick)
+
+                    setAnalogTurning(Const.JoystickFactor);        //Set factor for turning to 4, this will be appropriate turning speed for stick
+
+                    turning.sensitivity = 0.5f + sensitivityStick.Option / 100f;    //Set sensitivity and deadZone in config from selectors  (0-100 is 0.5-1.5 in config)
+                    turning.deadZone = deadZone.Option / 100f;                      //Deadzone (0-100 is 0-1 in config)
+                }
+
+                throttling.joystick = joystickIndex;    //Set joystick numbers for axis
+                turning.joystick = joystickIndex;
+
+                strafing.type = InputType.DigitalAxis;  //Cuz buttons LB and RB
+                strafing.positive = (KeyCode)(355 + joystickIndex * 20);    //JoystickXButton5, converting from int to enum
+                strafing.negative = (KeyCode)(354 + joystickIndex * 20);    //JoystickXButton4
+
+                jump.positive = KeyCode.None;   //Set jump button to None, so jump get handled from two buttons
+                setJumpSingleButton(false);
+
+                LB.positive = (KeyCode)(354 + joystickIndex * 20);   //JoystickXButton5, from those ones, these are LB and RB
+                RB.positive = (KeyCode)(355 + joystickIndex * 20);   //JoystickXButton4
+
+                rocket.positive = (KeyCode)(351 + joystickIndex * 20); //JoystickXButton1
+                laser.positive = (KeyCode)(350 + joystickIndex * 20);    //JoystickXButton0
+                shootBall.positive = (KeyCode)(353 + joystickIndex * 20); //JoystickXButton3
+
+                cancelButton.positive = (KeyCode)(356 + joystickIndex * 20);    //JoystickXButton6
+                submitButton.positive = (KeyCode)(357 + joystickIndex * 20);    //JoystickXButton7
+                
+            }
+            else if (scheme.GetIndex == 2 || scheme.GetIndex == 3)   //Right stick turning
+            {
+                if (scheme.GetIndex == 2)    //D-pad throttling/strafing
+                {
+                    throttling.type = InputType.AnalogAxis;     
+                    throttling.axis = 6;        //6 axis is 'Y axis' on D-Pad
+                    throttling.invert = false;  //No built-in invertage on that one
+
+                    strafing.type = InputType.AnalogAxis;    
+                    strafing.axis = 5;                   //'X axis' on D-Pad
+                    
+                }
+                else if(scheme.GetIndex == 3)    //Left Stick throttling/strafing
+                {
+                    throttling.type = InputType.AnalogAxis;    
+                    throttling.axis = 1;       //Y axis for throttling
+                    throttling.invert = true;  //Not sure why, but stick Y axis is inverted by default, so invert it back
+
+                    strafing.type = InputType.AnalogAxis;    //Turning 
+                    strafing.axis = 0;                   //'X axis'                    
+
+                }
                 
                 turning.type = InputType.AnalogAxis;    //Set turning to analog as well
-                turning.axis = 0;           //X axis
+                turning.axis = 3;           //Right stick X axis
 
-                setAnalogTurning(3);        //Set factor for turning to 3, this will be appropriate turning speed for stick
+                setAnalogTurning(Const.JoystickFactor);        //Set factor for turning to 4, this will be appropriate turning speed for stick
 
                 turning.sensitivity = 0.5f + sensitivityStick.Option / 100f;    //Set sensitivity and deadZone in config from selectors  (0-100 is 0.5-1.5 in config)
                 turning.deadZone = deadZone.Option / 100f;                      //Deadzone (0-100 is 0-1 in config)
 
+                throttling.joystick = joystickIndex;    //Set joystick numbers for axis
+                turning.joystick = joystickIndex;
+                strafing.joystick = joystickIndex;
+                
+                jump.type = InputType.AnalogButton;   //Set jump button to AnalogButton, which means GetButtonXX outputs true if analog button (like trigger) is pressed. Manually edited AxisConfiguration to fire true when > 0.03
+                jump.axis = 8;  //Left trigger
+                setJumpSingleButton(true);  //Jumping with single button
+
+                shootBall.type = InputType.AnalogButton;    //Same for shoot ball
+                shootBall.axis = 9; //On right trigger
+
+                LB.positive = KeyCode.None;   //Clear two-button jump bindings
+                RB.positive = KeyCode.None;
+
+                rocket.positive = (KeyCode)(355 + joystickIndex * 20); //JoystickXButton5   //Right bumper
+                laser.positive = (KeyCode)(354 + joystickIndex * 20);    //JoystickXButton4 //Left bumper
+                
+                cancelButton.positive = (KeyCode)(356 + joystickIndex * 20);    //JoystickXButton6
+                submitButton.positive = (KeyCode)(357 + joystickIndex * 20);    //JoystickXButton7
+                
             }
-            else if (turningThrottling.GetIndex == 1)   //D-Pad
-            {
-                throttling.type = InputType.AnalogAxis;     //Still analog axis, cuz not buttons
-                throttling.axis = 6;        //6 axis is 'Y axis' on D-Pad
-                throttling.invert = false;  //No built-in invertage on that one
-
-                turning.type = InputType.AnalogAxis;    //Turning 
-                turning.axis = 5;                   //'X axis' on D-Pad
-
-                setAnalogTurning(1);    //Set default factor for turning
-            }
-            throttling.joystick = joystickIndex;    //Set joystick numbers for axis
-            turning.joystick = joystickIndex;
-
-            strafing.type = InputType.DigitalAxis;  //Cuz buttons LB and RB
-            strafing.positive = (KeyCode)(355 + joystickIndex * 20);    //JoystickXButton5, converting from int to enum
-            strafing.negative = (KeyCode)(354 + joystickIndex * 20);    //JoystickXButton4
-
-            jump.positive = KeyCode.None;   //Set jump button to None, so jump get handled from two buttons
-            setJumpSingleButton(false);
-
-            LB.positive = (KeyCode)(354 + joystickIndex * 20);   //JoystickXButton5, from those ones, these are LB and RB
-            RB.positive = (KeyCode)(355 + joystickIndex * 20);   //JoystickXButton4
-
-            rocket.positive = (KeyCode)(351 + joystickIndex * 20); //JoystickXButton1
-            laser.positive = (KeyCode)(350 + joystickIndex * 20);    //JoystickXButton0
-            shootBall.positive = (KeyCode)(353 + joystickIndex * 20); //JoystickXButton3
-
-            cancelButton.positive = (KeyCode)(356 + joystickIndex * 20);    //JoystickXButton6
-            submitButton.positive = (KeyCode)(357 + joystickIndex * 20);    //JoystickXButton7
-            
+           
         }
 
         InputManager.Save();    //Save config .xml file to AppDate after setting all configs

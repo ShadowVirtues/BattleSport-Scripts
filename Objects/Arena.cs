@@ -13,7 +13,7 @@ public class Arena : ScriptableObject
     public string goalDescription;      //Description of the goal if its not "Normal"
     public Ball.BallType ballType;      //Type of the ball in it for the same stuff as for goal, but also for spawning specific one into arena
     public string ballDescription;      //Description of the ball if its not "Normal"
-    public VideoClip arenaVideo;        //Video with the arena for its preview
+    public VideoClip arenaVideo;        //Video with the arena for its preview  //Record in 690x270 resolution
 
     public AudioClip Music;             //Music to play in the arena
 

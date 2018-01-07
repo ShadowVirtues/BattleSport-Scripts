@@ -12,17 +12,13 @@ using Random = UnityEngine.Random;
     
     DO NEXT:       
     
-    Quick action    
-    Make 5 sec > 60
-    Arena with stairs - fumble protection
-    no invis on dark maps
-    Compress all textures
-
-
-
+    
     Consider we have lowered Mixer menu volumes
     
-        
+    
+
+    Make different arenas between periods, maybe play other random arena
+    Maybe make so period win just gets you a point like best of 5
 
 
 

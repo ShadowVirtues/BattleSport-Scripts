@@ -18,6 +18,9 @@ public class StartupController : MonoBehaviour
     [SerializeField] private GameObject GameUIPrefab;                 //Prefab of GameUI having all stuff like starting countdown, options menu, periods UI, GameStats
     [SerializeField] private GameObject ballCameraPrefab;       //Prefab with camera for Ball Possession, that also has EventSystem on it
 
+    [Header("Quick Match")]
+    [SerializeField] private QuickMatch quickMatch;     //Reference to script in MainMenu, where all the stuff for quick match is held
+
     [Header("Not getting set into Inspector")]  //TODO [HideInInspector]. For now they are visible for testing purposes
     public Arena arena;
     public int ShotClock;
@@ -30,9 +33,17 @@ public class StartupController : MonoBehaviour
 
     void Awake()
     {
-        Controller = this;      //Set static controller reference
-
-        DontDestroyOnLoad(gameObject);  //Make it not get destroyed in further scenes (if you go back to main menu, it gets destroyed manually)
+        if (Controller == null)
+        {
+            DontDestroyOnLoad(gameObject);
+            Controller = this;
+        }
+        else if (Controller != this)
+        {
+            Destroy(Controller.gameObject);
+            DontDestroyOnLoad(gameObject);
+            Controller = this;
+        }
     }
 
     public void GAMEButtonPress()   //This gets launched in the very end screen of the menu before the game
@@ -48,11 +59,13 @@ public class StartupController : MonoBehaviour
         {
             gameController.isPlayToScore = true;
             gameController.PeriodTime = PeriodTime;     //In that case, PeriodTime holds the amount of score needed to end the game
+            gameController.InitialPeriodTime = PeriodTime;  //Storing the initial value so we can recover when replaying game (to consider case when period time gets increased by 1 when entering overtime)
         }
         else
         {
             gameController.isPlayToScore = false;
-            gameController.PeriodTime = PeriodTime * 5;    //If its time-based, then multiply the amount of minutes set in StartupController to put seconds into GameController
+            gameController.PeriodTime = PeriodTime * 60;   //If its time-based, then multiply the amount of minutes set in StartupController to put seconds into GameController
+            gameController.InitialPeriodTime = PeriodTime;
         }
         
         gameController.ArenaDimension = (int)arena.Size;    //arena.Size is an enum that has its int identifiers set to actual arena dimensions
@@ -98,7 +111,53 @@ public class StartupController : MonoBehaviour
         
         CustomInputModule.Instance.Menu = false;    //Disabling universal input when in game
         CustomInputModule.Instance.Enabled = true;  //Enabling flag so when universal input does get enabled (in controls menu), we don't have to set it
+        
     }
+
+    public void QuickMatch()    //Function that randomly fills all controller values to start Quick Match
+    {
+        arena = quickMatch.AllArenas[UnityEngine.Random.Range(0, quickMatch.AllArenas.Length)]; //Randomly pick an arena from object in MainMenu that has references to them
+        
+        int tankOption = UnityEngine.Random.Range(0, quickMatch.tankOptions.Count);     //Randomly pick the entry in array with possibilities of tank cases
+        bool tankMutual = UnityEngine.Random.value > 0.5f;  //Randomly generate bool to pick which of two tanks will go to each player
+
+        if (tankMutual)
+        {
+            PlayerOneTank = quickMatch.tankOptions[tankOption][0];  //Set first tank to first player, second tank to second player
+            PlayerTwoTank = quickMatch.tankOptions[tankOption][1];
+        }
+        else
+        {
+            PlayerOneTank = quickMatch.tankOptions[tankOption][1];  //Set second tank to first player, first tank to second player
+            PlayerTwoTank = quickMatch.tankOptions[tankOption][0];
+        }
+
+        bool scoreBased = UnityEngine.Random.value > 0.75f;     //Chance of getting score-based game instead of time-based is 25%
+
+        if (scoreBased)
+        {
+            NumberOfPeriods = 0;    //Set number of periods to 0, if score-based
+            PeriodTime = 15;        //Set score to reach to 15 (yes, to PeriodTime)
+        }
+        else    //If time-based
+        {
+            NumberOfPeriods = UnityEngine.Random.Range(3, 6);   //Randomly pick between 3,4 or 5 periods
+            PeriodTime = 3; //Set period time to 3 minutes
+        }
+
+        ShotClock = UnityEngine.Random.Range(5, 16);    //Randomly pick ShotClock between 5 and 15 seconds
+        if (arena.Number == 61) //Specifically for arena 61 set it starting from 10 seconds (which is still a little for this arena)
+        {
+            ShotClock = UnityEngine.Random.Range(10, 16);
+        }
+        
+        PlayerOneName = "PLAYER 1"; //Set default names for both players
+        PlayerTwoName = "PLAYER 2";
+    }
+
+
+
+    
 
 
 

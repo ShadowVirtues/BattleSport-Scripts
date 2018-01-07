@@ -27,6 +27,7 @@ public class GameController : MonoBehaviour
 
     public int ShotClock;
     public int PeriodTime;
+    public int InitialPeriodTime;   //Storing the initial period time here
     public int NumberOfPeriods;
     public bool isPlayToScore;
     public float ArenaDimension;    //This is the size of the arena in one dimension (X or Y, cuz they are equal, arena always has square shape) 
@@ -344,18 +345,16 @@ public class GameController : MonoBehaviour
 
         PlayerOne.playerStats = new PlayerStats();    //Recreate the instance of playerStats to clear their values
         PlayerTwo.playerStats = new PlayerStats();       
-
-        NumberOfPeriods = StartupController.Controller.NumberOfPeriods; //Get initial number of periods from StartupController (just in case)
-
+        
         if (NumberOfPeriods == 0)   //If number of periods is 0, means the game mode is "Play To Score"
         {
             isPlayToScore = true;
-            PeriodTime = StartupController.Controller.PeriodTime;     //In that case, PeriodTime holds the amount of score needed to end the game
+            PeriodTime = InitialPeriodTime;     //In that case, InitialPeriodTime holds the amount of score needed to end the game
         }
         else
         {
             isPlayToScore = false;
-            PeriodTime = StartupController.Controller.PeriodTime * 60;    //If its time-based, then multiply the amount of minutes set in StartupController to put seconds into GameController
+            PeriodTime = InitialPeriodTime * 60;    //If its time-based, then multiply the amount of minutes set in InitialPeriodTime to put seconds into PeriodTime
         }
 
         if (isPlayToScore == false)   //If it is not play to score
