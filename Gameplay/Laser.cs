@@ -8,7 +8,7 @@ public class Laser : MonoBehaviour
     private readonly WaitForSeconds explosionTime = new WaitForSeconds(0.5f);   //Explosion duration
 
     public float FirePower; //Laser parameter for damage to apply. Gets set in PlayerShooting when pressing a laser button
-    public int otherPlayerLayer;    //LayerMask to see which player can be hit. By using it decide in OnCollisionEnter if we should run public Hit function on other player
+    public int HitLayerMask;    //LayerMask to see which player can be hit. By using it decide in OnCollisionEnter if we should run public Hit function on other player
 
     private new Rigidbody rigidbody; //Cache rockets rigidbody to set its velocity to zero when the laser hits
 
@@ -28,7 +28,7 @@ public class Laser : MonoBehaviour
     {
         StopCoroutine(nameof(LifeTime));    //If we hit something, stop the countdown to fade the laser after some time
 
-        if (otherPlayerLayer == (otherPlayerLayer | (1 << other.gameObject.layer))) //Not-mine elegant solution to check if layer is in layerMask
+        if (HitLayerMask == (HitLayerMask | (1 << other.gameObject.layer))) //Not-mine elegant solution to check if layer is in layerMask
         {   
             if (other.gameObject.layer == 8)  //PlayerOne layer, then hit player one (getting the reference from GameController)
             {
@@ -48,7 +48,8 @@ public class Laser : MonoBehaviour
         StartCoroutine(LaserExplosion());  //After colliding, disable laser model and make explosion, then disable the whole laser object for reusage
     }
     
-    private readonly WaitForSeconds lifeTime = new WaitForSeconds(0.75f); //Laser life time
+    private static readonly WaitForSeconds lifeTime = new WaitForSeconds(0.75f); //Laser life time
+    //'static', because it's the same for every laser, and we don't need to have 11 WaitForSecond's in memory
 
     IEnumerator LifeTime()
     {

@@ -5,10 +5,10 @@ public class Rocket : MonoBehaviour
 {
     [SerializeField] private GameObject rocketModel;    //Reference to rocket model and explosion to disable-enable them when rocket explodes
     [SerializeField] private GameObject explosion;
-    private readonly WaitForSeconds explosionTime = new WaitForSeconds(0.5f);   //Explosion duration
+    private static readonly WaitForSeconds explosionTime = new WaitForSeconds(0.5f);   //Explosion duration
 
     public float FirePower; //Rocket parameter for damage and knockback to apply. Gets set in PlayerShooting when pressing a rocket button
-    public int otherPlayerLayer;    //To decide in OnCollisionEnter if we should apply force to hit object (Other player)
+    public int HitLayerMask;    //LayerMask to see which player can be hit. By using it decide in OnCollisionEnter if we should run public Hit function on other player
     public Vector3 shotDirection;   //Initial rocket facing direction, this is used in OnCollisionEnter, because rigidbody.velocity changes its vector when hitting the collider (reflects from hit surface)
 
     private const float forceCoeff = 0.3f;    //Coefficient to convert FirePower to Force
@@ -32,8 +32,8 @@ public class Rocket : MonoBehaviour
     }
 
     void OnCollisionEnter(Collision other)  //When the rocket collides with something
-    {       
-        if (other.gameObject.layer == otherPlayerLayer) //If the collided object is other player
+    {
+        if (HitLayerMask == (HitLayerMask | (1 << other.gameObject.layer))) //If the collided object is in layerMask of rocket
         {//Apply knockback force to the player
 
             float codirCoeff = 0;   //Co-directional coefficient. This is used so when the player is moving in the direction of the rocket that hits him, the player gets pushed much more than when idle
@@ -47,7 +47,7 @@ public class Rocket : MonoBehaviour
                                    (1 - normalForceRatio - upForceRatio) * shotDirection * codirCoeff   //Rocket velocity vector part * codirCoeff is the player is moving the same direction as the rocket that hits him
                                    + Vector3.up * upForceRatio;     //And finally knockup part
             
-            if (otherPlayerLayer == 8)           //PlayerOne layer, then hit player one (getting the reference from GameController)
+            if (other.gameObject.layer == 8)           //PlayerOne layer, then hit player one (getting the reference from GameController)
             {
                 if (GameController.Controller.PlayerOne.powerup.Stabilizers == false)   //Only add force if player doesn't have Stabilizers powerup effect
                 {
@@ -57,7 +57,7 @@ public class Rocket : MonoBehaviour
                 GameController.Controller.PlayerTwo.playerStats.MissilesHit++;
                 GameController.Controller.PlayerOne.Hit(FirePower, Weapon.Rocket);    
             }
-            else if (otherPlayerLayer == 9)     //PlayerTwo layer 
+            else if (other.gameObject.layer == 9)     //PlayerTwo layer 
             {
                 if (GameController.Controller.PlayerTwo.powerup.Stabilizers == false)   //Only add force if player doesn't have Stabilizers powerup effect
                 {

@@ -67,8 +67,8 @@ public class PlayerShooting : MonoBehaviour
             foreach (Transform t in Rockets[i].transform)
             {
                 t.gameObject.layer = layerToSet;
-            }                                                   //TODO Make this layer mask too after making sure everything works properly with it
-            rocket[i].otherPlayerLayer = playerNumber == PlayerID.One ? 9 : 8;  //(Hardcoded for now) Assign this so rockets know what player to do damage to. 9 - "PlayerTwo", 8 - "PlayerOne"
+            }                                                   
+            rocket[i].HitLayerMask = playerNumber == PlayerID.One ? 1 << 9 : 1 << 8;  //(Hardcoded for now) Assign this so rockets know what player to do damage to. 9 - "PlayerTwo", 8 - "PlayerOne"
 
         }
 
@@ -93,7 +93,7 @@ public class PlayerShooting : MonoBehaviour
             {
                 t.gameObject.layer = layerToSet;
             }
-            laser[i].otherPlayerLayer = playerNumber == PlayerID.One ? 1 << 9 : 1 << 8;     //(Hardcoded for now) Assign layerMask so lasers know what player to do damage to. 9 - "PlayerTwo", 8 - "PlayerOne"
+            laser[i].HitLayerMask = playerNumber == PlayerID.One ? 1 << 9 : 1 << 8;     //(Hardcoded for now) Assign layerMask so lasers know what player to do damage to. 9 - "PlayerTwo", 8 - "PlayerOne"
         }
         
     }
@@ -175,11 +175,11 @@ public class PlayerShooting : MonoBehaviour
                     //Set laser velocity. Transform Vector3.forward to global space relative to the turret rotation by multiplying by rotation Quaternion + inherit tanks Z velocity
                     laserRigidbody[i].velocity = defaultLaserSpeed * (tank.LaserSpawnPoints[turretNumber].rotation * Vector3.forward) + playerVelocityZGlobal;
 
-                    if (laserRigidbody[i].velocity.magnitude < minimalLaserSpeed) //Laser minimal speed is 40, if after inheriting tanks speed it's less then minimal, make it minimal speed
+                    if (Vector3.Dot(laserRigidbody[i].velocity, transform.TransformDirection(Vector3.forward)) < minimalLaserSpeed) //Laser minimal speed is 40, if after inheriting tanks speed it's less then minimal, make it minimal speed
                     {
-                        laserRigidbody[i].velocity = laserRigidbody[i].velocity.normalized * minimalLaserSpeed;
+                        laserRigidbody[i].velocity = minimalLaserSpeed * (tank.LaserSpawnPoints[turretNumber].rotation * Vector3.forward);
                     }
-
+                    
                     laserSource.Play(); //Play laser shot sound that would interrupt itself if played in quick succession
 
                     if (player.powerup.DoubleDamage)

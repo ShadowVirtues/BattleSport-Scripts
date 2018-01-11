@@ -37,7 +37,9 @@ public class Ball : MonoBehaviour
         ballMaterial = GetComponentInChildren<Renderer>().material;
         originalAlpha = ballMaterial.color.a;   //And some parameters as well
     }
-    
+
+    #region Possession
+
     //TODO [HideInInspector]    
     //I would refactor this to have "playerOne.possessed", "playerOne.ballShot", but in the current state it works so great without any bugs, I feels like if I refactor, some stuff will surely break, and refactoring is not gonna simplify a lot of stuff anyway
     public bool firstPlayerShot;        //This represents if and which player shot the ball for scoring and interceptions (only applies until the ball hits some geometry)
@@ -54,56 +56,7 @@ public class Ball : MonoBehaviour
     public bool secondPlayerPossessedShot;  //And also those ones will prevent the player to refresh the ballClock against some wall (basically, you can't pick up the ball for 2 seconds after shooting it) (you can do so if rejected tho)
     //TODO make private
 
-    private readonly WaitForSeconds pickupAfterShotDelay = new WaitForSeconds(2);   //Delay after shooting when the shooting player can't pick up the ball
-
-    public void PlayerShot(PlayerID player)     //Public function that gets called from Player.cs when player shoots the ball
-    {
-        if (player == PlayerID.One) StartCoroutine(nameof(pickupDelayOne));     //Depending on which player shot, start respective coroutine of 2 seconds delay until this player can pick the ball up again
-        else if (player == PlayerID.Two) StartCoroutine(nameof(pickupDelayTwo));
-
-        StartCoroutine(nameof(BallShot));   //Also run the coroutine checking when the ball flew past the goal to register a miss
-    }
     
-    private IEnumerator BallShot()  //Coroutine registering a miss at the moment ball flies past the goal if the player missed it
-    {                               //(In the original game it would register only if the ball hit some geometry after shooting it doe)
-        while (true)    //Until we break out of coroutine (when the ball flies past the goal)
-        {
-            Vector3 ballToGoal = goalTransform.position - rigidbody.position;   //This gets the vector pointing from the ball to the goal 
-            if (Vector3.Angle(rigidbody.velocity, ballToGoal) > 90)             //If the angle between preceding vector and ball velocity is more than 90 deg, 
-            {                                                                   //it means that the ball is flying away from the goal (player can't possibly score anymore with this ball flight path)
-                float distance = Vector3.Distance(rigidbody.position, goalTransform.position);  //Calculate the distance to the goal from the ball
-                if (distance > 1.5f)    //Register a miss only if the ball is farther than 1.5 units away from goal to consider the situation when the ball hits the farthest point of the goal from the player (when its already past goal's center)
-                {                    
-                    Miss(distance);     //Run a function deciding if it was a "Close Shot" or "Way Off"
-                    yield break;        //Stop coroutine from running, cuz the ball already flew past the goal
-                }           
-            }
-            yield return null;          //If the angle is less than 90, the ball is still moving towards the goal, check it at the next frame
-        }                               //Even if the ball never reaches the goal like this, other player, or same player after 2 seconds can pick up the ball 
-    }
-
-    private void Miss(float distance)   //Function that checks if it was a "Close Shot" or "Way Off" from the distance argument
-    {
-        if (distance > 5) GameController.announcer.MissLong();  //If the ball flew past the goal more than 5 units away, its a "Way Off"
-        else GameController.announcer.MissClose();
-
-        playerMissMessage();    //Function that writes "Miss" on screen for particular player (acually done as separate function because we use it on "Rejected" as well)
-
-        losePossession(false);                                  //Lose possession from both players, but the shooting player still can't pick up the ball for 2 seconds
-    }
-
-    void playerMissMessage()    //Function to write "Miss"
-    {
-        if (firstPlayerShot)
-        {
-            GameController.Controller.PlayerOne.ShowMessage(Message.Miss);  //Depending on what the player shot the ball
-        }
-        else if (secondPlayerShot)
-        {
-            GameController.Controller.PlayerTwo.ShowMessage(Message.Miss);
-        }
-    }
-
     private IEnumerator pickupDelayOne()    //Have to make a coroutines for each player, to be able to stop them (I couldn't find an easier way to stop a coroutine with a parameter, so two non-parameter ones)
     {
         yield return pickupAfterShotDelay;  //Wait 2 seconds
@@ -228,9 +181,66 @@ public class Ball : MonoBehaviour
         }
 
     }
-    
 
-    //So the goal has "score-registering" parts (or faces of the ball model), and also non-registering (from which the ball bounces off)
+    #endregion
+
+    #region Shooting
+
+    private readonly WaitForSeconds pickupAfterShotDelay = new WaitForSeconds(2);   //Delay after shooting when the shooting player can't pick up the ball
+
+    public void PlayerShot(PlayerID player)     //Public function that gets called from Player.cs when player shoots the ball
+    {
+        if (player == PlayerID.One) StartCoroutine(nameof(pickupDelayOne));     //Depending on which player shot, start respective coroutine of 2 seconds delay until this player can pick the ball up again
+        else if (player == PlayerID.Two) StartCoroutine(nameof(pickupDelayTwo));
+
+        StartCoroutine(nameof(BallShot));   //Also run the coroutine checking when the ball flew past the goal to register a miss
+    }
+
+    private IEnumerator BallShot()  //Coroutine registering a miss at the moment ball flies past the goal if the player missed it
+    {                               //(In the original game it would register only if the ball hit some geometry after shooting it doe)
+        while (true)    //Until we break out of coroutine (when the ball flies past the goal)
+        {
+            Vector3 ballToGoal = goalTransform.position - rigidbody.position;   //This gets the vector pointing from the ball to the goal 
+            if (Vector3.Angle(rigidbody.velocity, ballToGoal) > 90)             //If the angle between preceding vector and ball velocity is more than 90 deg, 
+            {                                                                   //it means that the ball is flying away from the goal (player can't possibly score anymore with this ball flight path)
+                float distance = Vector3.Distance(rigidbody.position, goalTransform.position);  //Calculate the distance to the goal from the ball
+                if (distance > 1.5f)    //Register a miss only if the ball is farther than 1.5 units away from goal to consider the situation when the ball hits the farthest point of the goal from the player (when its already past goal's center)
+                {
+                    Miss(distance);     //Run a function deciding if it was a "Close Shot" or "Way Off"
+                    yield break;        //Stop coroutine from running, cuz the ball already flew past the goal
+                }
+            }
+            yield return null;          //If the angle is less than 90, the ball is still moving towards the goal, check it at the next frame
+        }                               //Even if the ball never reaches the goal like this, other player, or same player after 2 seconds can pick up the ball 
+    }
+
+    private void Miss(float distance)   //Function that checks if it was a "Close Shot" or "Way Off" from the distance argument
+    {
+        if (distance > 5) GameController.announcer.MissLong();  //If the ball flew past the goal more than 5 units away, its a "Way Off"
+        else GameController.announcer.MissClose();
+
+        playerMissMessage();    //Function that writes "Miss" on screen for particular player (acually done as separate function because we use it on "Rejected" as well)
+
+        losePossession(false);                                  //Lose possession from both players, but the shooting player still can't pick up the ball for 2 seconds
+    }
+
+    void playerMissMessage()    //Function to write "Miss"
+    {
+        if (firstPlayerShot)
+        {
+            GameController.Controller.PlayerOne.ShowMessage(Message.Miss);  //Depending on what the player shot the ball
+        }
+        else if (secondPlayerShot)
+        {
+            GameController.Controller.PlayerTwo.ShowMessage(Message.Miss);
+        }
+    }
+
+    #endregion
+
+    #region Physics
+
+    //So the goal has "score-registering" parts (or faces of the goal model), and also non-registering (from which the ball bounces off)
     //We check if the ball hit score-registering parts or not by checking contact normals when the ball collides with the goal
     //And when some player actually scores, the ball proceeds to go through the goal. Since Unity can't normally detect a collision before it actually occurs, when OnCollisionEnter occurs, ball has already 
     //reflected from the goal, even if it scored. That way we store the ball velocity before the collision (because FixedUpdate runs before OnCollision), and then after collision with the goal, we return
@@ -287,6 +297,10 @@ public class Ball : MonoBehaviour
         //If we only add force, the ball could get the the point it would literally spin around the player, not being able to properly get to him, so we need to redirect the ball to the direction of the target as well
         rigidbody.velocity = Vector3.RotateTowards(rigidbody.velocity, attractVector, attractAngle, 0); //Last parameter is for changing the vector depending on the difference between current and target, which we don't need, so 0
     }
+
+    #endregion
+
+    #region Scoring
 
     public static readonly WaitForSeconds scoreDelay = new WaitForSeconds(5); //5 second delay after scoring during which players can't pick up the ball
 
@@ -405,6 +419,7 @@ public class Ball : MonoBehaviour
 
     }
 
+#endregion
 
     public void SetEverythingBack()
     {

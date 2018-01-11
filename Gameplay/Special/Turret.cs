@@ -55,7 +55,7 @@ public class Turret : MonoBehaviour
             {
                 t.gameObject.layer = 21;    //Set all hierarchy of the pooled laser to the layer
             }
-            laser[i].otherPlayerLayer = 1 << 9 | 1 << 8;  //LayerMask of both players
+            laser[i].HitLayerMask = 1 << 9 | 1 << 8;  //LayerMask of both players
         }
 
         //==========================================
