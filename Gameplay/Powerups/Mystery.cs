@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class Mystery : MonoBehaviour    //Script that is attached to Mystery powerup along with ALL other powerup scripts
 {
-
     private Powerup[] allPowerups;  //This is the array of all powerup scripts on mystery powerup GameObject
 
     void Awake()

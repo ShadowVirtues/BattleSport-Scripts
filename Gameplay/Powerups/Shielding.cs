@@ -1,11 +1,11 @@
 public class Shielding : Powerup
 {
-    protected override void ActionIn(PlayerPowerup player)
+    public override void ActionIn(PlayerPowerup player)
     {
         player.Shielding = true;
     }
 
-    protected override void ActionOut(PlayerPowerup player)
+    public override void ActionOut(PlayerPowerup player)
     {
         player.Shielding = false;
     }
@@ -20,9 +20,6 @@ public class Shielding : Powerup
     {
         type = Powerups.Shielding;
         MessageIn = "SHIELDING";
-        MessageOut = "SHIELDING OFF";
-        duration = 12;
-
-        name = MessageIn;
+        MessageOut = "SHIELDING OFF";       
     }
 }

@@ -2,12 +2,12 @@ using UnityEngine;
 
 public class Health : Powerup
 {
-    protected override void ActionIn(PlayerPowerup player)
+    public override void ActionIn(PlayerPowerup player)
     {
         player.player.SetHealth(100);   //Just set health to 100
     }
 
-    protected override void ActionOut(PlayerPowerup player) //Empty override, because we HAVE to implement abstract stuff, even tho there is nothing to do
+    public override void ActionOut(PlayerPowerup player) //Empty override, because we HAVE to implement abstract stuff, even tho there is nothing to do
     {
         
     }
@@ -38,8 +38,6 @@ public class Health : Powerup
     {
         MessageIn = "HEALTH RESTORED";
         MessageOut = "";
-        duration = 0;
-
-        name = "HEALTH";
+        duration = 0;        
     }
 }

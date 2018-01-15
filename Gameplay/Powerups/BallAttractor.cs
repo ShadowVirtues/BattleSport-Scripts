@@ -1,11 +1,11 @@
 public class BallAttractor : Powerup
 {
-    protected override void ActionIn(PlayerPowerup player)
+    public override void ActionIn(PlayerPowerup player)
     {
         player.BallAttractor = true;
     }
 
-    protected override void ActionOut(PlayerPowerup player)
+    public override void ActionOut(PlayerPowerup player)
     {
         player.BallAttractor = false;
     }
@@ -20,9 +20,6 @@ public class BallAttractor : Powerup
     {
         type = Powerups.BallAttractor;
         MessageIn = "BALL ATTRACTOR";
-        MessageOut = "ATTRACTOR OFF";
-        duration = 12;
-
-        name = MessageIn;
+        MessageOut = "ATTRACTOR OFF";       
     }
 }

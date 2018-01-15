@@ -1,11 +1,11 @@
 public class BlindYourself : Powerup
 {
-    protected override void ActionIn(PlayerPowerup player)
+    public override void ActionIn(PlayerPowerup player)
     {
         player.blinder.SetActive(true);     //Enable blinder on yourself
     }
 
-    protected override void ActionOut(PlayerPowerup player)
+    public override void ActionOut(PlayerPowerup player)
     {
         player.blinder.SetActive(false);     //Disable blinder on yourself
     }
@@ -22,7 +22,5 @@ public class BlindYourself : Powerup
         MessageIn = "BLINDED";
         MessageOut = "SIGHT RESTORED";
         duration = 6;
-
-        name = "BLIND ENEMY";
     }
 }

@@ -31,20 +31,15 @@ public abstract class Powerup : MonoBehaviour   //Base abstract class for all po
     public string MessageOut;   //Message player sees when the powerup expires
 
     public int duration;        //Duration of powerup
-    public WaitForSeconds timer;//Caching this on depending on duration
+    public WaitForSeconds timer;//Caching this depending on duration
     
-    protected abstract void ActionIn(PlayerPowerup player); //Abstract method, implemented in all powerup children classes. Action to execute when picked the powerup
-    protected abstract void ActionOut(PlayerPowerup player);//And when the powerup expires. PlayerPowerup is a paramater, because this is the class which handles all the functions needed to be executed (we need to get to it somehow from powerup code)
+    public abstract void ActionIn(PlayerPowerup player); //Abstract method, implemented in all powerup children classes. Action to execute when picked the powerup
+    public abstract void ActionOut(PlayerPowerup player);//And when the powerup expires. PlayerPowerup is a paramater, because this is the class which handles all the functions needed to be executed (we need to get to it somehow from powerup code)
     
-    public Action<PlayerPowerup> actionIn;  //This was the first implementation, where we needed to pass the Action<> as a parameter, now we pass the powerup instance itself with its ActionIn/ActionOut voids, so this is not really necessary
-    public Action<PlayerPowerup> actionOut; //So to not change all ActionIn/Outs to "public" in all derived classes, I'm leaving this implementation, when only Action<> is public and gets invoked from other scripts, it kinda brings incapsulation anyway tho
-
     public string Name; //Name in countdown panel
 
     void Awake()
-    {
-        actionIn = ActionIn;    //Assign actions
-        actionOut = ActionOut;
+    {       
         timer = new WaitForSeconds(duration);   //Cache the duration
     }
 
@@ -59,9 +54,9 @@ public abstract class Powerup : MonoBehaviour   //Base abstract class for all po
         gameObject.SetActive(false);    //Disable powerup, so it gets enabled ("spawned") later
     }
 
-    protected virtual void FixedUpdate()    //Overridden for some powerups that have more internal moving parts like SuperSpeed or DoubleDamage
+    protected virtual void Update()    //Overridden for some powerups that have more internal moving parts like SuperSpeed or DoubleDamage
     {
-        transform.Rotate(Vector3.up, 5);    //Spinning the powerup
+        transform.Rotate(Vector3.up, 500 * Time.deltaTime);    //Spinning the powerup
     }
 
 

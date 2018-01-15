@@ -1,11 +1,11 @@
 public class Invinsibility : Powerup
 {
-    protected override void ActionIn(PlayerPowerup player)
+    public override void ActionIn(PlayerPowerup player)
     {
         player.Invinsibility = true;
     }
 
-    protected override void ActionOut(PlayerPowerup player)
+    public override void ActionOut(PlayerPowerup player)
     {
         player.Invinsibility = false;
     }
@@ -19,10 +19,7 @@ public class Invinsibility : Powerup
     void Reset()
     {
         type = Powerups.Invinsibility;
-        MessageIn = "INVINSIBILITY";
-        MessageOut = "INVINSIBILITY OFF";
-        duration = 12;
-
-        name = MessageIn;
+        MessageIn = "INVINCIBILITY";
+        MessageOut = "INVINCIBILITY OFF";
     }
 }

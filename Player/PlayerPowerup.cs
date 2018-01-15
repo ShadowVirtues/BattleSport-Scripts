@@ -4,18 +4,18 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PlayerPowerup : MonoBehaviour  //Script is attached to the player, most of the stuff related to powerups is handled here
+public class PlayerPowerup : MonoBehaviour   //Script is attached to the player, most of the stuff related to powerups is handled here
 {
     public bool BallAttractor;
     public bool BallGuidance;
     public bool DoubleDamage;       //Most of the bools indicating that some powerup is active for that player
     public bool FlightSystem;
     public bool FumbleProtection;
-    //TurboLasers just changes things
+    //TurboLasers changes fire rate directly
     //Health just gets applied
     public bool Shielding;
-    //SuperSpeed just changes value;
-    //Blind just changes things
+    //SuperSpeed changes top speed directly
+    //Blind just enables UI Image
     public bool Invisibility;
     public bool Invinsibility;
     public bool Stabilizers;
@@ -98,9 +98,9 @@ public class PlayerPowerup : MonoBehaviour  //Script is attached to the player, 
             player.ShowMessage(powerup.MessageIn);  //Show it
         }
 
-        powerup.actionIn(this); //Run the action on pick
+        powerup.ActionIn(this); //Run the action on pick
         yield return powerup.timer; //Wait for powerup duration
-        powerup.actionOut(this);    //Run the action on expiration
+        powerup.ActionOut(this);    //Run the action on expiration
 
         if (string.IsNullOrEmpty(powerup.MessageOut) == false)  //Same stuff for expiration message
         {

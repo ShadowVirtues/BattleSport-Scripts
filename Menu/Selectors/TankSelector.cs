@@ -67,7 +67,6 @@ public class TankSelector : MenuSelector
 
         tank.gameObject.SetActive(true);    //Enable tank that plyaer selected
 
-        
         statsSliders[0].DOFillAmount(tank.Acceleration / 100, dur * tank.Acceleration / 100).SetId(this);
         statsSliders[1].DOFillAmount(tank.TopSpeed / 100, dur * tank.TopSpeed / 100).SetId(this);
         statsSliders[2].DOFillAmount(tank.FirePower / 100, dur * tank.FirePower / 100).SetId(this);         //Fill the "sliders", where the time it takes to fill to the amount takes time proportional to this amount to fill

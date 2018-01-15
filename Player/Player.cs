@@ -14,7 +14,10 @@ using Random = UnityEngine.Random;
     
     
     Consider we have lowered Mixer menu volumes
-    
+    Change arena preview for 22
+    No slow tanks on big maps
+    After finishing the game, only player two had controls in menu
+    Player Two could control with WASD, no arrows at all (including up-down), player one could control with up down for both stick and d-pad, no left-right 
     
 
     Make different arenas between periods, maybe play other random arena
@@ -477,12 +480,10 @@ public class Player : MonoBehaviour
             ball.transform.rotation = Quaternion.LookRotation(transform.TransformDirection(Vector3.forward));   //Set the rotation of the ball facing the direction of the tank
             ball.rigidbody.angularVelocity = transform.TransformDirection(new Vector3(20, 0, 0));               //Set angular velocity of the ball rotating to the direction of the shot
 
-            //Setting velocity instead of applying force to be able to store that velocity at the same frame (With force it would get applied the next frame), also to be able to add the player speed to inherit it 
+            //Setting velocity instead of applying force to be able to add the player speed to inherit it 
             ball.rigidbody.velocity = transform.TransformDirection(Vector3.forward * ballShootForce / ball.rigidbody.mass) + playerRigidbody.velocity;   //Dividing only ballShootForce by mass, so the player velocity get inherited with bigger value
             if (ball.rigidbody.velocity.y < 0) ball.rigidbody.velocity = new Vector3(ball.rigidbody.velocity.x, 0, ball.rigidbody.velocity.z);  //Make it so that vertical velocity gets inherited only when player moves up, but not down (for higher ability of performing cool shots)
-            
-            ball.prevVel = ball.rigidbody.velocity; //Store the velocity of the ball, so when the player is right in front of the goal, we actually have some "previous" value to give to the ball 
-            //(gets overrided if some FixedUpdate frame gets snagged in the process of the ball flying from the player to the goal (look FixedUpdate in Ball.cs)
+
 
             float distance = Vector3.Distance(playerRigidbody.position, GameController.Controller.goal.ballCollider.position);  //Calculate the distance from the goal at the ball shot point
             if (distance > 30)
@@ -563,7 +564,7 @@ public class Player : MonoBehaviour
             return;
         }
         Camera playerCamera = GetComponentInChildren<Camera>(); //Get camera in the children to set it's viewport and culling mask
-        RectTransform playerHUD = playerCamera.transform.Find("Player HUD Canvas/PlayerPanel").GetComponent<RectTransform>();   //Get PlayerPanel UI RectTransform to set it
+        RectTransform playerHUD = playerCamera.transform.GetChild(0).GetChild(0).GetComponent<RectTransform>();   //Get PlayerPanel UI RectTransform to set it
 
         if (PlayerNumber == PlayerID.One)   //If the value selected for PlayerNumber field is "One"
         {
@@ -579,7 +580,7 @@ public class Player : MonoBehaviour
             playerHUD.anchorMin = new Vector2(0,0);         //Set player UI RectTransform
             playerHUD.anchorMax = new Vector2(0.5f, 1);
 
-            GameObject.Find("GameController").GetComponent<GameController>().PlayerOne = GetComponent<Player>();    //Set player variable in the GameController       
+            FindObjectOfType<GameController>().PlayerOne = GetComponent<Player>();    //Set player variable in the GameController       
         }          
         else if (PlayerNumber == PlayerID.Two)  //All the same stuff for player two
         {
@@ -594,7 +595,7 @@ public class Player : MonoBehaviour
             playerHUD.anchorMin = new Vector2(0.5f, 0);
             playerHUD.anchorMax = new Vector2(1, 1);
 
-            GameObject.Find("GameController").GetComponent<GameController>().PlayerTwo = GetComponent<Player>();
+            FindObjectOfType<GameController>().PlayerTwo = GetComponent<Player>();
         }
    
     }

@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class StringSelector : MenuSelector
 {
-    [SerializeField] protected List<string> Options;      //List that gets filled from Inspector
+    [SerializeField] protected List<string> Options; //List that gets filled from Inspector
     
     public string Option => Options[index];  //This gets called when confirming settings
 

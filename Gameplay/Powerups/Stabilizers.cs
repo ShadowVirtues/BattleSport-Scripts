@@ -1,11 +1,11 @@
 public class Stabilizers : Powerup
 {
-    protected override void ActionIn(PlayerPowerup player)
+    public override void ActionIn(PlayerPowerup player)
     {
         player.Stabilizers = true;
     }
 
-    protected override void ActionOut(PlayerPowerup player)
+    public override void ActionOut(PlayerPowerup player)
     {
         player.Stabilizers = false;
     }
@@ -21,8 +21,5 @@ public class Stabilizers : Powerup
         type = Powerups.Stabilizers;
         MessageIn = "STABILIZERS";
         MessageOut = "STABILIZERS OFF";
-        duration = 12;
-
-        name = MessageIn;
     }
 }

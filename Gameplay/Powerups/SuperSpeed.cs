@@ -2,28 +2,28 @@ using UnityEngine;
 
 public class SuperSpeed : Powerup
 {
-    protected override void ActionIn(PlayerPowerup player)
+    public override void ActionIn(PlayerPowerup player)
     {
         player.playerMovement.SetSuperSpeed(true);
     }
 
-    protected override void ActionOut(PlayerPowerup player)
+    public override void ActionOut(PlayerPowerup player)
     {
         player.playerMovement.SetSuperSpeed(false);
     }
 
     [SerializeField] private Transform fans;    //Has rotating fans inside
 
-    protected override void FixedUpdate()
-    {               
+    protected override void Update()
+    {
         if (fans != null)   //If there are fans
         {
-            transform.Rotate(Vector3.up, 3);    //Rotate the whole powerup with 3 speed
-            fans.Rotate(Vector3.right, 5);      //Rotate the fans
+            transform.Rotate(Vector3.up, 300 * Time.deltaTime);    //Rotate the whole powerup with 3 speed
+            fans.Rotate(Vector3.right, 500 * Time.deltaTime);      //Rotate the fans
         }
         else
         {   
-            base.FixedUpdate();     //If there is no fans, which means it's Mystery, rotate with normal speed
+            base.Update();     //If there is no fans, which means it's Mystery, rotate with normal speed
         }
         
     }
@@ -33,9 +33,6 @@ public class SuperSpeed : Powerup
     {
         type = Powerups.SuperSpeed;
         MessageIn = "SUPER SPEED";
-        MessageOut = "NORMAL SPEED";
-        duration = 12;
-
-        name = MessageIn;
+        MessageOut = "NORMAL SPEED";       
     }
 }

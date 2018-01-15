@@ -33,6 +33,7 @@ public class MainMenu : MonoBehaviour
               
         StartCoroutine(DelayMusic());            //Play music with delay, because for some reason it doesn't instantly apply the volume of it, for a few frames it would play at 100% volume
 
+        CustomInputModule.Instance.Menu = true;             //Set so we are in menu when we are in menu D:
         CustomInputModule.Instance.Enabled = true;          //Make sure Menu input is enabled after we disable it for 0.5 delay after pressing some button
         CustomInputModule.Instance.GetComponent<EventSystem>().enabled = true;  //Enable event system if it was disabled for some reason. Before we get back to a menu from game, we disable event system (for 0.5 delay)
         Cursor.lockState = CursorLockMode.None;       //Enable cursor in case it was disabled

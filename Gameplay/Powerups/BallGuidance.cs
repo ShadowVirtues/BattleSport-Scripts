@@ -1,11 +1,11 @@
 public class BallGuidance : Powerup
 {
-    protected override void ActionIn(PlayerPowerup player)
+    public override void ActionIn(PlayerPowerup player)
     {
         player.BallGuidance = true;
     }
 
-    protected override void ActionOut(PlayerPowerup player)
+    public override void ActionOut(PlayerPowerup player)
     {
         player.BallGuidance = false;
     }
@@ -20,9 +20,6 @@ public class BallGuidance : Powerup
     {
         type = Powerups.BallGuidance;
         MessageIn = "BALL GUIDANCE";
-        MessageOut = "GUIDANCE EXPIRED";
-        duration = 12;
-
-        name = MessageIn;
+        MessageOut = "GUIDANCE EXPIRED";      
     }
 }

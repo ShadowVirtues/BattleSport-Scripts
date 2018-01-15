@@ -241,13 +241,10 @@ public class Ball : MonoBehaviour
     #region Physics
 
     //So the goal has "score-registering" parts (or faces of the goal model), and also non-registering (from which the ball bounces off)
-    //We check if the ball hit score-registering parts or not by checking contact normals when the ball collides with the goal
-    //And when some player actually scores, the ball proceeds to go through the goal. Since Unity can't normally detect a collision before it actually occurs, when OnCollisionEnter occurs, ball has already 
-    //reflected from the goal, even if it scored. That way we store the ball velocity before the collision (because FixedUpdate runs before OnCollision), and then after collision with the goal, we return
-    //the velocity back to what it was before the collision, along with disabling the collider of the goal for the ball to pass through that goal
-
-    [HideInInspector] public Vector3 prevVel; //Velocity of the ball in the previous frame to be able to "pass" the ball through the collider after it actually collides with it
-
+    //We 'SphereCast' to check if the ball would collide with the score-registering parts (to be able to disable goal ball collider before collision happens, so the ball can pass throught the goal when scored)
+    //Detection of hitting the correct part of the goal is done with contact normals of RaycastHit
+    //And IF the score was never counted before hitting the goal collider, it actually physically collides with the goal and counts as 'Rejected'
+    
     public Vector3Int additionalGravity;       //To make the ball itself and different balls have different gravity
 
     public float attractingForce = 10;  //Force, that gets applied to the ball when attracting to the player    //public, so we can get those to set the same values to DecoyBall
@@ -258,6 +255,45 @@ public class Ball : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (firstPlayerShot || secondPlayerShot)    //Sphere casting here when the player shot the ball to the goal to check for hitting score-registering parts
+        {            
+            RaycastHit hit;  //It's a struct, so we can create it every time with no overhead
+            float castDistance = rigidbody.velocity.magnitude * Time.fixedDeltaTime + 0.1f;    //We are actually VARYING the SphereCast distance depending on the ball speed, multiplying by fixed frame time to get distance = speed * time.
+            //Adding 0.1 for safety window in case the distance would be not enough to detect scoring before the next fixed time step comes to have the ball rejected (0.4 ball radius also kinda extends the distance)
+            
+            //Casting from ball center, ball has radius of 0.4, casting in the direction of ball's velocity, only detecting GoalBallSolid layer which is #19
+            if (Physics.SphereCast(rigidbody.position, 0.4f, rigidbody.velocity, out hit, castDistance, 1 << 19))   
+            {
+                if (goal.goalType == Goal.GoalType.FourSided)   //4-sided goal scores on any collision with the ball
+                {
+                    Score();        //Run a function to count the score to the player and flash the goal                    
+                }
+                else if (goal.goalType == Goal.GoalType.TwoSided || goal.goalType == Goal.GoalType.TwoSidedPhantom) //For two types of two-sided goal
+                {
+                    Vector3 normal = hit.normal;  //Normal to the contact point of the goal
+                    Vector3 goalFacing = goal.ballCollider.TransformDirection(Vector3.forward);    //The direction where the goal is facing 
+
+                    //Z-axis of the goal always points from one of the goal-scoring parts of the goal
+                    if (normal == goalFacing || normal == -goalFacing)      //For 2-sided goal, if we hit front or back side of it
+                    {
+                        Score();                        
+                    }
+                    
+                }
+                else if (goal.goalType == Goal.GoalType.OneSided)
+                {
+                    Vector3 normal = hit.normal;  //Normal to the contact point of the goal
+                    Vector3 goalFacing = goal.ballCollider.TransformDirection(Vector3.forward);    //The direction where the goal is facing 
+
+                    if (normal == goalFacing)   //If we hit 1-sided goal exclusively from the front
+                    {
+                        Score();
+                    }                   
+                }               
+            }
+            
+        }
+
         if (PlayerRadar.ballPossession == false)    //If the ball is in the arena (not possessed)   
         {
             rigidbody.AddForce(additionalGravity, ForceMode.Acceleration);    //Constantly applying additional gravity
@@ -283,11 +319,7 @@ public class Ball : MonoBehaviour
             }
             
         }
-
-        if (firstPlayerShot || secondPlayerShot)    //We need to remember the ball previous velocity when some player actually shoots the ball         
-        { 
-            prevVel = rigidbody.velocity;
-        }
+        
     }
 
     private void AttractBall(Vector3 target, float attractForce, float attractAngle)    //Function to run when attracting to the player or to the goal, target - to attract to
@@ -311,8 +343,6 @@ public class Ball : MonoBehaviour
         if (additionalGravity.y == -20) ballMaterial.color = new Color(ballMaterial.color.r, ballMaterial.color.g, ballMaterial.color.b, originalAlpha * 0.03f);    //Hack to get BurningBall alpha to very small amount instead of 0.4
         else ballMaterial.color = new Color(ballMaterial.color.r, ballMaterial.color.g, ballMaterial.color.b, originalAlpha * 0.4f);     //Make ball half-transparent
         
-        rigidbody.velocity = prevVel;   //Set the ball velocity back to what it was before colliding (so the ball goes through the goal and doesn't bounce from it)
-        
         yield return scoreDelay;    //Wait 5 seconds
 
         ballMaterial.DOFade(originalAlpha, additionalGravity.y == -20 ? 1f : 0.2f); //Cool-ass way to use ternary operator in a function parameter. 
@@ -331,48 +361,12 @@ public class Ball : MonoBehaviour
                 float distance = Vector3.Distance(rigidbody.position, goalTransform.position);  //Calculate the distance from the goal
                 Miss(distance);     //To decide if it was "Near Miss" or "Way Off"                
             }
-            else if (other.gameObject.layer == 19) //GoalBallSolid layer. If player hit the score
-            {                
-                if (goal.goalType == Goal.GoalType.FourSided)   //4-sided goal scores on any collision with the ball
-                {
-                    Score();        //Run a function to count the score to the player and flash the goal
-                }
-                else if (goal.goalType == Goal.GoalType.TwoSided || goal.goalType == Goal.GoalType.TwoSidedPhantom)
-                {
-                    Vector3 normal = other.contacts[0].normal;  //Normal to the contact point of the goal
-                    Vector3 goalFacing = goal.ballCollider.TransformDirection(Vector3.forward);    //The direction where the goal is facing 
-
-                    //Z-axis of the goal always points from one of the goal-scoring parts of the goal
-                    if (normal == goalFacing || normal == -goalFacing)      //For 2-sided goal, if we hit front or back side of it
-                    {
-                        Score();        
-                    }
-                    else    //If we hit some other part - REJECTED
-                    {
-                        GameController.announcer.Rejected();   //Let announcer say "Rejected"
-                        playerMissMessage();                    //Write miss depending on what player shot the ball
-                    }
-
-                }
-                else if (goal.goalType == Goal.GoalType.OneSided)
-                {
-                    Vector3 normal = other.contacts[0].normal;  //Normal to the contact point of the goal
-                    Vector3 goalFacing = goal.ballCollider.TransformDirection(Vector3.forward);    //The direction where the goal is facing 
+            else if (other.gameObject.layer == 19) //GoalBallSolid layer. 
+            {                        //If the ball actually reaches and physically collides with a goal, it's always 'Reject', because scoring would get counted before collision (which would disable the collider for the ball to pass through)
+                GameController.announcer.Rejected();    //Let announcer say 'Rejected'
+                playerMissMessage();                    //Depending on which player shot the ball, write the message 'Miss' for respective player
                    
-                    if (normal == goalFacing)   //If we hit 1-sided goal exclusively from the front
-                    {
-                        Score();
-                    }
-                    else
-                    {
-                        GameController.announcer.Rejected();    //Same
-                        playerMissMessage();                         
-                    }
-
-                }
-
-
-                losePossession(true);   //After hitting the goal, whether scored or not, reset ALL possession flags
+                losePossession(true);   //After getting rejected, reset ALL possession flags
             }    
         }
         else if (firstPlayerPossessed || secondPlayerPossessed) //If the player had the ball, but didn't shoot it (got fumbled), reset the bools to no one possessing the ball when the ball collides with anything 
@@ -406,6 +400,8 @@ public class Ball : MonoBehaviour
         GameController.Controller.PlayerTwo.Score();
         GameController.Controller.scoreBoard.UpdateScore(); //Update the score on the scoreboard
 
+        losePossession(true);   //After scoring the goal, reset ALL possession flags
+
         if (GameController.Controller.isPlayToScore)    //If the game is set to be score-based, process here during scoring if we should end the game
         {
             //If either of the players have a score value equal to the needed amound of scores, launch EndPeriod function that would end the game (remember that needed score is stored in PeriodTime)
@@ -415,8 +411,6 @@ public class Ball : MonoBehaviour
             }
         }
         
-        
-
     }
 
 #endregion
