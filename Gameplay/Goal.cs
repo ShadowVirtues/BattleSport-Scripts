@@ -81,7 +81,7 @@ public class Goal : MonoBehaviour
             goalMaterial.DOFade(0, 1);          //Start fading tween over 1 second
             yield return fadeDelay;             //Wait one second
             goalMaterial.color = Color.white;   //Set the color back to opaque
-            Vector3 rand = GameController.FindRandomPosition(10, 2, 0, spawnCheckColliders);    //Launch function to find random position on the map where we could insert the goal
+            Vector3 rand = GameController.FindRandomPosition(10, 2, 0);    //Launch function to find random position on the map where we could insert the goal
 
             transform.position = new Vector3(rand.x, transform.position.y, rand.z); //Place the goal to this position on it's initial height (Y component)
 

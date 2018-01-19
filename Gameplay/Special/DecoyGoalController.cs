@@ -55,7 +55,7 @@ public class DecoyGoalController : MonoBehaviour
 
     private void RandomizeGoal(int i)   //We use the same code in 3 places, so make it into function
     {
-        decoyGoalObjects[i].transform.position = GameController.FindRandomPosition(10, 2, spawnHeight, spawnCheckColliders);    //Use our badass function to find the position for goal to spawn       
+        decoyGoalObjects[i].transform.position = GameController.FindRandomPosition(10, 2, spawnHeight);    //Use our badass function to find the position for goal to spawn       
 
         Vector3 movement = Random.onUnitSphere; //Method of generating the random direction on a circle. Unity doesn't have a specific function for it, so we use existing ones. First generate the random point on a sphere surface
         movement.y = 0; //Set Y component to 1
@@ -78,7 +78,7 @@ public class DecoyGoalController : MonoBehaviour
 
     public void Scored()    //Function that runs from Goal.cs when scoring, so we get back all goals that got disabled from throwing ball into them
     {       
-        //TODO Return them back after testing
+        
         for (int i = 0; i < decoyGoalCount; i++)    //For all goals, check if they for whatever reason got out of bounds (their reflecting off arena bounds isn't 100% stable)
         {
             if (decoyGoalObjects[i].transform.position.x > GameController.Controller.ArenaDimension / 2 ||
@@ -87,7 +87,16 @@ public class DecoyGoalController : MonoBehaviour
                 decoyGoalObjects[i].transform.position.z < -GameController.Controller.ArenaDimension / 2)
             {
                 Debug.LogError($"DECOY GOAL {i} IS OUT OF BOUNDS!!!");  //Log error, if that happened, indicating the goal number that it happened with
-                Debug.Break();
+
+                if (random) //Get this goal back
+                {
+                    RandomizeGoal(i);   
+                }
+                else
+                {
+                    RandomizeGoalGuide(i);
+                }
+                
             }
         }
         

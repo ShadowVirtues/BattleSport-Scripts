@@ -101,8 +101,8 @@ public class PlayerRadar : MonoBehaviour
         radarScale = value;     //Set the coefficient to count during icon scale setting and in radar position calculation
         try
         {
-            Update();   //This is to apply the position when scaling the radar. Will not have all references when applying the scale in the start of the game, that's why simply not executing it if it can't. It will get executed during setting the value in settings
-        }
+            UpdateRadar();   //This is to apply the position when scaling the radar. Will not have all references when applying the scale in the start of the game,
+        }                    //that's why simply not executing it if it can't. It will get executed during setting the value in settings
         catch {}
 
 
@@ -118,12 +118,20 @@ public class PlayerRadar : MonoBehaviour
     }
 
 	void Update ()
-	{        
-	    if (ballPossession == false)    //Only if no one possesses the ball show it on the radar
-	    {
-	        ballRadar.anchoredPosition = RadarPosition(ball);
-        }	    
-	    goalRadar.anchoredPosition = RadarPosition(goal);   //Show all the items on the radar
-	    enemyRadar.anchoredPosition = RadarPosition(enemy);
+	{
+	    if (Time.timeScale == 0) return;    //Don't update the radar during the pause
+
+	    UpdateRadar();
+    }
+
+    private void UpdateRadar()
+    {
+        if (ballPossession == false)    //Only if no one possesses the ball show it on the radar
+        {
+            ballRadar.anchoredPosition = RadarPosition(ball);
+        }
+        goalRadar.anchoredPosition = RadarPosition(goal);   //Show all the items on the radar
+        enemyRadar.anchoredPosition = RadarPosition(enemy);
+
     }
 }

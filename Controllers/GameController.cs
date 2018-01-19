@@ -230,7 +230,7 @@ public class GameController : MonoBehaviour
 
     private void SpawnPowerup(Powerup powerup)  
     {
-        powerup.transform.position = FindRandomPosition(1, 0.5f, 0, spawnCheckColliders);   //Find random position for powerup and put it there
+        powerup.transform.position = FindRandomPosition(1, 0.5f, 0);   //Find random position for powerup and put it there
         powerup.gameObject.SetActive(true); //Enable it
 
         if (Powerups.Any(x => x.gameObject.activeSelf == false))    //If there are disabled powerups (not all of them are spawned), run a countdown for the next powerup
@@ -239,9 +239,9 @@ public class GameController : MonoBehaviour
         }
     }
 
-    private Collider[] spawnCheckColliders = new Collider[2];   //Premade array of colliders to not have any garbage allocated when checking where to spawn a powerup after death with "CheckCapsule"
+    private static Collider[] spawnCheckColliders = new Collider[2];   //Premade array of colliders to not have any garbage allocated when checking where to spawn a powerup after death with "CheckCapsule"
 
-    public static Vector3 FindRandomPosition(float height, float radius, float heightToSpawn, Collider[] spawnCheckColliders, Vector3 defaultSpawn = default(Vector3))    //Algorithm for finding random position on the map to spawn whatever (dead player, teleporting goal, powerup)
+    public static Vector3 FindRandomPosition(float height, float radius, float heightToSpawn, Vector3 defaultSpawn = default(Vector3))    //Algorithm for finding random position on the map to spawn whatever (dead player, teleporting goal, powerup)
     {
         //The algorithm is checking the cylinder from the ground to the [height] parameter of the function. There IS some object in the random X-Z point 
         //of the arena if this cylinder has something but the floor in it, and if it has, then try again and find another point where there is only a floor in the cylinder
@@ -249,10 +249,8 @@ public class GameController : MonoBehaviour
 
         int offset = 4;             //Offset from the arena border so player doesn't spawn right next to a wall
         float levelDimension = GameController.Controller.ArenaDimension / 2;  //Get arena dimension (total X=Y length) from GameController. To convert it into max coordinate, need to divide by 2
-
-        int iter = 0;   //A way to stop the infinite loop of finding the random spawn point if we can't find it
-
-        while (true)    //There is the infinite loop
+        
+        for (int iter = 0; iter < 100; iter++)
         {
             Array.Clear(spawnCheckColliders, 0, spawnCheckColliders.Length);    //Clear the array of colliders just in case before performing the next check 
 
@@ -262,17 +260,18 @@ public class GameController : MonoBehaviour
             for (int i = 0; i < 2; i++) //The spawnCheckColliders array has only the length of 2, because the condition when there is only the floor found is when its the first collider found and the second collider is null
             {                           //If the first collider isn't the floor, or second collider isn't the floor as well, then its the wrong condition
                 if (spawnCheckColliders[0].gameObject.layer == 14 && spawnCheckColliders[1] == null)
-                {
+                {                   
                     return new Vector3(coord.x, heightToSpawn, coord.y);    //Return position to spawn whatever object at
                 }
-            }
-            iter++;
-            if (iter > 100)
-            {
-                Debug.LogError("Couldn't find the spawn site"); //If we performed 100 checks and haven't found a spawn site, there must be something wrong
-                return defaultSpawn;
-            }
+            }           
         }
+
+        Debug.LogError("Couldn't find the spawn site"); //If we performed 100 checks and haven't found a spawn site, there must be something wrong
+        return defaultSpawn;
+
+
+
+
     }
 
     #endregion

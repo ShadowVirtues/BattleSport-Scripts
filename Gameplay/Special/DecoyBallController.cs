@@ -22,7 +22,7 @@ public class DecoyBallController : MonoBehaviour
             Destroy(decoyBallObjects[i].GetComponent<Ball>());      //Removing the "Ball" script component from it
             decoyBalls[i] = decoyBallObjects[i].AddComponent<DecoyBall>();  //And adding DecoyBall component
 
-            decoyBallObjects[i].transform.position = GameController.FindRandomPosition(10, 1, GameController.Controller.BallSpawn.position.y, spawnCheckColliders);     //Find random position to put the ball to with our badass function
+            decoyBallObjects[i].transform.position = GameController.FindRandomPosition(10, 1, GameController.Controller.BallSpawn.position.y);     //Find random position to put the ball to with our badass function
 
             decoyBalls[i].additionalGravity = GameController.Controller.ball.additionalGravity; //Set parameters to decoy ball from the legit ball
             decoyBalls[i].attractingForce = GameController.Controller.ball.attractingForce;
@@ -81,7 +81,7 @@ public class DecoyBallController : MonoBehaviour
         {
             decoyBallObjects[i].SetActive(false);   //Reenable balls to stop their coroutine and at the same time we need to disable all balls if they got disabled by passing over them
             decoyBallObjects[i].SetActive(true);
-            decoyBallObjects[i].transform.position = GameController.FindRandomPosition(10, 1, GameController.Controller.BallSpawn.position.y, spawnCheckColliders); //Randomly position them on the height of the legit ball
+            decoyBallObjects[i].transform.position = GameController.FindRandomPosition(10, 1, GameController.Controller.BallSpawn.position.y); //Randomly position them on the height of the legit ball
             decoyBalls[i].rigidbody.velocity = Vector3.zero;    //Zero their velocity
 
             decoyBalls[i].SetEverythingBack();      //Launch function on all balls to get their material and trigger back

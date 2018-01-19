@@ -206,7 +206,7 @@ public class Player : MonoBehaviour
         
         explosion.SetActive(false);     //Explosion quasi-animation (particle system) goes on for the whole time of death (tank is smoking), that's why disable it at the very end
         
-        transform.position = GameController.FindRandomPosition(10, 2, 5, spawnCheckColliders, new Vector3(0, 20, 0));  //Find random position on the map by checking the cylinder where tank can fall from "the sky" to the ground without anything interrupting
+        transform.position = GameController.FindRandomPosition(10, 2, 5, new Vector3(0, 20, 0));  //Find random position on the map by checking the cylinder where tank can fall from "the sky" to the ground without anything interrupting
         transform.rotation = Quaternion.Euler(0, Random.Range(0,4) * 90, 0);    //Set tank rotation to random between 0,90,180,270 degrees (perpendicular to walls)
 
         movement.enabled = true;        //Enable player ability to move
