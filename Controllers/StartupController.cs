@@ -3,20 +3,21 @@ using TeamUtility.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-//StartupController is present in menu scenes where you start setting up the game, then persists until the actual game scene. During setting up the game, different menu controllers 'Find" StartupController object, and fill their settings in it
+//StartupController is present in menu scenes where you start setting up the game, then persists until the actual game scene. During setting up the game, different menu controllers reference StartupController object, and fill their settings in it
 
 public class StartupController : MonoBehaviour
 {
-    public static StartupController Controller; //Reference to current instance of StartupController, now only gets used to set up the arena AFTER one frame of LoadScene, and BEFORE all arena objects Awakes
+    public static StartupController Controller; //Reference to current instance of StartupController, 
     
-    public GameObject[] Tanks;      //StartupController has all the gameplay Tanks prefabs to inject chosen ones into loaded arena scene
-    public GameObject[] Balls;      //Same for all balls
-    public GameObject[] Powerups;   //All powerups
-    public GameObject PlayerPrefab; //And PlayerPrefab that also gets injected
+    [Header("Instantiatable Objects")]  //All stuff that StartupController can instantiate
+    [SerializeField] private GameObject[] Tanks;      //StartupController has all the gameplay Tanks prefabs to inject chosen ones into loaded arena scene
+    [SerializeField] private GameObject[] Balls;      //Same for all balls
+    [SerializeField] private GameObject[] Powerups;   //All powerups
+    [SerializeField] private GameObject PlayerPrefab; //And PlayerPrefab that also gets injected
 
     [SerializeField] private GameObject audioManagerPrefab;     //AudioManagerPrefab that also gets loaded into arena from here (to not have it referenced on each arena GameController
     [SerializeField] private GameObject GameUIPrefab;                 //Prefab of GameUI having all stuff like starting countdown, options menu, periods UI, GameStats
-    [SerializeField] private GameObject ballCameraPrefab;       //Prefab with camera for Ball Possession, that also has EventSystem on it
+    [SerializeField] private GameObject ballCameraPrefab;       //Prefab with camera for Ball Possession
 
     [Header("Quick Match")]
     [SerializeField] private QuickMatch quickMatch;     //Reference to script in MainMenu, where all the stuff for quick match is held

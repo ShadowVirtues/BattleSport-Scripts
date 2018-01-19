@@ -25,7 +25,7 @@ public class Goal : MonoBehaviour
 
     void Awake()    //Those all depend on actual goal which is already in the scene from the start, so no errors with objects not yet instantiated
     {
-        ballCollider = transform.Find("BallCollider");  //Get the child object
+        ballCollider = transform.GetChild(0);  //Get the child object
 
         ballSolidCollider = ballCollider.GetComponent<Collider>();       //Getting dose references  
         goalMaterial = ballCollider.GetComponent<Renderer>().material;  //(Parent goal object has only the script component attached)

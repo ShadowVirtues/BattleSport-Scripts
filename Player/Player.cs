@@ -13,22 +13,16 @@ using Random = UnityEngine.Random;
     DO NEXT:       
     
     
-    Consider we have lowered Mixer menu volumes
+    Sometimes massive lag when pressing GAME button, leading to the sequence already completing
     Change arena preview for 22
     No slow tanks on big maps
-    After finishing the game, only player two had controls in menu
-    Player Two could control with WASD, no arrows at all (including up-down), player one could control with up down for both stick and d-pad, no left-right 
     
+
+
 
     Make different arenas between periods, maybe play other random arena
     Maybe make so period win just gets you a point like best of 5
 
-
-
-    ADDITIONAL IDEAS:
-    
-    Maybe recover balls position after scoring to get rid of that jitter, using bounds stuff?
-    
     
 
     
@@ -211,7 +205,7 @@ public class Player : MonoBehaviour
         cameraAnim.enabled = false;     //Camera animation returns to its initial position after some animation time, so to make sure it had the time to return, disable animator only after the death timer
         
         explosion.SetActive(false);     //Explosion quasi-animation (particle system) goes on for the whole time of death (tank is smoking), that's why disable it at the very end
-        // TODO increase height when made the highest arena
+        
         transform.position = GameController.FindRandomPosition(10, 2, 5, spawnCheckColliders, new Vector3(0, 20, 0));  //Find random position on the map by checking the cylinder where tank can fall from "the sky" to the ground without anything interrupting
         transform.rotation = Quaternion.Euler(0, Random.Range(0,4) * 90, 0);    //Set tank rotation to random between 0,90,180,270 degrees (perpendicular to walls)
 

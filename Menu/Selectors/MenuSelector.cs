@@ -19,8 +19,8 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
 
     public int GetIndex => index;                   //'Get' roperty to get the index, SetIndex is implemented in each selector as a method
 
-    protected abstract string NextOption { get; }       //String, because every value has at least a string value to show on screen, the other UI fields that get changed by switching options are implemented in actual derived classes
-    protected abstract string PreviousOption { get; }   //The usage for those properties is all the same and is defined here, in the base class, but getting this value is different for each derived selector
+    protected abstract string NextOption();       //String, because every value has at least a string value to show on screen, the other UI fields that get changed by switching options are implemented in actual derived classes
+    protected abstract string PreviousOption();   //The usage for those methods is all the same and is defined here, in the base class, but getting this value is different for each derived selector
 
     private const string turningAxisName = "Turning";   //"Turning" buttons will switch between options for keyboard and controller input
     private const string strafingAxisName = "Strafing";   //"Turning" buttons will switch between options for keyboard and controller input
@@ -180,12 +180,12 @@ public abstract class MenuSelector : MonoBehaviour, IPointerEnterHandler, IDesel
 
     public void NextItem()      //Public funciton that gets called from pressing controller buttons in Update here, and is set on Button Event
     {
-        OptionValue.text = NextOption;  //Set the showed value in the UI to the next option in the list (NextOption is a 'get' property, and that's where the index of chosen option gets changed)
+        OptionValue.text = NextOption();  //Set the shown value in the UI to the next option in the list (the index of chosen option gets changed in NextOption())
     }
 
     public void PreviousItem()
     {
-        OptionValue.text = PreviousOption;
+        OptionValue.text = PreviousOption();
     }
 
     public void OnPointerEnter(PointerEventData eventData)  //This is so when we hover over the selectable, it gets focused and selected

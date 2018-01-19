@@ -30,53 +30,49 @@ public class ArenaSelector : MenuSelector
     
     public Arena Option => Options[index]; //This gets called when confirming game settings, for transfering the selected value to the loading scene (we need the whole Arena object with all its fields)
 
-    protected override string NextOption                //To get the next arena from the list
+    protected override string NextOption()                //To get the next arena from the list
     {
-        get                 //So, as we have not all arenas created, the arena list has full 70 item length, 
-        {                   //and the arenas that are made are put into their actual number in the list (Arena 22 to Options[22]), that way we have to look for the next non-null arena in the list
-            for (int i = index + 1; i < Options.Count; i++) //From the next item from current index, and until the end of the list
+        //So, as we have not all arenas created, the arena list has full 70 item length, 
+        //and the arenas that are made are put into their actual number in the list (Arena 22 to Options[22]), that way we have to look for the next non-null arena in the list
+        for (int i = index + 1; i < Options.Count; i++) //From the next item from current index, and until the end of the list
+        {
+            if (Options[i] != null) //If the arena with current index isn't in the list, we look further, but if current index is NOT null and has some arena
             {
-                if (Options[i] != null) //If the arena with current index isn't in the list, we look further, but if current index is NOT null and has some arena
-                {
-                    ChangeIndex(i);          //Set the index to this arena index, show its name on screen and fill everything on screen about it
-                    return Options[index].Name;
-                }
+                ChangeIndex(i);          //Set the index to this arena index, show its name on screen and fill everything on screen about it
+                return Options[index].Name;
             }
-            for (int i = 0; i < index; i++) //If we didn't return anything from checking "in front" of current index, look in the list from the very start
-            {
-                if (Options[i] != null) //All the same
-                {
-                    ChangeIndex(i);
-                    return Options[index].Name;
-                }
-            }
-            return Options[index].Name; //There may be the case when there is just one single arena in the list, so if we didn't find any arena, just return the current one (IntelliSense asks for default value to return in case the loops don't return anything)
         }
+        for (int i = 0; i < index; i++) //If we didn't return anything from checking "in front" of current index, look in the list from the very start
+        {
+            if (Options[i] != null) //All the same
+            {
+                ChangeIndex(i);
+                return Options[index].Name;
+            }
+        }
+        return Options[index].Name; //There may be the case when there is just one single arena in the list, so if we didn't find any arena, just return the current one (IntelliSense asks for default value to return in case the loops don't return anything)
+           
     }
 
-    protected override string PreviousOption    //All the same stuff, but in the opposite direction
-    {
-        get
+    protected override string PreviousOption()    //All the same stuff, but in the opposite direction
+    {     
+        for (int i = index - 1; i >= 0; i--)
         {
-            for (int i = index - 1; i >= 0; i--)
+            if (Options[i] != null)
             {
-                if (Options[i] != null)
-                {
-                    ChangeIndex(i);
-                    return Options[index].Name;
-                }
+                ChangeIndex(i);
+                return Options[index].Name;
             }
-            for (int i = Options.Count - 1; i > index; i--)
-            {
-                if (Options[i] != null) //We write the same stuff 4 times and turns out we can't actually make it into function, because we don't necessarily return at every iteration, returning only when the condition is met
-                {
-                    ChangeIndex(i);
-                    return Options[index].Name;
-                }
-            }
-            return Options[index].Name;
-
         }
+        for (int i = Options.Count - 1; i > index; i--)
+        {
+            if (Options[i] != null) //We write the same stuff 4 times and turns out we can't actually make it into function, because we don't necessarily return at every iteration, returning only when the condition is met
+            {
+                ChangeIndex(i);
+                return Options[index].Name;
+            }
+        }
+        return Options[index].Name;  
     }
     
     private void ChangeIndex(int i)     //Function that fills all fields when changing arena selector

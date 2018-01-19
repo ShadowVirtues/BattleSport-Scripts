@@ -28,38 +28,31 @@ public class ValueSelector : MenuSelector   //This selector selects only numeric
     
     public int Option => Options[index];  //This gets called when confirming game settings, for transfering the selected value to the loading scene
 
-    protected override string NextOption    //To get next option and increment the index
+    protected override string NextOption()    //To get next option and increment the index
     {
-        get
+        if (index + 1 < Options.Length)     //If we are still not exceeding the length of the array
         {
-            if (index + 1 < Options.Length)     //If we are still not exceeding the length of the array
-            {
-                index++;                        //Increment the index and show the next option
-                return Options[index].ToString();
-            }
-            else    //If we reach the end of available options, set index to 0 and show the first item
-            {
-                index = 0;
-                return Options[index].ToString();
-            }
+            index++;                        //Increment the index and show the next option
+            return Options[index].ToString();
         }
+        else    //If we reach the end of available options, set index to 0 and show the first item
+        {
+            index = 0;
+            return Options[index].ToString();
+        }           
     }
 
-    protected override string PreviousOption    //To get previous option and decrement the index
+    protected override string PreviousOption()    //To get previous option and decrement the index
     {
-        get
+        if (index - 1 >= 0) //If we are still not going below 0 array index
         {
-            if (index - 1 >= 0) //If we are still not going below 0 array index
-            {
-                index--;        //Decrement the index and show the previous option
-                return Options[index].ToString();
-            }
-            else                //If we go below 0 in array index
-            {
-                index = Options.Length - 1; //Set index to the last option of the array and show it
-                return Options[index].ToString();                
-            }
-            
+            index--;        //Decrement the index and show the previous option
+            return Options[index].ToString();
+        }
+        else                //If we go below 0 in array index
+        {
+            index = Options.Length - 1; //Set index to the last option of the array and show it
+            return Options[index].ToString();                
         }
     }
     

@@ -77,7 +77,7 @@ public class PlayerMovement : MonoBehaviour
             }
             else if (turning.axis == 0 || turning.axis == 3) //Left or right stick X axis
             {
-                analogTurning = Const.JoystickFactor;      //3 for stick
+                analogTurning = Const.JoystickFactor;      //4 for stick
             }
         }
 

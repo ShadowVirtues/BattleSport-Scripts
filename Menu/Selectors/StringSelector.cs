@@ -7,39 +7,32 @@ public class StringSelector : MenuSelector
     
     public string Option => Options[index];  //This gets called when confirming settings
 
-    protected override string NextOption    //To get next option and increment the index
+    protected override string NextOption()    //To get next option and increment the index
     {
-        get
+        if (index + 1 < Options.Count)     //If we are still not exceeding the length of the list
         {
-            if (index + 1 < Options.Count)     //If we are still not exceeding the length of the list
-            {
-                index++;                        //Increment the index and show the next option
-                return Options[index];
-            }
-            else    //If we reach the end of available options, set index to 0 and show the first item
-            {
-                index = 0;
-                return Options[index];
-            }
+            index++;                        //Increment the index and show the next option
+            return Options[index];
         }
+        else    //If we reach the end of available options, set index to 0 and show the first item
+        {
+            index = 0;
+            return Options[index];
+        }          
     }
 
-    protected override string PreviousOption    //To get previous option and decrement the index
+    protected override string PreviousOption()    //To get previous option and decrement the index
     {
-        get
+        if (index - 1 >= 0) //If we are still not going below 0 array index
         {
-            if (index - 1 >= 0) //If we are still not going below 0 array index
-            {
-                index--;        //Decrement the index and show the previous option
-                return Options[index];
-            }
-            else                //If we go below 0 in array index
-            {
-                index = Options.Count - 1; //Set index to the last option of the array and show it
-                return Options[index];
-            }
-
+            index--;        //Decrement the index and show the previous option
+            return Options[index];
         }
+        else                //If we go below 0 in array index
+        {
+            index = Options.Count - 1; //Set index to the last option of the array and show it
+            return Options[index];
+        }           
     }
 
     public void SetIndex(int ind)   //Set index for selector, when loading previous state of the menu

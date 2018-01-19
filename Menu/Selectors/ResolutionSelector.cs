@@ -20,39 +20,32 @@ public class ResolutionSelector : MenuSelector
 
     public Resolution Option => Options[index];  //This gets called when confirming game settings
 
-    protected override string NextOption    //To get next option and increment the index
+    protected override string NextOption()    //To get next option and increment the index
     {
-        get
+        if (index + 1 < Options.Length)     //If we are still not exceeding the length of the array
         {
-            if (index + 1 < Options.Length)     //If we are still not exceeding the length of the array
-            {
-                index++;                        //Increment the index and show the next option
-                return FormatResolution(Options[index]);
-            }
-            else    //If we reach the end of available options, set index to 0 and show the first item
-            {
-                index = 0;
-                return FormatResolution(Options[index]);
-            }
+            index++;                        //Increment the index and show the next option
+            return FormatResolution(Options[index]);
         }
+        else    //If we reach the end of available options, set index to 0 and show the first item
+        {
+            index = 0;
+            return FormatResolution(Options[index]);
+        }           
     }
 
-    protected override string PreviousOption    //To get previous option and decrement the index
+    protected override string PreviousOption()    //To get previous option and decrement the index
     {
-        get
+        if (index - 1 >= 0) //If we are still not going below 0 array index
         {
-            if (index - 1 >= 0) //If we are still not going below 0 array index
-            {
-                index--;        //Decrement the index and show the previous option
-                return FormatResolution(Options[index]);
-            }
-            else                //If we go below 0 in array index
-            {
-                index = Options.Length - 1; //Set index to the last option of the array and show it
-                return FormatResolution(Options[index]);
-            }
-
+            index--;        //Decrement the index and show the previous option
+            return FormatResolution(Options[index]);
         }
+        else                //If we go below 0 in array index
+        {
+            index = Options.Length - 1; //Set index to the last option of the array and show it
+            return FormatResolution(Options[index]);
+        }         
     }
 
     private string FormatResolution(Resolution res) //Format the resolution from 'Resolution' struct to string

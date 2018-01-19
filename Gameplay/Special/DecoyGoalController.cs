@@ -91,26 +91,6 @@ public class DecoyGoalController : MonoBehaviour
             }
         }
         
-        //if (random) //If random goal spawning
-        //{
-        //    for (int i = 0; i < decoyGoalCount; i++)
-        //    {
-        //        if (decoyGoalObjects[i].activeSelf == false)    //Only do something for disabled goals
-        //        {
-        //            RandomizeGoal(i);    //Put a goal in random spot with random movement vector
-                    
-        //            decoyGoalObjects[i].SetActive(true);    //Finally enable the goal back
-        //        }
-        //    }
-        //}
-        //else    //If goals-on-lines
-        //{
-        //    for (int i = 0; i < decoyGoalCount; i++)
-        //    {               
-        //        decoyGoalObjects[i].SetActive(true);            //Just enable back all decoy goals      
-        //    }
-        //}
-        
         for (int i = 0; i < decoyGoalCount; i++)
         {
             if (decoyGoalObjects[i].activeSelf == false)    //Only do something for disabled goals

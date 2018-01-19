@@ -12,45 +12,38 @@ public class TankSelector : MenuSelector
 
     public string Option => Options[index].name;  //This gets called when confirming game settings, for transfering the selected tank to the loading scene (we compare the name of Tank UI prefabs with "playable" Tank prefabs
 
-    protected override string NextOption    //To select the next tank
+    protected override string NextOption()    //To select the next tank
     {
-        get
+        Options[index].gameObject.SetActive(false);    //A slight hack, cuz during 'get'ting the tank name, we also enable and disable tank models rotating on the screen, so this line disables previosly selected tank, before changing the index
+        if (index + 1 < Options.Count)      //Same stuff as for value selector, if we are still within actual array length
         {
-            Options[index].gameObject.SetActive(false);    //A slight hack, cuz during 'get'ting the tank name, we also enable and disable tank models rotating on the screen, so this line disables previosly selected tank, before changing the index
-            if (index + 1 < Options.Count)      //Same stuff as for value selector, if we are still within actual array length
-            {
-                index++;                        //Increment the index
-                ChangeIndex();   //Enable the tank with new index and fill the parameters sliders
-                return Options[index].name.ToUpper();   //And finally return the name of the tank to show (all options in the menu are written with uppercase letters)
-            }
-            else                                //If we went over array length, show the first tank with index 0
-            {
-                index = 0;
-                ChangeIndex();
-                return Options[index].name.ToUpper();
-            }
+            index++;                        //Increment the index
+            ChangeIndex();   //Enable the tank with new index and fill the parameters sliders
+            return Options[index].name.ToUpper();   //And finally return the name of the tank to show (all options in the menu are written with uppercase letters)
         }
+        else                                //If we went over array length, show the first tank with index 0
+        {
+            index = 0;
+            ChangeIndex();
+            return Options[index].name.ToUpper();
+        }          
     }
 
-    protected override string PreviousOption    //To select the previous tank
+    protected override string PreviousOption()    //To select the previous tank
     {
-        get
+        Options[index].gameObject.SetActive(false);    //Same stuff, just in the opposite order
+        if (index - 1 >= 0)
         {
-            Options[index].gameObject.SetActive(false);    //Same stuff, just in the opposite order
-            if (index - 1 >= 0)
-            {
-                index--;
-                ChangeIndex();
-                return Options[index].name.ToUpper();
-            }
-            else
-            {
-                index = Options.Count - 1;
-                ChangeIndex();
-                return Options[index].name.ToUpper();
-            }
-
+            index--;
+            ChangeIndex();
+            return Options[index].name.ToUpper();
         }
+        else
+        {
+            index = Options.Count - 1;
+            ChangeIndex();
+            return Options[index].name.ToUpper();
+        }          
     }
 
     private void ChangeIndex()  //Function that does the additional stuff to changing the selector value

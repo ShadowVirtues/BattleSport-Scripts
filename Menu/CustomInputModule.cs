@@ -93,10 +93,11 @@ namespace TeamUtility.IO
 	    /// </summary>
 	    [SerializeField] private string m_CancelButton = "Pause";
 
-	    [Header("General")]
+	    
 	    private AudioSource click;  //Click sound whenever user presses any vertical buttons (in allowed time-intervals), basically whenever vertical move actually executes. Used to PlayOneShot select sound through it as well
 
-	    [SerializeField] private AudioClip select;  //There it is!
+	    [Header("General")]
+        [SerializeField] private AudioClip select;  //There it is!
 
         [SerializeField] private float m_InputActionsPerSecond = 10;
 
@@ -341,7 +342,7 @@ namespace TeamUtility.IO
                     //shouldActivate |= !Mathf.Approximately(InputManager.GetAxisRaw(m_HorizontalAxis, PlayerID.One), 0.0f);
                     shouldActivate |= Mathf.Abs(InputManager.GetAxisRaw(m_VerticalAxis, PlayerID.One)) > dead;       
                 }
-                if (PlayerTwo)  //Changed
+                if (PlayerTwo)  
                 {
                     shouldActivate |= InputManager.GetButtonDown(m_SubmitButton, PlayerID.Two);             
                     shouldActivate |= InputManager.GetButtonDown(m_CancelButton, PlayerID.Two);              
@@ -730,10 +731,10 @@ namespace TeamUtility.IO
                     }
                     
                 }
-		        if (PlayerTwo)      //Changed
+		        if (PlayerTwo)     
 		        {
-		            //allow |= InputManager.GetButtonDown(m_HorizontalAxis, PlayerID.Two);      //Changed
-		            allow |= InputManager.GetButtonDown(m_VerticalAxis, PlayerID.Two);      //Changed
+		            //allow |= InputManager.GetButtonDown(m_HorizontalAxis, PlayerID.Two);   
+		            allow |= InputManager.GetButtonDown(m_VerticalAxis, PlayerID.Two);           
 
 		            if (PlayerTwoDevice > 1)
 		            {
