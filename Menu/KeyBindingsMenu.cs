@@ -12,7 +12,7 @@ public partial class Const  //Auxiliary class to keep constants in (partial, bec
     public const int DefaultDeadZone = 1;
 }
 
-//Disregarding script caching in the whole script here, because we GC.Collect every time we unpause the game 
+//Disregarding string caching in the whole script here, because we GC.Collect every time we unpause the game 
 public class KeyBindingsMenu : MonoBehaviour
 {
     [SerializeField] private Text playerLabel;          //Label on top of the panel "Player X Controls"

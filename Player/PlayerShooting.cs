@@ -9,19 +9,19 @@ public class PlayerShooting : MonoBehaviour
     [SerializeField] private GameObject laserPrefab;   //Laser prefab to shoot with
 
     private Player player;  //Reference to Player component on the player
-    private PlayerID playerNumber;  //Player number for handle mutual rocket collisions
-    private Tank tank;              //Reference to Tank component to get rocketPower, firePower and rocketSpawnPoints from
+    private PlayerID playerNumber;  //Player number for handling mutual rocket collisions
+    private Tank tank;              //Reference to Tank component to get rocketCount, firePower and rocketSpawnPoints from
     private Rigidbody playerRigidbody; //Reference to player Rigidbody for getting its Z velocity
 
     private GameObject[] Rockets;   //Array of pooled rockets
-    private Rigidbody[] rocketRigidbody;    //Array of rididbodies of pooled rockets
+    private Rigidbody[] rocketRigidbody;    //Array of rigidbodies of pooled rockets
     private Rocket[] rocket;                //Array of Rocket components of pooled rockets
 
     private GameObject[] Lasers;   //Array of pooled lasers
-    private Rigidbody[] laserRigidbody;    //Array of rididbodies of pooled lasers
+    private Rigidbody[] laserRigidbody;    //Array of rigidbodies of pooled lasers
     private Laser[] laser;                //Array of Laser components of pooled lasers
 
-    public float laserFireRate { private get; set; } = 0.25f;    //Setter is public to set the fire rate when picked TurboLazers, getter is private cuz *incapsulation*
+    public float laserFireRate { private get; set; } = 0.25f;    //Setter is public, to set the fire rate when picked TurboLazers, getter is private cuz *incapsulation*
     private int laserCount;
     private int playerRocketCount;          //Variable to hold rocket count of the player
     private const string rocketButtonName = "Rocket";        //Input for rocket shooting is handled here so caching this
@@ -30,7 +30,7 @@ public class PlayerShooting : MonoBehaviour
     [SerializeField] private AudioSource rocketSource;    //Each player has 3 AudioSources on them, two or which are for laser and rocket shot sound, which are self-interrupting
     [SerializeField] private AudioSource laserSource;      
 
-    public const float defaultRocketSpeed = 35; //Rocket speed is getting set here, it is getting amplified by player velocity in Z direction (it is used in Rocket.cs to calculate the rocket flight vector)
+    private const float defaultRocketSpeed = 35; //Rocket speed is getting set here, it is getting amplified by player velocity in Z direction (it is used in Rocket.cs to calculate the rocket flight vector)
     private const float minimalRocketSpeed = 20;    //Rocket minimal speed, so when the tank is moving back while shooting, rocket isn't super slow
     private const float defaultLaserSpeed = 60; //Same for lasers, except lasers don't push other players, so private
     private const float minimalLaserSpeed = 40;    //Laser minimal speed, so when the tank is moving back while shooting, laser isn't super slow
@@ -74,7 +74,7 @@ public class PlayerShooting : MonoBehaviour
 
         //=============================LASERS===========================
 
-        laserCount = 11;                         //9 laser instances are enough so you are able to shoot without running out of lasers with TurboLazers powerup
+        laserCount = 11;                         //11 laser instances are enough for you to be able to shoot without running out of lasers with TurboLazers powerup
         Lasers = new GameObject[laserCount];
         laserRigidbody = new Rigidbody[laserCount]; //Initializing arrays
         laser = new Laser[laserCount];

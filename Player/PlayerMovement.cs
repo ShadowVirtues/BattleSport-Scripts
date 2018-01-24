@@ -84,7 +84,7 @@ public class PlayerMovement : MonoBehaviour
 
 #if UNITY_EDITOR
         //QualitySettings.vSyncCount = 0;  // Tests for different fps
-        //Application.targetFrameRate = 250;
+        //Application.targetFrameRate = 30;
 #endif
     }
 
@@ -163,13 +163,15 @@ public class PlayerMovement : MonoBehaviour
     }
 
     void FixedUpdate () 
-	{       
-        float throttle = InputManager.GetAxisRaw(throttleAxisName, playerNumber) * acceleration;   //Get throttle input (W-S)
-        float strafing = InputManager.GetAxisRaw(strafingAxisName, playerNumber) * acceleration;   //Get strafing input (Q-E) for now
+	{
+        float throttle = InputManager.GetAxisRaw(throttleAxisName, playerNumber);   //Get throttle input (W-S)
+	    float strafing = InputManager.GetAxisRaw(strafingAxisName, playerNumber);   //Get strafing input (Q-E)
 
-        Vector3 inputVelocity = new Vector3(strafing, 0, throttle);  //Make a velocity vector from input
+	    Vector3 input = Vector3.ClampMagnitude(new Vector3(strafing, 0, throttle), 1);  //Make a vector from input, clamped to 1 (so tank doesn't accelerate faster diagonally
 
-	    Vector3 inputVelocityGlobal = transform.TransformDirection(inputVelocity);    //rigidbody.velocity vector is in global space, 'velocity' vector here is in local space, so transform it to global, relative to the player rotation
+	    Vector3 inputVelocity = input * acceleration;  //Make a velocity vector from input
+
+        Vector3 inputVelocityGlobal = transform.TransformDirection(inputVelocity);    //rigidbody.velocity vector is in global space, 'velocity' vector here is in local space, so transform it to global, relative to the player rotation
 
 	    Vector3 vel = rigidbody.velocity;   //Cache current tank velocity, cuz we use it a lot further
 
@@ -177,11 +179,11 @@ public class PlayerMovement : MonoBehaviour
         //If you are thrown over the top speed, the efficiency of your acceleration should be 0 in the direction of where you are moving currently with the speed over top speed. 
         //And there should be full efficiency of acceleration in the opposite direction of this speed. So we calculate the 'dot product' of your 'rigidbody.velocity' vector and 'velocityGlobal' vector,
         //Which outputs 1 if you try to accelerate to the same direction your velocity is pointing to, 0 - if perpendicular, 1 - if opposite (values in between also exist).
-        float dot = Vector2.Dot(new Vector2(vel.x, vel.z).normalized, new Vector2(inputVelocityGlobal.x, inputVelocityGlobal.z).normalized); //'normalized' cuz dot product is not normalized by default
-
+        
 	    if (magnitude2D(vel) > maxSpeed)    //Then if your velocity magnitude is higher than top speed
 	    {
-	        inputVelocity = 0.5f * (-dot + 1) * inputVelocity;    //Convert 'dot'-output, so it modifies the velocity to be 0 if you are trying to accelerate to the same direction of your speed, 0.5*acceleration if perpendicular to it, 1 if opposite
+	        float dot = Vector2.Dot(new Vector2(vel.x, vel.z).normalized, new Vector2(inputVelocityGlobal.x, inputVelocityGlobal.z).normalized); //'normalized' cuz dot product is not normalized by default
+            inputVelocity = 0.5f * (-dot + 1) * inputVelocity;    //Convert 'dot'-output, so it modifies the velocity to be 0 if you are trying to accelerate to the same direction of your speed, 0.5*acceleration if perpendicular to it, 1 if opposite
 	    }
         
         rigidbody.AddRelativeForce(inputVelocity, ForceMode.Acceleration); //Add force to your tank from the acceleration vector. 'Relative' because 'velocity' is also relative

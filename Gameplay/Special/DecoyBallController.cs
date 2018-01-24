@@ -6,8 +6,6 @@ public class DecoyBallController : MonoBehaviour
 
     private DecoyBall[] decoyBalls;         //Array of DecoyBall components
     private GameObject[] decoyBallObjects;  //Array of decoy ball GameObjects
-
-    private Collider[] spawnCheckColliders = new Collider[2];   //Usual stuff for CheckCapsule
     
     void Start()
     {

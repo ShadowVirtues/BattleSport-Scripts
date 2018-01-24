@@ -18,9 +18,7 @@ public class DecoyGoalController : MonoBehaviour
 
     private DecoyGoal[] decoyGoals;             //Arrays in which we pool all decoy goal GameObjects an their DecoyGoal components
     private GameObject[] decoyGoalObjects;
-
-    private Collider[] spawnCheckColliders = new Collider[2];   //Usual array for capsule cast
-
+    
     [SerializeField] private GameObject decoyGoalPrefab;        //Prefab of the decoy goal to spawn
 
     void Start()
@@ -35,14 +33,7 @@ public class DecoyGoalController : MonoBehaviour
             decoyGoalObjects[i] = Instantiate(decoyGoalPrefab, decoyGoalContainer.transform);   //Insatantiate goal into container and fill it into array
             decoyGoals[i] = decoyGoalObjects[i].GetComponent<DecoyGoal>();      //Into other array fill DecoyGoal component of the spawned goal
 
-            if (random) //If random goal placement
-            {
-                RandomizeGoal(i);   //Put a goal in random spot with random movement vector                
-            }
-            else    //Otherwise, goal movement along defined lines
-            {
-                RandomizeGoalGuide(i);
-            }
+            RandomizeGoalFromType(i); //Launch a function, that, depending on the goal randomization type, spawns them differently
 
             decoyGoals[i].speed = speed;    //Set goal movement speed
 
@@ -51,6 +42,18 @@ public class DecoyGoalController : MonoBehaviour
         Messenger.AddListener(GameController.SetEverythingBackMessage, SetEverythingBack);  //Add listener so the function here can run from global message of setting everything back 
         //Tthis is done for all objects we don't have references to in GameController
 
+    }
+
+    private void RandomizeGoalFromType(int i)
+    {
+        if (random) //If random goal placement
+        {
+            RandomizeGoal(i);   //Put a goal in random spot with random movement vector                
+        }
+        else    //Otherwise, goal movement along defined lines
+        {
+            RandomizeGoalGuide(i);
+        }
     }
 
     private void RandomizeGoal(int i)   //We use the same code in 3 places, so make it into function
@@ -88,15 +91,7 @@ public class DecoyGoalController : MonoBehaviour
             {
                 Debug.LogError($"DECOY GOAL {i} IS OUT OF BOUNDS!!!");  //Log error, if that happened, indicating the goal number that it happened with
 
-                if (random) //Get this goal back
-                {
-                    RandomizeGoal(i);   
-                }
-                else
-                {
-                    RandomizeGoalGuide(i);
-                }
-                
+                RandomizeGoalFromType(i);   //Get this goal back
             }
         }
         
@@ -104,15 +99,8 @@ public class DecoyGoalController : MonoBehaviour
         {
             if (decoyGoalObjects[i].activeSelf == false)    //Only do something for disabled goals
             {
-                if (random)
-                {
-                    RandomizeGoal(i);    //Put a goal in random spot with random movement vector
-                }
-                else
-                {
-                    RandomizeGoalGuide(i);
-                }
-                
+                RandomizeGoalFromType(i);
+
                 decoyGoalObjects[i].SetActive(true);    //Finally enable the goal back
             }
         }
@@ -128,15 +116,8 @@ public class DecoyGoalController : MonoBehaviour
     private void SetEverythingBack()    //Setting everything back on period end
     {
         for (int i = 0; i < decoyGoalCount; i++)
-        {         
-            if (random)     //If random spawning, then for all goals, generate random positions again
-            {
-                RandomizeGoal(i);  
-            }
-            else
-            {
-                RandomizeGoalGuide(i);
-            }
+        {
+            RandomizeGoalFromType(i);
 
             decoyGoalObjects[i].SetActive(true);    //Enable all goals, even if not random
         }

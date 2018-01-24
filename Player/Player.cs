@@ -16,7 +16,7 @@ using Random = UnityEngine.Random;
     Sometimes massive lag when pressing GAME button, leading to the sequence already completing
     Change arena preview for 22
     No slow tanks on big maps
-    
+    Fix explosion duration (WTF, It was working!!)
 
 
 
@@ -137,9 +137,7 @@ public class Player : MonoBehaviour
     [SerializeField] private Text messageBox;   //Text box in the middle of the screen to show messages on for players
     [HideInInspector] public string PlayerName;     //Player Name that gets set in the menu
     [SerializeField] private Text playerNameUI;   //Player Name textBox below player health
-
-    private Collider[] spawnCheckColliders = new Collider[2];   //Premade array of colliders to not have any garbage allocated when checking where to spawn a tank after death with "CheckCapsule"
-
+    
     private Material material;          //Tank material to modify it when the tank gets hit or picks up the ball
 
     private const string ballButtonName = "ShootBall";    //Caching button name for shooting the ball

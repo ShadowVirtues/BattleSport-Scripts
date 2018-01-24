@@ -37,16 +37,16 @@ public class DecoyGoal : MonoBehaviour
         //if (Physics.CheckBox(transform.position, Vector3.one * 0.75f, Quaternion.identity, 1 << 13))
         {
             movement *= -1; //If so, reverse the movement vector
-            StartCoroutine(threeFrames());  //Wait for 3 frames before being able to reflect again (so the goals don't get stuck into walls changing movement vector every frame returning 'true' in CheckSphere
+            StartCoroutine(reflectDelay());  //Wait for 3 frames before being able to reflect again (so the goals don't get stuck into walls changing movement vector every frame returning 'true' in CheckSphere
         }
     }
 
-    IEnumerator threeFrames()
+    private static readonly WaitForSeconds delay = new WaitForSeconds(0.1f);
+
+    IEnumerator reflectDelay()
     {
         justReflected = true;
-        yield return null;
-        yield return null;
-        yield return null;
+        yield return delay;
         justReflected = false;
     }
 

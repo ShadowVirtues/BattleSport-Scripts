@@ -69,9 +69,7 @@ public class Goal : MonoBehaviour
 
     private readonly WaitForSeconds teleportDelay = new WaitForSeconds(9);  //Goal teleports every 10 seconds, 9 seconds nothing happens, then over 1 second it fades out and appears somewhere else
     private readonly WaitForSeconds fadeDelay = new WaitForSeconds(1);
-
-    private Collider[] spawnCheckColliders = new Collider[2];   //Array where raycast would yield the results
-
+    
     IEnumerator Teleporting()   //A sequence of teleporting
     {
         while (teleporting) //Not sure if this is needed, maybe will be useful in period switching idk
